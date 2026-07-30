@@ -1,0 +1,29 @@
+Task 2 RED evidence
+===================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$task2ExitCode = $LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$task2ExitCode"
+exit $task2ExitCode
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_grid_rules.gd
+  GridPoint class exists: Expected a truthy value.
+  GridRules class exists: Expected a truthy value.
+  UnitDefinition class exists: Expected a truthy value.
+  UnitState class exists: Expected a truthy value.
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+Ran 3 test file(s): 2 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+Godot also reported that each of these expected RED resources was not found:
+- res://src/core/grid_point.gd
+- res://src/core/grid_rules.gd
+- res://src/core/unit_definition.gd
+- res://src/core/unit_state.gd
