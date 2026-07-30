@@ -47,7 +47,7 @@ deployments = Array[Dictionary]([{
 "unit_id": &"hollow-bow"
 }])
 objectives = Array[Dictionary]([{
-"target_id": &"bridge-captain",
+"target_id": &"captain-1",
 "type": &"unit_defeated"
 }])
 failure_conditions = Array[Dictionary]([{

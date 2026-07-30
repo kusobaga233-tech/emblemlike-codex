@@ -1,0 +1,32 @@
+Task 5 quality RED evidence
+===========================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path . --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_chapter_one_content.gd
+Victory targets the stable captain instance: Expected [{ "type": &"unit_defeated", "target_id": &"captain-1" }], got [{ "type": &"unit_defeated", "target_id": &"bridge-captain" }].
+ChapterOne names its canonical resource path: Expected a truthy value.
+ChapterOne ignores cache when loading canonical content: Expected a truthy value.
+ChapterOne does not duplicate canonical chapter copy: Expected a truthy value.
+ChapterOne does not duplicate canonical terrain data: Expected a truthy value.
+ChapterOne does not duplicate canonical deployment data: Expected a truthy value.
+ChapterDefinition exposes semantic validation: Expected a truthy value.
+ChapterDefinition exposes controlled validated duplication: Expected a truthy value.
+Objective dictionaries do not alias: Expected captain-1, got bridge-captain.
+ChapterDefinition exposes deep duplication: Expected a truthy value.
+Serialized chapter exposes semantic validation: Expected a truthy value.
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 6 test file(s): 5 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The RED failures are the expected missing quality behaviors, not test parse/runtime errors.

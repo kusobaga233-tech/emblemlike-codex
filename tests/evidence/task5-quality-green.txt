@@ -1,0 +1,37 @@
+Task 5 quality GREEN evidence
+=============================
+
+Full-suite command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path . --script res://tests/run_all.gd
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 6 test file(s): 6 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+Editor parse command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --editor --path . --quit
+
+Observed editor process exit code: 0
+
+The editor registered ChapterDefinition and ChapterOne without Parse Error or SCRIPT ERROR.
+The canonical chapter_one.tres emitted no parser warning. Missing-.uid warnings from unrelated
+pre-existing repository scripts were the only warnings during the first filesystem scan.
+
+Quality contracts verified by test_chapter_one_content.gd:
+- canonical victory target is the stable instance id captain-1;
+- captain-1 remains resolvable when two deployments share bridge-captain as their unit definition;
+- bridge-captain becomes an ambiguous reference in that two-captain scenario;
+- chapter_one.tres is the single content source and ChapterOne.build() loads with CACHE_MODE_IGNORE;
+- repeated builds deep-copy nested arrays, dictionaries, PackedStringArray values, and Resources;
+- the semantic validator rejects every required malformed chapter condition with structured errors;
+- the canonical chapter validates without errors.
