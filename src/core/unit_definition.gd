@@ -11,6 +11,9 @@ var defense: int
 var resistance: int
 var move: int
 var ranges: PackedInt32Array
+var damage_type: StringName
+var hit: int
+var critical: int
 
 
 func _init(
@@ -24,6 +27,9 @@ func _init(
 	initial_resistance: int = 0,
 	initial_move: int = 0,
 	initial_ranges: PackedInt32Array = PackedInt32Array(),
+	initial_damage_type: StringName = &"physical",
+	initial_hit: int = 100,
+	initial_critical: int = 0,
 ) -> void:
 	id = initial_id
 	display_name = initial_display_name
@@ -35,3 +41,6 @@ func _init(
 	resistance = initial_resistance
 	move = initial_move
 	ranges = initial_ranges.duplicate()
+	damage_type = initial_damage_type
+	hit = initial_hit
+	critical = initial_critical

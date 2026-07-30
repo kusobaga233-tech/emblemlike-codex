@@ -1,0 +1,28 @@
+Task 3 RED evidence
+===================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$code=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$code"
+exit $code
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_combat_rules.gd
+  BattleEvent class exists: Expected a truthy value.
+  CombatForecast class exists: Expected a truthy value.
+  CombatRules class exists: Expected a truthy value.
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+Ran 4 test file(s): 3 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+Godot additionally reported that these expected RED resources were not found:
+- res://src/events/battle_event.gd
+- res://src/core/combat_forecast.gd
+- res://src/core/combat_rules.gd

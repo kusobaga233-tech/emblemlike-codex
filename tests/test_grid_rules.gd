@@ -142,6 +142,9 @@ func _test_unit_definition_and_state_initialization() -> void:
 	assert_equal(definition.resistance, 3, "Definition resistance")
 	assert_equal(definition.move, 4, "Definition move")
 	assert_equal(definition.ranges, PackedInt32Array([1, 2]), "Definition ranges")
+	assert_equal(definition.damage_type, &"physical", "Legacy definitions default to physical damage")
+	assert_equal(definition.hit, 100, "Legacy definitions default to guaranteed accuracy")
+	assert_equal(definition.critical, 0, "Legacy definitions default to no critical chance")
 
 	var state: Variant = _unit_state_script.new(
 		definition,
