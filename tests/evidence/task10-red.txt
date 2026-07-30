@@ -1,0 +1,18 @@
+Task 10 validator RED evidence
+Time: 2026-07-30 Asia/Shanghai
+Baseline commit: 67b7625a
+Command: powershell -NoProfile -ExecutionPolicy Bypass -File tools/validate_project.ps1 -SkipBoot
+Exit code: 1
+
+The validator executed the real Godot suite and confirmed the existing baseline remained healthy:
+[PASS] Full test suite 12/12 - Ran 12 test file(s): 12 passed, 0 failed.
+[PASS] Godot parser/resource smoke - headless main-scene parse/resource load completed cleanly
+
+It failed for the intended missing Task 10 deliverables:
+[FAIL] Required files - missing: docs/phase-gates/chapter-one-greybox.md, docs/asset-registry.csv, docs/imagegen/prompt-registry.md
+[FAIL] Asset registry - file missing
+[FAIL] Prompt registry - file missing
+[FAIL] Phase gate record - file missing
+TOTAL: 7 passed, 4 failed
+
+The test-only -SkipBoot switch was used only to shorten this RED cycle. The final gate runs the mandatory 120-frame boot without that switch.

@@ -1,0 +1,20 @@
+Task 10 fresh full-suite evidence
+Time: 2026-07-30T22:07:52+08:00
+Commit SHA under test: 67b762514d950d8d6dd54c50da52937d6596bddf plus uncommitted Task 10 docs/tools
+Godot version: 4.6.3.stable.official.7d41c59c4
+Command: D:\godot-proj\Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd --quit-after 120
+
+PASS test_battle_scene.gd
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_chapter_one_playthrough.gd
+PASS test_combat_rules.gd
+PASS test_e2e_scene_flow.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_save_service.gd
+PASS test_scene_flow.gd
+PASS test_turn_objective_ai.gd
+Ran 12 test file(s): 12 passed, 0 failed.
+Exit code: 0
