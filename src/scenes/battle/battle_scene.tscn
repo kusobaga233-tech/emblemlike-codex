@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/scenes/battle/battle_scene.gd" id="1_scene"]
 [ext_resource type="Script" path="res://src/presentation/greybox_board.gd" id="2_board"]
 [ext_resource type="Script" path="res://src/presentation/tactical_camera.gd" id="3_camera"]
+[ext_resource type="PackedScene" path="res://src/ui/battle_hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://src/ui/combat_forecast_panel.tscn" id="5_forecast"]
 
 [node name="BattleScene" type="Node3D"]
 script = ExtResource("1_scene")
@@ -21,3 +23,11 @@ rotation_degrees = Vector3(-58, -32, 0)
 light_color = Color(1, 0.94, 0.84, 1)
 light_energy = 1.1
 shadow_enabled = true
+
+[node name="BattleHud" parent="." instance=ExtResource("4_hud")]
+
+[node name="CombatForecastPanel" parent="." instance=ExtResource("5_forecast")]
+offset_left = 380.0
+offset_top = 16.0
+offset_right = 620.0
+offset_bottom = 220.0

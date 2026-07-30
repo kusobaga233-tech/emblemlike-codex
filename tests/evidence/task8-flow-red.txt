@@ -1,0 +1,15 @@
+Task 8 complete-flow RED evidence
+=================================
+
+Command:
+Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Relevant failures:
+- Persistent flow coordinator exists: expected true.
+- Flow coordinator is an autoload: expected true.
+- Malformed CombatForecast input raised SCRIPT ERROR and retained stale damage text.
+
+Suite summary:
+Ran 10 test file(s): 8 passed, 2 failed.

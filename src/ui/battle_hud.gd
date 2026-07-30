@@ -47,9 +47,15 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _on_events_flushed(events: Array[Dictionary]) -> void:
 	_refresh()
 	for event: Dictionary in events:
-		if StringName(event.get("type", &"")) == &"battle_status_changed" and not _result_was_requested:
+		if StringName(event.get("type", &"")) != &"battle_status_changed":
+			continue
+		var outcome_value: Variant = event.get("payload", {}).get("to", &"")
+		if not outcome_value is String and not outcome_value is StringName:
+			continue
+		var outcome: StringName = outcome_value
+		if outcome in [&"victory", &"defeat"] and not _result_was_requested:
 			_result_was_requested = true
-			result_requested.emit(RESULT_PATH, _build_summary(StringName(event.get("payload", {}).get("to", &"defeat"))))
+			result_requested.emit(RESULT_PATH, _build_summary(outcome))
 
 
 func _refresh() -> void:

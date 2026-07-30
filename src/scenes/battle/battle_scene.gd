@@ -8,6 +8,9 @@ const GREYBOX_UNIT_SCRIPT := preload("res://src/presentation/greybox_unit.gd")
 var chapter: Variant
 var session: Variant
 var _configured: bool = false
+var last_command_result: Dictionary = {}
+
+signal result_requested(path: String, summary: Dictionary)
 
 
 func _ready() -> void:
@@ -37,6 +40,16 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 	var event_callable := Callable(self, "_on_events_flushed")
 	if not session.events_flushed.is_connected(event_callable):
 		session.events_flushed.connect(event_callable)
+	get_node("BattleHud").configure(session)
+	var command_callable := Callable(self, "_on_hud_command")
+	if not get_node("BattleHud").command_selected.is_connected(command_callable):
+		get_node("BattleHud").command_selected.connect(command_callable)
+	var result_callable := Callable(self, "_on_hud_result_requested")
+	if not get_node("BattleHud").result_requested.is_connected(result_callable):
+		get_node("BattleHud").result_requested.connect(result_callable)
+	get_node("CombatForecastPanel").show_forecast(null)
+	_assign_owner_recursive(get_node("BattleHud"))
+	_assign_owner_recursive(get_node("CombatForecastPanel"))
 	_configured = true
 
 
@@ -65,6 +78,33 @@ func _disconnect_session() -> void:
 	var event_callable := Callable(self, "_on_events_flushed")
 	if session.events_flushed.is_connected(event_callable):
 		session.events_flushed.disconnect(event_callable)
+
+
+func _on_hud_command(command: Variant) -> void:
+	if session == null:
+		last_command_result = {"ok": false, "reason": &"missing_session"}
+		return
+	var command_type := StringName(command.get("type", &"")) if command is Dictionary else StringName(command)
+	match command_type:
+		&"select":
+			last_command_result = session.select_unit(StringName(command.get("unit_id", &"")))
+		&"forecast":
+			last_command_result = session.forecast_attack(StringName(command.get("target_id", &"")))
+			get_node("CombatForecastPanel").show_forecast(last_command_result.get("forecast"))
+		&"attack":
+			last_command_result = session.confirm_attack(StringName(command.get("target_id", &""))) if command is Dictionary else {"ok": false, "reason": &"missing_target"}
+		&"move":
+			last_command_result = session.move_selected(command.get("destination")) if command is Dictionary and command.get("destination") is Vector2i else {"ok": false, "reason": &"missing_destination"}
+		&"end_phase":
+			last_command_result = session.end_player_phase()
+		&"wait", &"cancel":
+			last_command_result = {"ok": true, "routed": command_type}
+		_:
+			last_command_result = {"ok": false, "reason": &"unknown_command"}
+
+
+func _on_hud_result_requested(path: String, summary: Dictionary) -> void:
+	result_requested.emit(path, summary)
 
 
 func _clear_units() -> void:

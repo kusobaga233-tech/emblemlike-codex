@@ -9,6 +9,10 @@ config/name="星烬誓约"
 config/features=PackedStringArray("4.6", "Forward Plus")
 run/main_scene="res://src/scenes/boot.tscn"
 
+[autoload]
+
+FlowCoordinator="*res://src/scenes/flow_coordinator.gd"
+
 [display]
 
 window/size/viewport_width=1920
