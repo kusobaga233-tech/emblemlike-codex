@@ -1,0 +1,22 @@
+Task 6 phase event order GREEN evidence
+=======================================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 7 test file(s): 7 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+The exact order assertions confirm phase_changed precedes all corresponding unit_ready events.

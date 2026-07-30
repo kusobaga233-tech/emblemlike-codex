@@ -1,0 +1,24 @@
+Task 6 phase event order RED evidence
+=====================================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Godot output (relevant lines):
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_battle_session.gd
+Enemy phase change is emitted before enemy acted resets: Expected ["phase_changed", "unit_ready", "unit_ready"], got ["unit_ready", "unit_ready", "phase_changed"].
+Player phase change is emitted before player acted resets: Expected ["phase_changed", "unit_ready", "unit_ready"], got ["unit_ready", "unit_ready", "phase_changed"].
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 7 test file(s): 6 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The failure proves both phase methods emitted acted-reset events before the phase mutation event.

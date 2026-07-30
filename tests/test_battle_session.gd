@@ -32,6 +32,7 @@ func run() -> void:
 	_test_enemy_ai_targets_only_opponents()
 	_test_objective_victory_and_defeat_propagate()
 	_test_fresh_sessions_repeat_ai_and_event_digest()
+	_test_phase_change_events_precede_acted_resets()
 	_test_phase_methods_cannot_double_advance()
 
 
@@ -233,6 +234,31 @@ func _test_fresh_sessions_repeat_ai_and_event_digest() -> void:
 	assert_equal(second, first, "Fresh sessions with the same seed repeat AI, events, and final state")
 
 
+func _test_phase_change_events_precede_acted_resets() -> void:
+	var session: Variant = _new_session(47)
+	_unit(session, &"blade-1").acted = true
+	_unit(session, &"bow-1").acted = true
+	var end_result: Dictionary = session.end_player_phase()
+	assert_equal(
+		_event_types(end_result["events"]),
+		PackedStringArray(["phase_changed", "unit_ready", "unit_ready"]),
+		"Enemy phase change is emitted before enemy acted resets",
+	)
+	assert_equal(end_result["events"][1]["actor_id"], &"blade-1", "First enemy ready event keeps deployment order")
+	assert_equal(end_result["events"][2]["actor_id"], &"bow-1", "Second enemy ready event keeps deployment order")
+
+	_unit(session, &"aurelia-1").acted = true
+	_unit(session, &"fenn-1").acted = true
+	var advance_result: Dictionary = session.advance_enemy_phase()
+	assert_equal(
+		_last_event_types(advance_result["events"], 3),
+		PackedStringArray(["phase_changed", "unit_ready", "unit_ready"]),
+		"Player phase change is emitted before player acted resets",
+	)
+	assert_equal(advance_result["events"][-2]["actor_id"], &"aurelia-1", "First player ready event keeps deployment order")
+	assert_equal(advance_result["events"][-1]["actor_id"], &"fenn-1", "Second player ready event keeps deployment order")
+
+
 func _test_phase_methods_cannot_double_advance() -> void:
 	var session: Variant = _new_session(43)
 	assert_true(session.end_player_phase()["ok"], "First player phase end is accepted")
@@ -323,4 +349,11 @@ func _event_types(events: Array) -> PackedStringArray:
 	var result := PackedStringArray()
 	for event_value: Variant in events:
 		result.append(String(event_value["type"]))
+	return result
+
+
+func _last_event_types(events: Array, count: int) -> PackedStringArray:
+	var result := PackedStringArray()
+	for index: int in range(maxi(0, events.size() - count), events.size()):
+		result.append(String(events[index]["type"]))
 	return result

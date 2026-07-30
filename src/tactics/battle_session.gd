@@ -161,8 +161,7 @@ func _end_player_phase() -> Dictionary:
 	var enemy_acted_before := _acted_ids(&"enemy")
 	var round_before: int = turn_state.round
 	turn_state.end_player_phase()
-	var events: Array[Dictionary] = _ready_events(enemy_acted_before)
-	events.append(BattleEventScript.state_changed(
+	var events: Array[Dictionary] = [BattleEventScript.state_changed(
 		&"phase_changed",
 		&"",
 		&"",
@@ -172,7 +171,8 @@ func _end_player_phase() -> Dictionary:
 			"from_round": round_before,
 			"round": turn_state.round,
 		},
-	))
+	)]
+	events.append_array(_ready_events(enemy_acted_before))
 	return _accept(events)
 
 
@@ -215,7 +215,6 @@ func _advance_enemy_phase() -> Dictionary:
 	var player_acted_before := _acted_ids(&"player")
 	var round_before: int = turn_state.round
 	turn_state.finish_round()
-	events.append_array(_ready_events(player_acted_before))
 	events.append(BattleEventScript.state_changed(
 		&"phase_changed",
 		&"",
@@ -227,6 +226,7 @@ func _advance_enemy_phase() -> Dictionary:
 			"round": turn_state.round,
 		},
 	))
+	events.append_array(_ready_events(player_acted_before))
 	return _accept(events)
 
 
