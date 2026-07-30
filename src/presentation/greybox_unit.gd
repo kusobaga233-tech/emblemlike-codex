@@ -3,6 +3,7 @@ extends Node3D
 
 signal picked(unit_id: StringName)
 signal hovered(unit_id: StringName)
+signal hover_exited(unit_id: StringName)
 
 const PLAYER_BLUE := Color("245fa8")
 const PLAYER_GOLD := Color("d5ad38")
@@ -68,6 +69,7 @@ func _build_pick_area() -> void:
 	pick_area.input_ray_pickable = visual_hp > 0
 	pick_area.input_event.connect(_on_pick_input_event)
 	pick_area.mouse_entered.connect(_on_pick_mouse_entered)
+	pick_area.mouse_exited.connect(_on_pick_mouse_exited)
 	add_child(pick_area)
 	var collision := CollisionShape3D.new()
 	collision.name = "CollisionShape3D"
@@ -92,6 +94,10 @@ func _on_pick_input_event(
 func _on_pick_mouse_entered() -> void:
 	if visual_hp > 0:
 		hovered.emit(unit_id)
+
+
+func _on_pick_mouse_exited() -> void:
+	hover_exited.emit(unit_id)
 
 
 func play_event(event: Dictionary) -> void:

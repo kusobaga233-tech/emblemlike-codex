@@ -4,7 +4,6 @@ extends Node3D
 const BATTLE_SESSION_SCRIPT := preload("res://src/tactics/battle_session.gd")
 const CHAPTER_ONE_SCRIPT := preload("res://src/content/chapter_one.gd")
 const GREYBOX_UNIT_SCRIPT := preload("res://src/presentation/greybox_unit.gd")
-const GRID_RULES_SCRIPT := preload("res://src/core/grid_rules.gd")
 
 var chapter: Variant
 var session: Variant
@@ -39,6 +38,7 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		get_node("Units").add_child(unit)
 		unit.picked.connect(_on_unit_picked)
 		unit.hovered.connect(_on_unit_hovered)
+		unit.hover_exited.connect(_on_unit_hover_exited)
 		_assign_owner_recursive(unit)
 	get_node("TacticalCamera").configure_board(
 		int(presentation_chapter.width),
@@ -58,6 +58,9 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 	var board_pick_callable := Callable(self, "_on_cell_picked")
 	if not get_node("GreyboxBoard").cell_picked.is_connected(board_pick_callable):
 		get_node("GreyboxBoard").cell_picked.connect(board_pick_callable)
+	var board_hover_callable := Callable(self, "_on_cell_hovered")
+	if not get_node("GreyboxBoard").cell_hovered.is_connected(board_hover_callable):
+		get_node("GreyboxBoard").cell_hovered.connect(board_hover_callable)
 	_assign_owner_recursive(get_node("BattleHud"))
 	_assign_owner_recursive(get_node("CombatForecastPanel"))
 	_configured = true
@@ -116,9 +119,24 @@ func _on_unit_hovered(unit_id: StringName) -> void:
 	handle_board_hover(unit_id)
 
 
+func _on_unit_hover_exited(_unit_id: StringName) -> void:
+	_clear_forecast_target()
+
+
 func _on_cell_picked(position: Vector2i) -> void:
 	pointer_input_count += 1
 	handle_board_pick(&"cell", position)
+
+
+func _on_cell_hovered(_position: Vector2i) -> void:
+	_clear_forecast_target()
+
+
+func _clear_forecast_target() -> void:
+	if interaction_mode != &"attack":
+		return
+	pending_target_id = &""
+	get_node("CombatForecastPanel").show_forecast(null)
 
 
 func cancel_interaction() -> void:
@@ -197,7 +215,7 @@ func _enter_move_mode() -> void:
 		return
 	cancel_interaction()
 	interaction_mode = &"move"
-	get_node("GreyboxBoard").show_move_cells(_reachable_cells(selected))
+	get_node("GreyboxBoard").show_move_cells(session.reachable_cells_for_selected())
 	last_command_result = {"ok": true, "mode": &"move"}
 
 
@@ -217,18 +235,6 @@ func _selected_unit() -> Variant:
 		if unit.instance_id == session.selected_unit_id and unit.current_hp > 0 and unit.definition.team == &"player":
 			return unit
 	return null
-
-
-func _reachable_cells(selected: Variant) -> Array:
-	var blocked: Dictionary = {}
-	for unit: Variant in session.units:
-		if unit.current_hp > 0 and unit != selected:
-			blocked[Vector2i(unit.grid_position.x, unit.grid_position.y)] = true
-	var points: Array = GRID_RULES_SCRIPT.reachable(selected.grid_position, selected.definition.move, chapter.width, chapter.height, blocked)
-	var cells: Array = []
-	for point: Variant in points:
-		cells.append(Vector2i(point.x, point.y))
-	return cells
 
 
 func _attack_cells(selected: Variant) -> Array:

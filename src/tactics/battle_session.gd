@@ -59,6 +59,25 @@ func wait_selected() -> Dictionary:
 	return _execute(BattleCommandScript.wait_selected())
 
 
+func reachable_cells_for_selected() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	if battle_status != &"ongoing" or turn_state.phase != &"player" or selected_unit_id == &"":
+		return result
+	var unit: Variant = _find_unit(selected_unit_id)
+	if not _is_living_team_unit(unit, &"player") or unit.acted:
+		return result
+	var reachable: Array = GridRulesScript.reachable(
+		unit.grid_position,
+		maxi(0, unit.definition.move),
+		int(_board.get("width", 0)),
+		int(_board.get("height", 0)),
+		_movement_blocked(unit),
+	)
+	for point: Variant in reachable:
+		result.append(Vector2i(point.x, point.y))
+	return result
+
+
 func advance_enemy_phase() -> Dictionary:
 	return _execute(BattleCommandScript.advance_enemy_phase())
 

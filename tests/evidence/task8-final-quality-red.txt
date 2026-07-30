@@ -1,0 +1,13 @@
+Task 8 final-quality RED evidence
+=================================
+
+Command:
+Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Relevant failures:
+- BattleSession lacked reachable_cells_for_selected(), so presentation movement highlights had a separate legality implementation.
+- Moving the real pointer from a legal enemy to empty terrain left the forecast visible, pending_target_id set, and stale label values.
+
+Suite summary: 8 passed, 2 failed.

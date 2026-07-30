@@ -29,6 +29,7 @@ func run() -> void:
 	_test_rejected_commands_are_exact_no_ops()
 	_test_unit_acted_is_an_exact_no_op()
 	_test_wait_selected_marks_only_a_valid_selected_player()
+	_test_reachable_cells_match_move_legality_and_block_water()
 	_test_occupancy_and_blocking_are_enforced()
 	_test_enemy_ai_targets_only_opponents()
 	_test_objective_victory_and_defeat_propagate()
@@ -156,6 +157,23 @@ func _test_wait_selected_marks_only_a_valid_selected_player() -> void:
 	var repeated: Dictionary = session.wait_selected()
 	assert_true(not repeated["ok"], "Acted unit cannot wait twice")
 	assert_equal(_snapshot(session), after, "Repeated wait is an exact no-op")
+
+
+func _test_reachable_cells_match_move_legality_and_block_water() -> void:
+	var chapter: Variant = _chapter_one_script.build()
+	for row: Dictionary in chapter.deployments:
+		if row["instance_id"] == &"fenn-1":
+			row["position"] = Vector2i(1, 7)
+		elif row["instance_id"] == &"aurelia-1":
+			row["position"] = Vector2i(1, 8)
+	var session: Variant = _battle_session_script.new(chapter, 706)
+	session.select_unit(&"fenn-1")
+	var reachable: Array = session.reachable_cells_for_selected()
+	assert_true(Vector2i(1, 6) not in reachable, "Reachable cells exclude chapter water")
+	for destination: Vector2i in reachable:
+		var probe: Variant = _battle_session_script.new(chapter, 706)
+		probe.select_unit(&"fenn-1")
+		assert_true(probe.move_selected(destination)["ok"], "Every advertised cell is legal on the same snapshot: %s" % destination)
 
 
 func _test_occupancy_and_blocking_are_enforced() -> void:
