@@ -10,6 +10,7 @@ const GUARANTEED_DEFEAT_WEIGHT := 1_000_000_000_000_000
 const PROTECTED_OBJECTIVE_WEIGHT := 1_000_000_000_000
 const EXPECTED_DAMAGE_WEIGHT := 1_000_000
 const TERRAIN_BENEFIT_WEIGHT := 1_000
+const INT64_MAX_VALUE := 9_223_372_036_854_775_807
 
 
 static func choose_action(enemy: Variant, units: Array, board: Dictionary) -> Dictionary:
@@ -84,7 +85,7 @@ static func _attack_candidate(
 	var expected_damage := _saturating_nonnegative_product(
 		mini(int(forecast.damage), int(target.current_hp)),
 		int(forecast.hit_rate),
-		999_999,
+		INT64_MAX_VALUE,
 	)
 	var guaranteed_defeat: int = int(forecast.hit_rate == 100 and forecast.defender_remaining_hp == 0)
 	var protected_objective: int = int(_is_protected(target.instance_id, board))
@@ -145,7 +146,7 @@ static func _received_damage_risk(
 	return _saturating_nonnegative_product(
 		mini(int(counter_forecast.damage), int(positioned_enemy.current_hp)),
 		int(counter_forecast.hit_rate),
-		999,
+		INT64_MAX_VALUE,
 	)
 
 

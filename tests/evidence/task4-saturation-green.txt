@@ -1,0 +1,31 @@
+Task 4 saturation ordering GREEN evidence
+=========================================
+
+Hardened test command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$saturationCode=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$saturationCode"
+exit $saturationCode
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 5 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+Editor parse command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --editor --path 'D:\godot-proj\star-ember-oath-godot' --quit 2>&1 | Out-Host
+$editorCode=$LASTEXITCODE
+Write-Output "GODOT_EDITOR_EXIT_CODE=$editorCode"
+exit $editorCode
+
+Observed editor process exit code: 0
+AiRules registered without parse errors.
+Generated untracked .uid cache files were removed after verification.

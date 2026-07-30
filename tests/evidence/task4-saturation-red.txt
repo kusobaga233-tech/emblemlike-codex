@@ -1,0 +1,23 @@
+Task 4 saturation ordering RED evidence
+=======================================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$saturationCode=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$saturationCode"
+exit $saturationCode
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+FAIL test_turn_objective_ai.gd
+Expected damage products above 999999 remain distinctly ordered: Expected zeta-damage, got alpha-damage.
+Counter-risk products above 999 remain distinctly ordered: Expected zeta-risk, got alpha-risk.
+Ran 5 test file(s): 4 passed, 1 failed.
+GODOT_EXIT_CODE=1

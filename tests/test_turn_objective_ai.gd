@@ -53,6 +53,7 @@ func run() -> void:
 	_test_ai_uses_terrain_then_received_damage_risk()
 	_test_ai_ignores_counter_risk_when_outgoing_attack_cannot_be_countered()
 	_test_ai_scoring_saturates_extreme_damage_and_risk()
+	_test_ai_comparison_preserves_values_above_public_score_clamps()
 	_test_ai_does_not_escape_a_co_located_occupied_origin()
 	_test_ai_uses_stable_target_id_ties_and_repeats_exactly()
 	_test_ai_returns_controlled_wait_when_no_target_is_legal()
@@ -251,6 +252,20 @@ func _test_ai_scoring_saturates_extreme_damage_and_risk() -> void:
 	var risk_action: Dictionary = _ai_rules_script.choose_action(risk_enemy, [risk_enemy, overflow_risk, safe_risk], _board(3, 3))
 	assert_equal(risk_action["target_id"], &"safe-risk", "Extreme received damage saturates instead of becoming a preferred negative risk")
 	assert_true(risk_action["score"] >= 0, "Extreme received risk does not create a negative wrapped score")
+
+
+func _test_ai_comparison_preserves_values_above_public_score_clamps() -> void:
+	var damage_enemy: Variant = _make_unit(&"captain", &"damage-enemy", &"enemy", 30_000, 20_000, 100, 2, 0, [1], Vector2i(1, 1))
+	var lower_damage_alpha: Variant = _make_unit(&"target", &"alpha-damage", &"player", 30_000, 0, 8_000, 2, 0, [1], Vector2i(1, 0))
+	var higher_damage_zeta: Variant = _make_unit(&"target", &"zeta-damage", &"player", 30_000, 0, 5_000, 2, 0, [1], Vector2i(2, 1))
+	var damage_action: Dictionary = _ai_rules_script.choose_action(damage_enemy, [damage_enemy, higher_damage_zeta, lower_damage_alpha], _board(3, 3))
+	assert_equal(damage_action["target_id"], &"zeta-damage", "Expected damage products above 999999 remain distinctly ordered")
+
+	var risk_enemy: Variant = _make_unit(&"captain", &"risk-enemy", &"enemy", 30_000, 8, 0, 2, 0, [1], Vector2i(1, 1))
+	var higher_risk_alpha: Variant = _make_unit(&"target", &"alpha-risk", &"player", 30_000, 20, 3, 2, 0, [1], Vector2i(1, 0))
+	var lower_risk_zeta: Variant = _make_unit(&"target", &"zeta-risk", &"player", 30_000, 15, 3, 2, 0, [1], Vector2i(2, 1))
+	var risk_action: Dictionary = _ai_rules_script.choose_action(risk_enemy, [lower_risk_zeta, risk_enemy, higher_risk_alpha], _board(3, 3))
+	assert_equal(risk_action["target_id"], &"zeta-risk", "Counter-risk products above 999 remain distinctly ordered")
 
 
 func _test_ai_does_not_escape_a_co_located_occupied_origin() -> void:
