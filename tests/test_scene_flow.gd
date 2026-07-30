@@ -45,8 +45,21 @@ func _test_deployment_flow() -> void:
 	assert_equal(swapped[1]["position"], defaults[0]["position"], "Swap exchanges second position")
 	assert_equal(swapped[0]["instance_id"], defaults[0]["instance_id"], "Swap preserves unit identity")
 	assert_true(not deployment.swap_slots(0, 99), "Illegal swaps are controlled no-ops")
+	var first_card := deployment.get_node("Layout/UnitCards/Unit1") as Button
+	first_card.pressed.emit()
+	assert_true(first_card.button_pressed, "First deployment click has visible selection state")
+	deployment.configure(chapter)
+	var after_configure: Array = deployment.get_deployment()
+	(deployment.get_node("Layout/UnitCards/Unit2") as Button).pressed.emit()
+	assert_equal(deployment.get_deployment(), after_configure, "Configure clears a half-finished swap")
+	assert_true((deployment.get_node("Layout/UnitCards/Unit2") as Button).button_pressed, "First click after configure starts a new selection")
 	deployment.reset_defaults()
 	assert_equal(deployment.get_deployment(), defaults, "Reset restores deterministic defaults")
+	(deployment.get_node("Layout/UnitCards/Unit1") as Button).pressed.emit()
+	deployment.reset_defaults()
+	(deployment.get_node("Layout/UnitCards/Unit2") as Button).pressed.emit()
+	assert_equal(deployment.get_deployment(), defaults, "Reset clears a half-finished swap")
+	assert_true((deployment.get_node("Layout/UnitCards/Unit2") as Button).button_pressed, "First click after reset starts a new selection")
 	var requests: Array = []
 	deployment.deployment_confirmed.connect(func(path: String, rows: Array): requests.append([path, rows]))
 	deployment.get_node("Layout/Actions/Confirm").pressed.emit()
@@ -70,13 +83,37 @@ func _test_hud_forecast_and_result_flow() -> void:
 	assert_true(hud.get_node("Layout/Resonance").text.contains("0"), "HUD displays resonance")
 	assert_true(hud.get_node("Layout/Commands/Move") is Button, "HUD has move command")
 	var commands: Array = []
+	var result_requests: Array = []
 	hud.command_selected.connect(func(command: StringName): commands.append(command))
+	hud.result_requested.connect(func(path: String, summary: Dictionary): result_requests.append([path, summary]))
 	hud.get_node("Layout/Commands/Wait").pressed.emit()
 	assert_equal(commands, [&"wait"], "Command emits exactly once after repeated configure")
 	hud._unhandled_key_input(_escape_event())
 	assert_equal(commands, [&"wait", &"cancel"], "Escape cancels the current HUD layer")
 	session.select_unit(&"fenn-1")
 	assert_true(hud.get_node("Layout/SelectedUnit").text.contains("芬恩"), "Session events refresh selected unit")
+	session.events_flushed.emit(_terminal_events(&"victory"))
+	session.events_flushed.emit(_terminal_events(&"victory"))
+	assert_equal(result_requests.size(), 1, "Repeated terminal events request result only once")
+	assert_equal(result_requests[0][0], RESULT, "Terminal battle requests the result scene")
+	var victory_summary: Dictionary = result_requests[0][1]
+	assert_equal(victory_summary["outcome"], &"victory", "Result summary carries victory")
+	assert_equal(victory_summary["turns_used"], session.turn_state.round, "Result summary carries turns")
+	assert_equal(victory_summary["surviving_units"], 4, "Result summary carries player survivors")
+	assert_true(victory_summary.has("experience_gained"), "Result summary carries experience")
+
+	var defeat_session := BattleSession.new(ChapterOne.build(), 9)
+	var defeat_hud := (load(HUD) as PackedScene).instantiate()
+	defeat_hud.configure(defeat_session)
+	_add(defeat_hud)
+	var defeat_requests: Array = []
+	defeat_hud.result_requested.connect(func(path: String, summary: Dictionary): defeat_requests.append([path, summary]))
+	defeat_session.events_flushed.emit(_terminal_events(&"defeat"))
+	assert_equal(defeat_requests.size(), 1, "Defeat requests result once")
+	assert_equal(defeat_requests[0][1]["outcome"], &"defeat", "Result summary carries defeat")
+	await _remove(defeat_hud)
+	defeat_session.events_flushed.emit(_terminal_events(&"defeat"))
+	assert_equal(defeat_requests.size(), 1, "Freed HUD receives no terminal callback")
 
 	var panel := (load(FORECAST) as PackedScene).instantiate()
 	_add(panel)
@@ -134,3 +171,7 @@ func _escape_event() -> InputEventKey:
 	event.keycode = KEY_ESCAPE
 	event.pressed = true
 	return event
+
+
+func _terminal_events(outcome: StringName) -> Array[Dictionary]:
+	return [{"type": &"battle_status_changed", "actor_id": &"", "target_id": &"", "payload": {"from": &"ongoing", "to": outcome}}]

@@ -7,6 +7,7 @@ signal result_requested(path: String, summary: Dictionary)
 const RESULT_PATH := "res://src/scenes/result/result.tscn"
 
 var _session: Variant
+var _result_was_requested: bool = false
 
 
 func _ready() -> void:
@@ -17,9 +18,12 @@ func _ready() -> void:
 
 
 func configure(session: Variant) -> void:
+	var session_changed: bool = _session != session
 	if _session != null and _session.events_flushed.is_connected(_on_events_flushed):
 		_session.events_flushed.disconnect(_on_events_flushed)
 	_session = session
+	if session_changed:
+		_result_was_requested = false
 	if _session != null and not _session.events_flushed.is_connected(_on_events_flushed):
 		_session.events_flushed.connect(_on_events_flushed)
 	_refresh()
@@ -43,7 +47,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _on_events_flushed(events: Array[Dictionary]) -> void:
 	_refresh()
 	for event: Dictionary in events:
-		if StringName(event.get("type", &"")) == &"battle_status_changed":
+		if StringName(event.get("type", &"")) == &"battle_status_changed" and not _result_was_requested:
+			_result_was_requested = true
 			result_requested.emit(RESULT_PATH, _build_summary(StringName(event.get("payload", {}).get("to", &"defeat"))))
 
 

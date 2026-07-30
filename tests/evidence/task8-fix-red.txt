@@ -1,0 +1,17 @@
+Task 8 review-fix RED evidence
+==============================
+
+Command:
+Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Relevant failures:
+- First deployment click has visible selection state: expected true.
+- Configure clears a half-finished swap: positions were unexpectedly exchanged.
+- Reset clears a half-finished swap: positions were unexpectedly exchanged.
+- Rebuilding cards inside their pressed signal attempted to free a locked object.
+- Repeated terminal events had no valid result request before the typed event fixture was corrected.
+
+Suite summary:
+Ran 9 test file(s): 8 passed, 1 failed.
