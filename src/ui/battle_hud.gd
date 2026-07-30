@@ -77,8 +77,8 @@ func _objective_text(chapter: Variant) -> String:
 
 
 func _resonance_value() -> int:
-	if _session.turn_state != null and "resonance" in _session.turn_state:
-		return int(_session.turn_state.resonance)
+	if _session.has_method("resonance_value"):
+		return int(_session.resonance_value())
 	return 0
 
 

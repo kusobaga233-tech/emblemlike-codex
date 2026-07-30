@@ -10,6 +10,7 @@ const CombatRulesScript = preload("res://src/core/combat_rules.gd")
 const GridPointScript = preload("res://src/core/grid_point.gd")
 const GridRulesScript = preload("res://src/core/grid_rules.gd")
 const ObjectiveRulesScript = preload("res://src/core/objective_rules.gd")
+const ResonanceStateScript = preload("res://src/core/resonance_state.gd")
 const TurnStateScript = preload("res://src/core/turn_state.gd")
 const UnitCatalogScript = preload("res://src/content/unit_catalog.gd")
 const UnitStateScript = preload("res://src/core/unit_state.gd")
@@ -20,6 +21,8 @@ var turn_state: Variant
 var selected_unit_id: StringName = &""
 var battle_status: StringName = &"ongoing"
 var event_queue: Array[Dictionary] = []
+var resonance_state: Variant
+var fired_scripted_event_ids: Array[StringName] = []
 
 var _base_seed: int = 1
 var _combat_index: int = 0
@@ -31,8 +34,10 @@ func _init(initial_chapter: Variant = null, initial_seed: int = 1) -> void:
 	chapter = _validated_chapter_copy(initial_chapter)
 	units = _build_units(chapter)
 	turn_state = TurnStateScript.new(units)
+	resonance_state = ResonanceStateScript.new()
 	_board = _build_board(chapter)
 	battle_status = _evaluate_objective()
+	_fire_scripted_trigger(&"round-start:1", [])
 
 
 func select_unit(id: StringName) -> Dictionary:
@@ -57,6 +62,15 @@ func end_player_phase() -> Dictionary:
 
 func wait_selected() -> Dictionary:
 	return _execute(BattleCommandScript.wait_selected())
+
+func support_selected(target_id: StringName) -> Dictionary:
+	return _execute(BattleCommandScript.support_selected(target_id))
+
+func use_resonance_selected(partner_id: StringName, target_id: StringName) -> Dictionary:
+	return _execute(BattleCommandScript.use_resonance_selected(partner_id, target_id))
+
+func resonance_value() -> int:
+	return resonance_state.value
 
 
 func reachable_cells_for_selected() -> Array[Vector2i]:
@@ -100,6 +114,10 @@ func _execute(command: Variant) -> Dictionary:
 			return _wait_selected()
 		&"advance_enemy_phase":
 			return _advance_enemy_phase()
+		&"support_selected":
+			return _support_selected(command.target_id)
+		&"use_resonance_selected":
+			return _use_resonance_selected(command.partner_id, command.target_id)
 	return _reject(&"invalid_target")
 
 
@@ -195,6 +213,56 @@ func _confirm_attack(target_id: StringName) -> Dictionary:
 	_append_objective_event(events)
 	return _accept(events)
 
+func _support_selected(target_id: StringName) -> Dictionary:
+	var selected_result := _selected_player_unit()
+	if not selected_result["ok"]: return selected_result
+	var actor = selected_result["unit"]
+	var target = _find_unit(target_id)
+	if actor.definition.id != &"elio": return _reject(&"not_healer")
+	if target == null or target == actor or target.current_hp <= 0 or target.definition.team != &"player": return _reject(&"invalid_target")
+	if GridRulesScript.manhattan(actor.grid_position, target.grid_position) != 1: return _reject(&"out_of_range")
+	if target.current_hp >= target.definition.max_hp: return _reject(&"full_hp")
+	var before_hp: int = target.current_hp
+	var before_resonance: int = resonance_state.value
+	target.current_hp = mini(target.definition.max_hp, target.current_hp + 8)
+	resonance_state.gain_support_action(actor, target, true)
+	actor.acted = true
+	var events: Array[Dictionary] = [
+		BattleEventScript.state_changed(&"support_started", actor.instance_id, target.instance_id),
+		BattleEventScript.state_changed(&"unit_healed", actor.instance_id, target.instance_id, {"amount": target.current_hp - before_hp, "remaining_hp": target.current_hp}),
+		BattleEventScript.state_changed(&"resonance_changed", actor.instance_id, target.instance_id, {"from": before_resonance, "to": resonance_state.value}),
+		BattleEventScript.state_changed(&"unit_acted", actor.instance_id, target.instance_id, {"action": &"support"}),
+	]
+	_fire_scripted_trigger(&"resonance:%d" % resonance_state.value, events)
+	_append_objective_event(events)
+	return _accept(events)
+
+func _use_resonance_selected(partner_id: StringName, target_id: StringName) -> Dictionary:
+	var selected_result := _selected_player_unit()
+	if not selected_result["ok"]: return selected_result
+	var actor = selected_result["unit"]
+	var partner = _find_unit(partner_id)
+	var target = _find_unit(target_id)
+	if actor.definition.id != &"aurelia": return _reject(&"not_resonance_leader")
+	if partner == null or partner == actor or not _is_living_team_unit(partner, &"player") or partner.acted: return _reject(&"invalid_partner")
+	if GridRulesScript.manhattan(actor.grid_position, partner.grid_position) != 1: return _reject(&"partner_out_of_range")
+	if not _is_living_team_unit(target, &"enemy"): return _reject(&"invalid_target")
+	if GridRulesScript.manhattan(actor.grid_position, target.grid_position) not in actor.definition.ranges: return _reject(&"out_of_range")
+	if resonance_state.value != 100: return _reject(&"insufficient_resonance")
+	var damage: int = maxi(1, actor.definition.attack + partner.definition.attack - target.definition.defense)
+	var events: Array[Dictionary] = [BattleEventScript.state_changed(&"resonance_started", actor.instance_id, target.instance_id, {"partner_id": partner.instance_id})]
+	resonance_state.try_spend_pair(actor, partner)
+	events.append(BattleEventScript.state_changed(&"resonance_changed", actor.instance_id, target.instance_id, {"from": 100, "to": 0, "partner_id": partner.instance_id}))
+	target.current_hp = maxi(0, target.current_hp - damage)
+	events.append(BattleEventScript.state_changed(&"unit_damaged", actor.instance_id, target.instance_id, {"amount": damage, "remaining_hp": target.current_hp, "partner_id": partner.instance_id}))
+	if target.current_hp == 0: events.append(BattleEventScript.unit_defeated(actor.instance_id, target.instance_id, 0))
+	actor.acted = true; partner.acted = true
+	events.append(BattleEventScript.state_changed(&"unit_acted", actor.instance_id, target.instance_id, {"action": &"resonance"}))
+	events.append(BattleEventScript.state_changed(&"unit_acted", partner.instance_id, target.instance_id, {"action": &"resonance"}))
+	events.append(BattleEventScript.state_changed(&"resonance_finished", actor.instance_id, target.instance_id, {"partner_id": partner.instance_id}))
+	_append_objective_event(events)
+	return _accept(events)
+
 
 func _end_player_phase() -> Dictionary:
 	if turn_state.phase != &"player":
@@ -256,6 +324,7 @@ func _advance_enemy_phase() -> Dictionary:
 	var player_acted_before := _acted_ids(&"player")
 	var round_before: int = turn_state.round
 	turn_state.finish_round()
+	_fire_scripted_trigger(StringName("round:%d" % turn_state.round), events)
 	events.append(BattleEventScript.state_changed(
 		&"phase_changed",
 		&"",
@@ -484,3 +553,11 @@ func _build_board(source_chapter: Variant) -> Dictionary:
 		"blocked": blocked,
 		"protected_unit_ids": source_chapter.protected_unit_ids.duplicate(),
 	}
+
+func _fire_scripted_trigger(trigger: StringName, events: Array) -> void:
+	if chapter == null: return
+	for definition: Dictionary in chapter.events:
+		var id := StringName(definition.get("id", &""))
+		if StringName(definition.get("trigger", &"")) != trigger or id == &"" or id in fired_scripted_event_ids: continue
+		fired_scripted_event_ids.append(id)
+		events.append(BattleEventScript.state_changed(&"scripted_event_fired", &"", &"", {"id": id, "trigger": trigger, "text": String(definition.get("text", ""))}))
