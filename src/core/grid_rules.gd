@@ -50,10 +50,9 @@ static func reachable(
 			movement_costs[next] = next_cost
 			frontier.append(next)
 
-	for y in range(height):
-		for x in range(width):
-			if movement_costs.has(Vector2i(x, y)):
-				result.append(GridPointScript.new(x, y))
+	frontier.sort_custom(_row_major_less_than)
+	for point in frontier:
+		result.append(GridPointScript.new(point.x, point.y))
 	return result
 
 
@@ -63,3 +62,9 @@ static func _is_in_bounds(point: Vector2i, width: int, height: int) -> bool:
 
 static func _is_blocked(point: Vector2i, blocked: Dictionary) -> bool:
 	return bool(blocked.get(point, false))
+
+
+static func _row_major_less_than(a: Vector2i, b: Vector2i) -> bool:
+	if a.y == b.y:
+		return a.x < b.x
+	return a.y < b.y

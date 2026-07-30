@@ -1,0 +1,20 @@
+Task 2 quality RED evidence
+===========================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$task2QualityExitCode = $LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$task2QualityExitCode"
+exit $task2QualityExitCode
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_grid_rules.gd
+  Reachability work is bounded by visited cells; elapsed 3906 ms: Expected a truthy value.
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+Ran 3 test file(s): 2 passed, 1 failed.
+GODOT_EXIT_CODE=1

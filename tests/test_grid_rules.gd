@@ -31,6 +31,7 @@ func run() -> void:
 	_test_manhattan_distance()
 	_test_reachable_respects_cost_bounds_and_blocking()
 	_test_reachable_order_is_stable_row_major()
+	_test_reachable_work_is_bounded_by_visited_cells()
 	_test_zero_move_only_includes_unblocked_origin()
 	_test_invalid_reachable_inputs_return_empty()
 	_test_unit_definition_and_state_initialization()
@@ -75,6 +76,18 @@ func _test_reachable_order_is_stable_row_major() -> void:
 		first,
 		"2:0,1:1,2:1,3:1,0:2,1:2,2:2,3:2,4:2,1:3,2:3,3:3,2:4",
 		"Reachable output is row-major",
+	)
+
+
+func _test_reachable_work_is_bounded_by_visited_cells() -> void:
+	var origin: Variant = _grid_point_script.new(5000, 5000)
+	var started_at := Time.get_ticks_msec()
+	var points: Array = _grid_rules_script.reachable(origin, 0, 10000, 10000, {})
+	var elapsed_ms := Time.get_ticks_msec() - started_at
+	assert_equal(_points_signature(points), "5000:5000", "Large-board zero-move result")
+	assert_true(
+		elapsed_ms < 1000,
+		"Reachability work is bounded by visited cells; elapsed %d ms" % elapsed_ms,
 	)
 
 
