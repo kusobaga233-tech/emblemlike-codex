@@ -92,33 +92,47 @@ static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PA
 		return {"ok": false, "error": &"invalid_session"}
 	var temp := path + ".tmp"
 	var backup := path + ".bak"
+	var previous := path + ".previous.new"
 	var file := FileAccess.open(temp, FileAccess.WRITE)
 	if file == null: return {"ok": false, "error": "open_failed"}
 	file.store_string(JSON.stringify(payload)); file.close()
+	if not _load_one(session.chapter, temp).get("ok", false):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(temp))
+		return {"ok": false, "error": &"temp_validation_failed"}
 	var absolute_path := ProjectSettings.globalize_path(path)
 	var absolute_temp := ProjectSettings.globalize_path(temp)
 	var absolute_backup := ProjectSettings.globalize_path(backup)
-	if FileAccess.file_exists(backup): DirAccess.remove_absolute(absolute_backup)
+	var absolute_previous := ProjectSettings.globalize_path(previous)
 	if FileAccess.file_exists(path):
+		if FileAccess.file_exists(previous):
+			DirAccess.remove_absolute(absolute_temp)
+			return {"ok": false, "error": &"backup_failed"}
 		if _stage_error(replace_strategy, &"backup", temp, path, backup) != OK:
 			DirAccess.remove_absolute(absolute_temp)
 			return {"ok": false, "error": &"backup_failed"}
-		var backup_error := DirAccess.rename_absolute(absolute_path, absolute_backup)
+		var backup_error := DirAccess.rename_absolute(absolute_path, absolute_previous)
 		if backup_error != OK:
 			DirAccess.remove_absolute(absolute_temp)
 			return {"ok": false, "error": &"backup_failed"}
 	if _stage_error(replace_strategy, &"promote", temp, path, backup) != OK:
 		var rollback_injected := _stage_error(replace_strategy, &"rollback", temp, path, backup)
 		var rollback_error := rollback_injected
-		if rollback_error == OK and FileAccess.file_exists(backup): rollback_error = DirAccess.rename_absolute(absolute_backup, absolute_path)
+		if rollback_error == OK and FileAccess.file_exists(previous): rollback_error = DirAccess.rename_absolute(absolute_previous, absolute_path)
 		DirAccess.remove_absolute(absolute_temp)
 		return {"ok": false, "error": &"rollback_failed" if rollback_error != OK else &"promote_failed"}
 	var error := DirAccess.rename_absolute(absolute_temp, absolute_path)
 	if error != OK:
 		var rollback_error := _stage_error(replace_strategy, &"rollback", temp, path, backup)
-		if rollback_error == OK and FileAccess.file_exists(backup): rollback_error = DirAccess.rename_absolute(absolute_backup, absolute_path)
+		if rollback_error == OK and FileAccess.file_exists(previous): rollback_error = DirAccess.rename_absolute(absolute_previous, absolute_path)
 		DirAccess.remove_absolute(absolute_temp)
 		return {"ok": false, "error": &"rollback_failed" if rollback_error != OK else &"promote_failed"}
+	if FileAccess.file_exists(previous):
+		if _stage_error(replace_strategy, &"rotation", temp, path, backup) != OK:
+			return {"ok": true, "error": &"", "warning": &"rotation_failed", "backup_retained": FileAccess.file_exists(backup)}
+		if FileAccess.file_exists(backup) and DirAccess.remove_absolute(absolute_backup) != OK:
+			return {"ok": true, "error": &"", "warning": &"rotation_failed", "backup_retained": true}
+		if DirAccess.rename_absolute(absolute_previous, absolute_backup) != OK:
+			return {"ok": true, "error": &"", "warning": &"rotation_failed", "backup_retained": FileAccess.file_exists(backup)}
 	return {"ok": true, "error": &"", "backup_retained": FileAccess.file_exists(backup)}
 
 static func load_file(chapter: Variant, path: String = SaveDataScript.DEFAULT_PATH) -> Variant:
@@ -127,9 +141,18 @@ static func load_file(chapter: Variant, path: String = SaveDataScript.DEFAULT_PA
 
 static func load_file_result(chapter: Variant, path: String = SaveDataScript.DEFAULT_PATH) -> Dictionary:
 	var primary := _load_one(chapter, path)
-	if primary.get("ok", false): return primary
+	if primary.get("ok", false):
+		primary["source"] = &"target"
+		return primary
+	var previous := _load_one(chapter, path + ".previous.new")
+	if previous.get("ok", false):
+		previous["source"] = &"previous"
+		previous["recovered"] = true
+		previous["primary_error"] = primary.get("error")
+		return previous
 	var backup := _load_one(chapter, path + ".bak")
 	if backup.get("ok", false):
+		backup["source"] = &"backup"
 		backup["recovered"] = true
 		backup["primary_error"] = primary.get("error")
 		return backup

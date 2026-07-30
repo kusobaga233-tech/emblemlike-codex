@@ -82,30 +82,64 @@ func run() -> void:
 func _test_file_durability(session, chapter) -> void:
 	var directory := "user://task9-tests"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
-	var path := directory + "/isolated-save.json"
-	var first: Dictionary = SaveService.save_file(session, path)
-	assert_true(first.ok, "Isolated valid save writes")
-	var baseline := FileAccess.get_file_as_bytes(path)
-	var backup_failed: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup): return ERR_CANT_CREATE if stage == &"backup" else OK)
-	assert_true(not backup_failed.ok and backup_failed.error == &"backup_failed", "Backup stage failure is explicit")
-	assert_equal(FileAccess.get_file_as_bytes(path), baseline, "Backup failure preserves target")
-	var failed: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup): return ERR_CANT_CREATE if stage == &"promote" else OK)
-	assert_true(not failed.ok and failed.error == &"promote_failed", "Promote failure reports rollback success")
-	assert_equal(FileAccess.get_file_as_bytes(path), baseline, "Replace failure preserves valid bytes")
-	assert_true(not FileAccess.file_exists(path + ".tmp"), "Replace failure cleans temp")
-	var rollback_failed: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup): return ERR_CANT_CREATE if stage in [&"promote", &"rollback"] else OK)
-	assert_true(not rollback_failed.ok and rollback_failed.error == &"rollback_failed", "Rollback failure is explicit")
-	var recovered: Dictionary = SaveService.load_file_result(chapter, path)
-	assert_true(recovered.ok and recovered.recovered, "Backup remains loadable after rollback failure")
-	assert_true(SaveService.save_file(session, path).ok, "Successful save restores canonical target")
+	var old_target = BattleSession.new(chapter, 101)
+	var old_backup = BattleSession.new(chapter, 202)
+	var old_target_text := JSON.stringify(SaveService.serialize(old_target))
+	var old_backup_text := JSON.stringify(SaveService.serialize(old_backup))
+	for failure_stage in [&"backup", &"promote", &"rollback", &"rotation"]:
+		var path := directory + "/%s.json" % failure_stage
+		_write_text(path, old_target_text)
+		_write_text(path + ".bak", old_backup_text)
+		var result: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup):
+			if stage == failure_stage or (failure_stage == &"rollback" and stage == &"promote"): return ERR_CANT_CREATE
+			return OK
+		)
+		if failure_stage == &"backup":
+			assert_true(not result.ok and result.error == &"backup_failed", "Backup-stage failure is explicit")
+			assert_equal(FileAccess.get_file_as_string(path), old_target_text, "Backup-stage failure preserves target")
+			assert_equal(FileAccess.get_file_as_string(path + ".bak"), old_backup_text, "Backup-stage failure preserves old backup")
+		elif failure_stage == &"promote":
+			assert_true(not result.ok and result.error == &"promote_failed", "Promote failure reports rollback success")
+			assert_equal(FileAccess.get_file_as_string(path), old_target_text, "Promote failure restores target")
+			assert_equal(FileAccess.get_file_as_string(path + ".bak"), old_backup_text, "Promote failure preserves old backup")
+		elif failure_stage == &"rollback":
+			assert_true(not result.ok and result.error == &"rollback_failed", "Rollback failure is explicit")
+			assert_true(FileAccess.file_exists(path + ".previous.new"), "Rollback failure preserves staged previous target")
+			assert_equal(FileAccess.get_file_as_string(path + ".bak"), old_backup_text, "Rollback failure preserves old backup")
+			var rollback_recovered: Dictionary = SaveService.load_file_result(chapter, path)
+			assert_true(rollback_recovered.get("ok", false) and rollback_recovered.get("recovered", false) and rollback_recovered.get("source") == &"previous", "Rollback failure loads previous stage")
+		else:
+			assert_true(result.get("ok", false) and result.get("warning") == &"rotation_failed", "Rotation failure keeps new target with explicit warning")
+			assert_equal(FileAccess.get_file_as_string(path + ".bak"), old_backup_text, "Rotation failure preserves old backup")
+			assert_true(FileAccess.file_exists(path + ".previous.new"), "Rotation failure preserves previous target")
+		assert_true(not FileAccess.file_exists(path + ".tmp"), "Failure path cleans temp")
+	var success_path := directory + "/success.json"
+	_write_text(success_path, old_target_text)
+	_write_text(success_path + ".bak", old_backup_text)
+	assert_true(SaveService.save_file(session, success_path).ok, "Successful save promotes canonical target")
+	assert_equal(FileAccess.get_file_as_string(success_path + ".bak"), old_target_text, "Successful rotation replaces backup with previous target")
+	assert_true(not FileAccess.file_exists(success_path + ".previous.new"), "Successful rotation consumes previous stage")
+	var recovery_path := directory + "/recovery.json"
+	_write_text(recovery_path, "{")
+	_write_text(recovery_path + ".previous.new", old_target_text)
+	_write_text(recovery_path + ".bak", old_backup_text)
+	var recovered: Dictionary = SaveService.load_file_result(chapter, recovery_path)
+	assert_true(recovered.get("ok", false) and recovered.get("recovered", false) and recovered.get("source") == &"previous", "Load falls back to previous stage before backup")
+	_write_text(recovery_path + ".previous.new", "{")
+	recovered = SaveService.load_file_result(chapter, recovery_path)
+	assert_true(recovered.get("ok", false) and recovered.get("recovered", false) and recovered.get("source") == &"backup", "Load falls back to backup after invalid previous stage")
 	var malformed_path := directory + "/malformed.json"
-	var malformed := FileAccess.open(malformed_path, FileAccess.WRITE); malformed.store_string("{"); malformed.close()
+	_write_text(malformed_path, "{")
 	var load_result: Dictionary = SaveService.load_file_result(chapter, malformed_path)
 	assert_true(not load_result.ok and load_result.error == &"malformed_json", "Malformed JSON reports explicit error")
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
-	if FileAccess.file_exists(path + ".bak"): DirAccess.remove_absolute(ProjectSettings.globalize_path(path + ".bak"))
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(malformed_path))
+	for file_name in DirAccess.get_files_at(directory):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(directory + "/" + file_name))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(directory))
+
+func _write_text(path: String, contents: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(contents)
+	file.close()
 
 func _test_phase_boundary_continuation(chapter) -> void:
 	var baseline = BattleSession.new(chapter, 91)

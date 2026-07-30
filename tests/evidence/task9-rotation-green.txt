@@ -1,0 +1,11 @@
+Task 9 safe backup rotation GREEN evidence
+Date: 2026-07-30
+
+Command:
+D:\godot-proj\Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd --quit-after 120 -- --test-runner-worker res://tests/test_save_service.gd
+
+Result:
+Godot Engine v4.6.3.stable.official.7d41c59c4
+PASS test_save_service.gd
+
+The fault matrix covers backup, promote, rollback, and rotation failures with distinct valid target and backup payloads, plus target -> .previous.new -> .bak load fallback.

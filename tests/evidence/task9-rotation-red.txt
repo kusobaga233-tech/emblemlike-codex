@@ -1,0 +1,8 @@
+Task 9 safe backup rotation RED evidence
+Date: 2026-07-30
+
+Focused test result before implementation:
+FAIL test_save_service.gd
+
+Observed failures confirmed that the old implementation deleted the existing backup before staging, did not preserve .previous.new after rollback failure, and did not expose target -> previous -> backup recovery sources.
+
