@@ -163,6 +163,8 @@ func _move_selected(destination: Vector2i) -> Dictionary:
 	if not selected_result["ok"]:
 		return selected_result
 	var unit: Variant = selected_result["unit"]
+	if unit.has_moved:
+		return _reject(&"already_moved")
 	if _living_unit_at(destination, unit) != null:
 		return _reject(&"occupied")
 
@@ -181,6 +183,7 @@ func _move_selected(destination: Vector2i) -> Dictionary:
 		return _accept([])
 	unit.grid_position.x = destination.x
 	unit.grid_position.y = destination.y
+	unit.has_moved = true
 	return _accept([BattleEventScript.state_changed(
 		&"unit_moved",
 		unit.instance_id,
@@ -401,6 +404,7 @@ func _append_enemy_move(events: Array[Dictionary], enemy: Variant, destination: 
 		return
 	enemy.grid_position.x = destination.x
 	enemy.grid_position.y = destination.y
+	enemy.has_moved = true
 	events.append(BattleEventScript.state_changed(
 		&"unit_moved",
 		enemy.instance_id,

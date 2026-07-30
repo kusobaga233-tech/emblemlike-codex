@@ -9,6 +9,7 @@ var instance_id: StringName
 var grid_position: GridPointScript
 var current_hp: int
 var acted: bool
+var has_moved: bool
 var experience: int
 var level: int
 
@@ -26,5 +27,6 @@ func _init(
 		grid_position = GridPointScript.new(initial_grid_position.x, initial_grid_position.y)
 	current_hp = definition.max_hp if definition != null else 0
 	acted = false
+	has_moved = false
 	experience = 0
 	level = 1

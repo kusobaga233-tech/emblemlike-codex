@@ -8,6 +8,7 @@ func run() -> void:
 	var chapter = ChapterOne.build()
 	var session = BattleSession.new(chapter, 77)
 	var payload: Dictionary = SaveService.serialize(session)
+	assert_true(payload.units[0].has("moved"), "Save schema records movement budget")
 	assert_equal(payload.get("version"), 1, "Save schema is versioned")
 	var restored = SaveService.restore(payload, chapter)
 	assert_true(restored != null, "Valid payload restores")

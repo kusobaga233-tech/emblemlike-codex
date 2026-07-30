@@ -133,6 +133,8 @@ func _test_rejected_commands_are_exact_no_ops() -> void:
 	_assert_rejected_no_op(session, func() -> Dictionary: return session.forecast_attack(&"aurelia-1"), &"not_enemy", flush_count, "Friendly forecast target")
 	_assert_rejected_no_op(session, func() -> Dictionary: return session.confirm_attack(&"missing"), &"invalid_target", flush_count, "Unknown attack target")
 	_assert_rejected_no_op(session, func() -> Dictionary: return session.confirm_attack(&"captain-1"), &"out_of_range", flush_count, "Attack outside range")
+	assert_true(session.move_selected(Vector2i(0, 8))["ok"], "First move is legal")
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.move_selected(Vector2i(0, 7)), &"already_moved", flush_count, "Second move in one turn")
 
 	assert_true(session.end_player_phase()["ok"], "Player phase ends for wrong-phase validation")
 	_assert_rejected_no_op(session, func() -> Dictionary: return session.select_unit(&"fenn-1"), &"wrong_phase", flush_count, "Selection during enemy phase")

@@ -36,3 +36,4 @@ func _reset_acted_for_team(team: StringName) -> void:
 			continue
 		if unit.definition.team == team:
 			unit.acted = false
+			unit.has_moved = false

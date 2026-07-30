@@ -8,7 +8,7 @@ static func serialize(session: Variant) -> Dictionary:
 	if session == null or session.chapter == null: return {}
 	var units: Array = []
 	for unit in session.units:
-		units.append({"id": String(unit.instance_id), "definition_id": String(unit.definition.id), "team": String(unit.definition.team), "x": unit.grid_position.x, "y": unit.grid_position.y, "hp": unit.current_hp, "acted": unit.acted, "experience": unit.experience, "level": unit.level})
+		units.append({"id": String(unit.instance_id), "definition_id": String(unit.definition.id), "team": String(unit.definition.team), "x": unit.grid_position.x, "y": unit.grid_position.y, "hp": unit.current_hp, "acted": unit.acted, "moved": unit.has_moved, "experience": unit.experience, "level": unit.level})
 	return {"version": SaveDataScript.VERSION, "chapter_id": String(session.chapter.id), "round": session.turn_state.round, "phase": String(session.turn_state.phase), "selected_unit_id": String(session.selected_unit_id), "battle_status": String(session.battle_status), "resonance": session.resonance_value(), "fired_event_ids": Array(session.fired_scripted_event_ids).map(func(id): return String(id)), "base_seed": session._base_seed, "combat_index": session._combat_index, "units": units}
 
 static func restore(input: Dictionary, chapter: Variant) -> Variant:
@@ -46,7 +46,8 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 		if not _is_integer(state.hp) or state.hp < 0 or state.hp > unit.definition.max_hp or not state.acted is bool: return null
 	if payload.selected_unit_id != "" and not seen.has(StringName(payload.selected_unit_id)): return null
 	for state in payload.units:
-		var unit = session._find_unit(StringName(state.id)); unit.grid_position.x = int(state.x); unit.grid_position.y = int(state.y); unit.current_hp = int(state.hp); unit.acted = state.acted; unit.experience = int(state.experience); unit.level = int(state.level)
+		if state.has("moved") and not state.moved is bool: return null
+		var unit = session._find_unit(StringName(state.id)); unit.grid_position.x = int(state.x); unit.grid_position.y = int(state.y); unit.current_hp = int(state.hp); unit.acted = state.acted; unit.has_moved = bool(state.get("moved", false)); unit.experience = int(state.experience); unit.level = int(state.level)
 	session.turn_state.round = int(payload.round); session.turn_state.phase = StringName(payload.phase); session.selected_unit_id = StringName(payload.selected_unit_id); session.battle_status = StringName(payload.battle_status); session.resonance_state.value = int(payload.resonance); session.fired_scripted_event_ids.clear()
 	for id in payload.fired_event_ids: session.fired_scripted_event_ids.append(StringName(id))
 	session._base_seed = payload.base_seed; session._combat_index = payload.combat_index
