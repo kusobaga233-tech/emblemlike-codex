@@ -75,13 +75,21 @@ func _run_test_process(test_path: String, file_name: String) -> bool:
 		true,
 	)
 	var combined_output := "\n".join(PackedStringArray(worker_output))
-	var has_script_error := combined_output.contains("SCRIPT ERROR:")
+	var has_script_error := _has_script_error_diagnostic(combined_output)
 	_emit_worker_output(combined_output, has_script_error)
 	if has_script_error:
 		print("FAIL %s" % file_name)
 		print("  Test suite emitted SCRIPT ERROR while running this file; treating run as failed.")
 		return false
 	return worker_exit_code == 0
+
+
+func _has_script_error_diagnostic(worker_output: String) -> bool:
+	for line in worker_output.split("\n"):
+		var line_without_ending := line.trim_suffix("\r")
+		if line_without_ending.begins_with("SCRIPT ERROR:"):
+			return true
+	return false
 
 
 func _emit_worker_output(worker_output: String, suppress_success: bool) -> void:

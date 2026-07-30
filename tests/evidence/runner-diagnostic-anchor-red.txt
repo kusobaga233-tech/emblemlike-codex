@@ -1,0 +1,25 @@
+Godot diagnostic anchoring RED evidence
+========================================
+
+This records output actually observed after adding a passing isolated fixture
+that prints the ordinary text:
+
+ordinary message mentions SCRIPT ERROR: without being a diagnostic
+
+The fixture contains no engine error and should pass, but the old arbitrary
+substring detector treated the phrase as a Godot diagnostic.
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed RED output:
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+FAIL test_runner_self.gd
+Plain text SCRIPT ERROR phrase exits successfully: Expected 0, got 1.
+Plain text SCRIPT ERROR phrase remains a passing test: Expected a truthy value.
+Plain text phrase does not trigger controlled script-error failure: Expected a truthy value.
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 4 passed, 1 failed.
+GODOT_EXIT_CODE=1

@@ -1,0 +1,36 @@
+Godot diagnostic anchoring GREEN evidence
+==========================================
+
+The runner now classifies a script error only when a captured output line begins
+exactly with `SCRIPT ERROR:` after removing a trailing carriage return. It does
+not trim or ignore arbitrary text before the marker.
+
+Full-suite command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed full-suite GREEN output:
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 5 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+Observed ordinary-text fixture result:
+ordinary message mentions SCRIPT ERROR: without being a diagnostic
+PASS test_plain_text.gd
+Ran 1 test file(s): 1 passed, 0 failed.
+PLAIN_FIXTURE_EXIT_CODE=0
+
+Observed genuine runtime diagnostic result:
+SCRIPT ERROR: Invalid call. Nonexistent function 'definitely_missing_method (via call)' in base 'Nil'.
+at: _trigger_runtime_error (res://tests/test_runtime_error.gd:8)
+GDScript backtrace (most recent call first):
+[0] _trigger_runtime_error (res://tests/test_runtime_error.gd:8)
+[1] run (res://tests/test_runtime_error.gd:4)
+[2] _run_single_test (res://run_all.gd:128)
+FAIL test_runtime_error.gd
+  Test suite emitted SCRIPT ERROR while running this file; treating run as failed.
+Ran 1 test file(s): 0 passed, 1 failed.
+RUNTIME_FIXTURE_EXIT_CODE=1

@@ -9,6 +9,7 @@ func run() -> void:
 	_test_zero_eligible_tests_fails()
 	_test_malformed_test_fails_without_crashing_summary()
 	_test_runtime_script_error_fails_without_false_pass()
+	_test_plain_text_script_error_phrase_still_passes()
 
 
 func _test_missing_tests_directory_fails() -> void:
@@ -72,6 +73,26 @@ func _test_runtime_script_error_fails_without_false_pass() -> void:
 	assert_true(
 		not result.output.contains("PASS test_runtime_error.gd"),
 		"Runtime SCRIPT ERROR is not reported as a passing test",
+	)
+
+
+func _test_plain_text_script_error_phrase_still_passes() -> void:
+	var result := _run_fixture("plain_text_script_error", {
+		"tests/test_case.gd": FileAccess.get_file_as_string(TEST_CASE_SOURCE_PATH),
+		"tests/test_plain_text.gd": (
+			"extends \"res://tests/test_case.gd\"\n\n"
+			+ "func run() -> void:\n"
+			+ "\tprint(\"ordinary message mentions SCRIPT ERROR: without being a diagnostic\")\n"
+		),
+	})
+	assert_equal(result.exit_code, 0, "Plain text SCRIPT ERROR phrase exits successfully")
+	assert_true(
+		result.output.contains("PASS test_plain_text.gd"),
+		"Plain text SCRIPT ERROR phrase remains a passing test",
+	)
+	assert_true(
+		not result.output.contains("Test suite emitted SCRIPT ERROR"),
+		"Plain text phrase does not trigger controlled script-error failure",
 	)
 
 
