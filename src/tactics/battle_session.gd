@@ -60,6 +60,8 @@ func advance_enemy_phase() -> Dictionary:
 
 
 func _execute(command: Variant) -> Dictionary:
+	if battle_status != &"ongoing":
+		return _reject(&"battle_over")
 	match command.type:
 		&"select_unit":
 			return _select_unit(command.unit_id)
@@ -210,7 +212,7 @@ func _advance_enemy_phase() -> Dictionary:
 		))
 		_append_objective_event(events)
 		if battle_status != &"ongoing":
-			break
+			return _accept(events)
 
 	var player_acted_before := _acted_ids(&"player")
 	var round_before: int = turn_state.round
@@ -300,6 +302,8 @@ func _append_enemy_move(events: Array[Dictionary], enemy: Variant, destination: 
 
 
 func _append_objective_event(events: Array[Dictionary]) -> void:
+	if battle_status != &"ongoing":
+		return
 	var next_status := _evaluate_objective()
 	if next_status == battle_status:
 		return

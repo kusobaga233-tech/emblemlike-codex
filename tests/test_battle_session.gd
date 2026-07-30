@@ -31,6 +31,7 @@ func run() -> void:
 	_test_occupancy_and_blocking_are_enforced()
 	_test_enemy_ai_targets_only_opponents()
 	_test_objective_victory_and_defeat_propagate()
+	_test_terminal_battle_rejects_every_command_without_mutation()
 	_test_fresh_sessions_repeat_ai_and_event_digest()
 	_test_phase_change_events_precede_acted_resets()
 	_test_phase_methods_cannot_double_advance()
@@ -225,7 +226,37 @@ func _test_objective_victory_and_defeat_propagate() -> void:
 	var defeat_result: Dictionary = defeat_session.advance_enemy_phase()
 	assert_true(defeat_result["ok"], "Defeat fixture advances enemy actions")
 	assert_equal(defeat_session.battle_status, &"defeat", "Aurelia defeat propagates defeat")
-	assert_true(_event_types(defeat_result["events"]).has("battle_status_changed"), "Defeat emits status propagation")
+	assert_equal(_event_types(defeat_result["events"])[-1], "battle_status_changed", "Enemy lethal defeat ends with status propagation")
+	assert_equal(_event_types(defeat_result["events"]).has("phase_changed"), false, "Enemy lethal defeat does not begin another phase")
+	assert_equal(_event_types(defeat_result["events"]).has("unit_ready"), false, "Enemy lethal defeat does not reset acted units")
+	assert_equal(defeat_session.turn_state.phase, &"enemy", "Enemy lethal defeat remains in enemy phase")
+	assert_equal(defeat_session.turn_state.round, 1, "Enemy lethal defeat remains in the current round")
+
+
+func _test_terminal_battle_rejects_every_command_without_mutation() -> void:
+	var chapter: Variant = _chapter_one_script.build()
+	_set_deployment_position(chapter, &"captain-1", Vector2i(1, 6))
+	var session: Variant = _battle_session_script.new(chapter, 53)
+	var flush_count := [0]
+	session.events_flushed.connect(func(_events: Array[Dictionary]) -> void:
+		flush_count[0] += 1
+	)
+	var captain: Variant = _unit(session, &"captain-1")
+	var fenn: Variant = _unit(session, &"fenn-1")
+	captain.current_hp = 1
+	fenn.definition.hit = 100
+	fenn.definition.critical = 0
+	assert_true(session.select_unit(&"fenn-1")["ok"], "Terminal fixture selects Fenn")
+	assert_true(session.confirm_attack(&"captain-1")["ok"], "Terminal fixture reaches victory")
+	assert_equal(session.battle_status, &"victory", "Terminal fixture is victorious")
+
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.select_unit(&"aurelia-1"), &"battle_over", flush_count, "Selection after victory")
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.move_selected(Vector2i(0, 8)), &"battle_over", flush_count, "Move after victory")
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.forecast_attack(&"blade-1"), &"battle_over", flush_count, "Forecast after victory")
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.confirm_attack(&"blade-1"), &"battle_over", flush_count, "Attack after victory")
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.end_player_phase(), &"battle_over", flush_count, "Player phase end after victory")
+	_assert_rejected_no_op(session, func() -> Dictionary: return session.advance_enemy_phase(), &"battle_over", flush_count, "Enemy phase advance after victory")
+	assert_equal(session.battle_status, &"victory", "Rejected terminal commands cannot reverse victory")
 
 
 func _test_fresh_sessions_repeat_ai_and_event_digest() -> void:

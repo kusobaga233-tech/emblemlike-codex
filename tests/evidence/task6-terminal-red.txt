@@ -1,0 +1,32 @@
+Task 6 terminal battle state RED evidence
+=========================================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Godot output (relevant lines):
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_battle_session.gd
+Enemy lethal defeat ends with status propagation: Expected battle_status_changed, got phase_changed.
+Enemy lethal defeat does not begin another phase: Expected false, got true.
+Enemy lethal defeat remains in enemy phase: Expected enemy, got player.
+Enemy lethal defeat remains in the current round: Expected 1, got 2.
+Selection after victory exact rejection: Expected battle_over, got an accepted unit_selected event.
+Move after victory exact rejection: Expected battle_over, got an accepted unit_moved event.
+Forecast after victory exact rejection: Expected battle_over, got out_of_range.
+Attack after victory exact rejection: Expected battle_over, got out_of_range.
+Player phase end after victory exact rejection: Expected battle_over, got an accepted phase_changed event.
+Enemy phase advance after victory exact rejection: Expected battle_over, got accepted enemy/round mutations.
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 7 test file(s): 6 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The failure proves terminal objective state was neither immediate nor immutable.
