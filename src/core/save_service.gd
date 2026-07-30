@@ -77,5 +77,30 @@ static func load_file(chapter: Variant, path: String = SaveDataScript.DEFAULT_PA
 	if not parsed is Dictionary: return null
 	return restore(parsed, chapter)
 
+static func canonical_json(value: Variant) -> String:
+	return _canonical(value)
+
+static func _canonical(value: Variant) -> String:
+	if value == null: return "null"
+	if value is bool: return "true" if value else "false"
+	if value is int: return str(value)
+	if value is float:
+		if not is_finite(value): return ""
+		return str(value)
+	if value is String or value is StringName: return JSON.stringify(String(value))
+	if value is Vector2i: return "{\"x\":%d,\"y\":%d}" % [value.x, value.y]
+	if value is Array:
+		var parts: Array[String] = []
+		for item in value: parts.append(_canonical(item))
+		return "[" + ",".join(parts) + "]"
+	if value is Dictionary:
+		var keys: Array[String] = []
+		for key in value: keys.append(String(key))
+		keys.sort()
+		var parts: Array[String] = []
+		for key in keys: parts.append(JSON.stringify(key) + ":" + _canonical(value[key]))
+		return "{" + ",".join(parts) + "}"
+	return ""
+
 static func _is_integer(value: Variant) -> bool:
 	return value is int or (value is float and is_finite(value) and value == floor(value))

@@ -24,3 +24,12 @@ func run() -> void:
 	assert_true(SaveService.restore(overlap, chapter) == null, "Ambiguous positions reject")
 	var migrated := payload.duplicate(true); migrated.erase("version")
 	assert_true(SaveService.restore(migrated, chapter) != null, "Unversioned payload migrates")
+	assert_equal(SaveService.canonical_json(payload), SaveService.canonical_json(payload.duplicate(true)), "Canonical JSON is stable")
+	var invalid_numbers := payload.duplicate(true); invalid_numbers.round = NAN
+	assert_true(SaveService.restore(invalid_numbers, chapter) == null, "NaN rejects")
+	invalid_numbers.round = INF
+	assert_true(SaveService.restore(invalid_numbers, chapter) == null, "Infinity rejects")
+	var unknown_event := payload.duplicate(true); unknown_event.fired_event_ids = ["unknown"]
+	assert_true(SaveService.restore(unknown_event, chapter) == null, "Unknown event id rejects")
+	var duplicate_event := payload.duplicate(true); duplicate_event.fired_event_ids = ["mist-teach", "mist-teach"]
+	assert_true(SaveService.restore(duplicate_event, chapter) == null, "Duplicate event id rejects")

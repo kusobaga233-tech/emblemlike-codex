@@ -3,6 +3,7 @@ extends "res://tests/test_case.gd"
 const ChapterOne = preload("res://src/content/chapter_one.gd")
 const BattleSession = preload("res://src/tactics/battle_session.gd")
 const QaStateLoader = preload("res://src/qa/qa_state_loader.gd")
+const SaveService = preload("res://src/core/save_service.gd")
 
 func run() -> void:
 	var session = BattleSession.new(ChapterOne.build(), 19)
@@ -24,6 +25,11 @@ func run() -> void:
 	var result: Dictionary = ready.use_resonance_selected(&"brann-1", &"captain-1")
 	assert_true(result["ok"], "Full resonance command is legal")
 	assert_equal(ready.battle_status, &"victory", "Resonance defeats captain through objective rules")
+	var first = QaStateLoader.load_state("chapter_one_opening")
+	var second = QaStateLoader.load_state("chapter_one_opening")
+	first.units[0].current_hp = 1
+	assert_equal(second.units[0].current_hp, second.units[0].definition.max_hp, "QA loads are independent")
+	assert_equal(SaveService.canonical_json(SaveService.serialize(second)), SaveService.canonical_json(SaveService.serialize(QaStateLoader.load_state("chapter_one_opening"))), "Fresh QA sessions have identical canonical state")
 
 func _unit(session, id: StringName):
 	for unit in session.units:
