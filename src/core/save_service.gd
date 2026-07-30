@@ -52,7 +52,7 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	session._base_seed = payload.base_seed; session._combat_index = payload.combat_index
 	return session
 
-static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PATH) -> Dictionary:
+static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PATH, replace_strategy: Callable = Callable()) -> Dictionary:
 	var temp := path + ".tmp"
 	var backup := path + ".bak"
 	var file := FileAccess.open(temp, FileAccess.WRITE)
@@ -61,6 +61,11 @@ static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PA
 	var absolute_path := ProjectSettings.globalize_path(path)
 	var absolute_temp := ProjectSettings.globalize_path(temp)
 	var absolute_backup := ProjectSettings.globalize_path(backup)
+	if replace_strategy.is_valid():
+		var injected_error: int = int(replace_strategy.call(temp, path, backup))
+		if injected_error != OK:
+			DirAccess.remove_absolute(absolute_temp)
+			return {"ok": false, "error": injected_error}
 	if FileAccess.file_exists(backup): DirAccess.remove_absolute(absolute_backup)
 	if FileAccess.file_exists(path):
 		var backup_error := DirAccess.rename_absolute(absolute_path, absolute_backup)
@@ -71,11 +76,19 @@ static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PA
 	return {"ok": error == OK, "error": error}
 
 static func load_file(chapter: Variant, path: String = SaveDataScript.DEFAULT_PATH) -> Variant:
+	var result := load_file_result(chapter, path)
+	return result.get("session") if result.get("ok", false) else null
+
+static func load_file_result(chapter: Variant, path: String = SaveDataScript.DEFAULT_PATH) -> Dictionary:
 	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null: return null
-	var parsed = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary: return null
-	return restore(parsed, chapter)
+	if file == null: return {"ok": false, "error": &"open_failed"}
+	var parser := JSON.new()
+	if parser.parse(file.get_as_text()) != OK: return {"ok": false, "error": &"malformed_json"}
+	var parsed: Variant = parser.data
+	if not parsed is Dictionary: return {"ok": false, "error": &"malformed_json"}
+	var session: Variant = restore(parsed, chapter)
+	if session == null: return {"ok": false, "error": &"invalid_schema"}
+	return {"ok": true, "session": session}
 
 static func canonical_json(value: Variant) -> String:
 	return _canonical(value)
