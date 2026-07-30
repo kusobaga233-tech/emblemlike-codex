@@ -1,0 +1,35 @@
+Task 1 TDD RED evidence
+========================
+
+This records output actually observed during Task 1 implementation. It is not a
+reconstructed or newly simulated failure. At this point the smoke test and test
+runner existed, project.godot contained only `config_version=5` so Godot could
+establish res://, and the required production settings and boot assets had not
+been implemented.
+
+Godot version:
+Godot Engine v4.6.3.stable.official.7d41c59c4
+
+Required Godot invocation:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+PowerShell wrapper actually used to wait for the Windows GUI-subsystem process
+and expose its exit code:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd | Out-Host; $exitCode = $LASTEXITCODE; Write-Output "GODOT_EXIT_CODE=$exitCode"; exit $exitCode
+
+Observed RED output:
+FAIL test_project_smoke.gd
+  Project name: Expected 星烬誓约, got .
+  Main scene: Expected res://src/scenes/boot.tscn, got .
+  Viewport width: Expected 1920, got 1152.
+  Viewport height: Expected 1080, got 648.
+  Forward+ renderer feature: Expected a truthy value.
+  Boot script exists: Expected a truthy value.
+  Boot scene exists: Expected a truthy value.
+  Boot scene loads: Expected a truthy value.
+Ran 1 test file(s): 0 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The failed assertions demonstrate that the RED run covered the missing project
+name, main scene, 1920x1080 viewport, Forward+ feature, boot script, and boot
+scene before implementation.
