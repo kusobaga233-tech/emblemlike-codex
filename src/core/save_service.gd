@@ -26,22 +26,20 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	if not _is_integer(payload.resonance) or payload.resonance < 0 or payload.resonance > 100 or not payload.units is Array: return null
 	if not payload.fired_event_ids is Array: return null
 	var valid_event_ids := {}
-	var defined_event_ids: Array[String] = []
 	for event: Dictionary in chapter.events:
 		var defined_id := String(event.get("id", ""))
 		valid_event_ids[defined_id] = true
-		defined_event_ids.append(defined_id)
 	var seen_events := {}
 	for event_id in payload.fired_event_ids:
 		if not event_id is String or not valid_event_ids.has(event_id) or seen_events.has(event_id): return null
 		seen_events[event_id] = true
-	for index in payload.fired_event_ids.size():
-		if index >= defined_event_ids.size() or payload.fired_event_ids[index] != defined_event_ids[index]: return null
+	if payload.fired_event_ids.is_empty() or payload.fired_event_ids[0] != "mist-teach": return null
+	if seen_events.has("captain-advance") and payload.round < 4: return null
+	if payload.round >= 4 and not seen_events.has("captain-advance"): return null
+	if payload.resonance == 100 and not seen_events.has("first-resonance"): return null
 	for event: Dictionary in chapter.events:
 		var trigger := String(event.get("trigger", ""))
 		if trigger.begins_with("round:") and seen_events.has(String(event.get("id", ""))) and payload.round < int(trigger.get_slice(":", 1)): return null
-		var required: bool = trigger == "round-start:1" or (trigger.begins_with("round:") and payload.round >= int(trigger.get_slice(":", 1))) or (trigger == "resonance:100" and payload.resonance == 100)
-		if required and not seen_events.has(String(event.get("id", ""))): return null
 	var session = BattleSessionScript.new(chapter, payload.base_seed)
 	if payload.units.size() != session.units.size(): return null
 	var seen := {}; var positions := {}

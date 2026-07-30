@@ -1,0 +1,8 @@
+Task 9 causal event RED
+
+The prior validator required fired_event_ids to be a strict prefix of chapter.events.
+It rejected the valid historical order:
+  [mist-teach, first-resonance, captain-advance]
+because first-resonance was defined after captain-advance.
+
+The corrected contract validates causes and relative requirements instead of declaration-prefix order.

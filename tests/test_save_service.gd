@@ -61,7 +61,11 @@ func run() -> void:
 	var skipped_mist := payload.duplicate(true); skipped_mist.round = 4; skipped_mist.fired_event_ids = ["captain-advance"]
 	assert_true(SaveService.restore(skipped_mist, chapter) == null, "Event timeline cannot skip mist")
 	var early_resonance := payload.duplicate(true); early_resonance.fired_event_ids = ["mist-teach", "first-resonance"]
-	assert_true(SaveService.restore(early_resonance, chapter) == null, "Resonance event cannot precede captain event")
+	assert_true(SaveService.restore(early_resonance, chapter) != null, "Historical resonance may precede captain event")
+	var resonance_then_captain := payload.duplicate(true); resonance_then_captain.round = 4; resonance_then_captain.fired_event_ids = ["mist-teach", "first-resonance", "captain-advance"]
+	assert_true(SaveService.restore(resonance_then_captain, chapter) != null, "Resonance then captain causal order restores")
+	var captain_then_resonance := payload.duplicate(true); captain_then_resonance.round = 4; captain_then_resonance.fired_event_ids = ["mist-teach", "captain-advance", "first-resonance"]
+	assert_true(SaveService.restore(captain_then_resonance, chapter) != null, "Captain then resonance causal order restores")
 	_test_file_durability(session, chapter)
 	_test_phase_boundary_continuation(chapter)
 

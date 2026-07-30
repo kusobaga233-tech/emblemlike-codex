@@ -1,0 +1,14 @@
+Task 9 causal event GREEN
+
+PASS test_save_service.gd
+
+Validated orders:
+- mist-teach, first-resonance, captain-advance
+- mist-teach, captain-advance, first-resonance
+
+Still rejected:
+- missing or non-leading mist-teach
+- duplicate or unknown event IDs
+- captain-advance before round 4
+- missing captain-advance at round 4+
+- missing first-resonance while current resonance is 100
