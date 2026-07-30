@@ -111,6 +111,10 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 		_has_property(player, &"active_animation")
 		and _has_property(player, &"animation_kind")
 		and _has_property(player, &"phase_visual_energy")
+		and _has_property(player, &"position_animation")
+		and _has_property(player, &"body_animation")
+		and _has_property(player, &"phase_animation")
+		and _has_property(player, &"defeat_animation")
 	)
 	assert_true(
 		supports_deterministic_animation,
@@ -130,11 +134,28 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	})
 	assert_equal(player.get("animation_kind"), &"move", "Move event starts the move Tween")
 	assert_equal(player.position, move_origin, "Move Tween begins at the current presentation position")
-	var move_tween := player.get("active_animation") as Tween
+	var move_tween := _animation_tween(player, &"position_animation")
 	assert_true(move_tween != null and move_tween.is_valid(), "Move event owns a valid headless Tween")
 	if move_tween != null:
 		move_tween.custom_step(1.0)
 	assert_equal(player.position, Vector3(4.0, 0.7, 5.0), "Move event updates only the presentation position")
+	player.play_event({
+		"type": &"unit_moved",
+		"actor_id": &"fenn-1",
+		"target_id": &"",
+		"payload": {"from": Vector2i(4, 5), "to": Vector2i(5, 5)},
+	})
+	player.play_event({
+		"type": &"unit_moved",
+		"actor_id": &"fenn-1",
+		"target_id": &"",
+		"payload": {"from": Vector2i(5, 5), "to": Vector2i(6, 5)},
+	})
+	assert_equal(player.position, Vector3(5.0, 0.7, 5.0), "Replacing a move Tween commits its prior target first")
+	move_tween = _animation_tween(player, &"position_animation")
+	if move_tween != null:
+		move_tween.custom_step(1.0)
+	assert_equal(player.position, Vector3(6.0, 0.7, 5.0), "Repeated move events finish at the newest target")
 	player.play_event({
 		"type": &"damage_applied",
 		"actor_id": &"blade-1",
@@ -146,7 +167,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	assert_equal(player.get("animation_kind"), &"damage", "Damage event starts the damage Tween")
 	var body := player.get_node("Body") as MeshInstance3D
 	assert_true(body.scale != Vector3.ONE, "Damage Tween begins from a visible squash pose")
-	var damage_tween := player.get("active_animation") as Tween
+	var damage_tween := _animation_tween(player, &"body_animation")
 	assert_true(damage_tween != null and damage_tween.is_valid(), "Damage event owns a valid headless Tween")
 	if damage_tween != null:
 		damage_tween.custom_step(1.0)
@@ -159,7 +180,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	})
 	assert_equal(player.last_phase, &"enemy", "Phase event is handled visually")
 	assert_equal(player.get("animation_kind"), &"phase_visual_changed", "Phase event starts its visual Tween")
-	var phase_tween := player.get("active_animation") as Tween
+	var phase_tween := _animation_tween(player, &"phase_animation")
 	assert_true(phase_tween != null and phase_tween.is_valid(), "Phase event owns a valid headless Tween")
 	if phase_tween != null:
 		phase_tween.custom_step(1.0)
@@ -172,7 +193,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	})
 	assert_equal(player.get("animation_kind"), &"defeat", "Defeat event starts the defeat Tween")
 	assert_true(player.visible, "Defeat Tween keeps the unit visible at animation start")
-	var defeat_tween := player.get("active_animation") as Tween
+	var defeat_tween := _animation_tween(player, &"defeat_animation")
 	assert_true(defeat_tween != null and defeat_tween.is_valid(), "Defeat event owns a valid headless Tween")
 	if defeat_tween != null:
 		defeat_tween.custom_step(1.0)
@@ -261,31 +282,53 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 
 	var fenn: Node3D = scene.get_unit_node(&"fenn-1")
 	var before_state := _session_snapshot(session)
-	var move_events: Array[Dictionary] = [{
+	var move_phase_events: Array[Dictionary] = [{
 		"type": &"unit_moved",
 		"actor_id": &"fenn-1",
 		"target_id": &"",
 		"payload": {"from": Vector2i(1, 8), "to": Vector2i(2, 5)},
-	}]
-	session.events_flushed.emit(move_events)
-	var move_tween := fenn.get("active_animation") as Tween
-	if move_tween != null:
-		move_tween.custom_step(1.0)
-	var followup_events: Array[Dictionary] = [{
-		"type": &"damage_applied",
-		"actor_id": &"blade-1",
-		"target_id": &"fenn-1",
-		"payload": {"amount": 4, "remaining_hp": 20},
 	}, {
 		"type": &"phase_changed",
 		"actor_id": &"",
 		"target_id": &"",
 		"payload": {"from": &"player", "to": &"enemy"},
 	}]
-	session.events_flushed.emit(followup_events)
-	assert_equal(fenn.position, Vector3(2.0, 0.7, 5.0), "Scene consumes flushed move events")
+	session.events_flushed.emit(move_phase_events)
+	assert_true(_has_property(fenn, &"position_animation"), "Move and phase use independent Tween channels")
+	assert_true(_has_property(fenn, &"phase_animation"), "Phase visual has its own Tween channel")
+	_step_animation_channels(fenn, [&"position_animation", &"phase_animation"])
+	assert_equal(fenn.position, Vector3(2.0, 0.7, 5.0), "Same-batch move and phase finish at the move target")
+	assert_equal(fenn.last_phase, &"enemy", "Same-batch move and phase keep the phase visual")
+
+	var damage_events: Array[Dictionary] = [{
+		"type": &"damage_applied",
+		"actor_id": &"blade-1",
+		"target_id": &"fenn-1",
+		"payload": {"amount": 4, "remaining_hp": 20},
+	}]
+	session.events_flushed.emit(damage_events)
+	_step_animation_channels(fenn, [&"body_animation"])
 	assert_equal(fenn.visual_hp, 20, "Scene consumes flushed damage events")
-	assert_equal(fenn.last_phase, &"enemy", "Scene consumes flushed phase events")
+
+	var blade: Node3D = scene.get_unit_node(&"blade-1")
+	var defeat_phase_events: Array[Dictionary] = [{
+		"type": &"unit_defeated",
+		"actor_id": &"fenn-1",
+		"target_id": &"blade-1",
+		"payload": {"remaining_hp": 0},
+	}, {
+		"type": &"phase_changed",
+		"actor_id": &"",
+		"target_id": &"",
+		"payload": {"from": &"enemy", "to": &"player"},
+	}]
+	session.events_flushed.emit(defeat_phase_events)
+	assert_true(_has_property(blade, &"defeat_animation"), "Defeat has an independent Tween channel")
+	_step_animation_channels(blade, [&"defeat_animation", &"phase_animation"])
+	assert_equal(blade.visual_hp, 0, "Same-batch defeat commits zero visual HP")
+	assert_true(not blade.visible, "Same-batch defeat and phase finish hidden")
+	assert_equal(blade.scale, Vector3(1.08, 0.08, 1.08), "Defeat Tween commits its terminal scale")
+	assert_equal(blade.last_phase, &"player", "Same-batch defeat and phase keep the phase visual")
 	assert_equal(_session_snapshot(session), before_state, "Scene event consumption leaves the session snapshot identical")
 
 	var scene_weak: WeakRef = weakref(scene)
@@ -319,6 +362,25 @@ func _has_property(object: Object, property_name: StringName) -> bool:
 		if StringName(property.get("name", &"")) == property_name:
 			return true
 	return false
+
+
+func _animation_tween(unit: Node3D, property_name: StringName) -> Tween:
+	if _has_property(unit, property_name):
+		return unit.get(property_name) as Tween
+	return unit.get("active_animation") as Tween
+
+
+func _step_animation_channels(unit: Node3D, channel_names: Array[StringName]) -> void:
+	var stepped: Dictionary = {}
+	for channel_name: StringName in channel_names:
+		var tween := _animation_tween(unit, channel_name)
+		if tween == null or not tween.is_valid():
+			continue
+		var tween_id := tween.get_instance_id()
+		if stepped.has(tween_id):
+			continue
+		stepped[tween_id] = true
+		tween.custom_step(1.0)
 
 
 func _set_camera_angles(camera: Camera3D, yaw: float, pitch: float) -> void:

@@ -7,6 +7,7 @@ const ENEMY_CRIMSON := Color("9f2942")
 const ENEMY_OUTLINE := Color("e27b75")
 const HP_GREEN := Color("42b96b")
 const HP_EMPTY := Color("322f35")
+const DEFEAT_SCALE := Vector3(1.08, 0.08, 1.08)
 
 var unit_id: StringName = &""
 var team: StringName = &""
@@ -17,6 +18,13 @@ var last_event_type: StringName = &""
 var active_animation: Tween
 var animation_kind: StringName = &""
 var phase_visual_energy: float = 0.0
+var position_animation: Tween
+var body_animation: Tween
+var phase_animation: Tween
+var defeat_animation: Tween
+
+var _position_animation_target: Vector3 = Vector3.ZERO
+var _phase_animation_target: float = 0.0
 
 
 func configure(unit_state: Variant) -> void:
@@ -141,10 +149,13 @@ func _update_hp_bar() -> void:
 
 
 func _animate_move(destination: Vector3) -> void:
-	var tween := _begin_animation(&"move")
+	_commit_position_animation()
+	_position_animation_target = destination
+	var tween := _new_animation(&"move")
 	if tween == null:
 		position = destination
 		return
+	position_animation = tween
 	tween.tween_property(self, "position", destination, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
@@ -152,24 +163,33 @@ func _pulse_body(target_scale: Vector3) -> void:
 	var body := get_node_or_null("Body") as MeshInstance3D
 	if body == null:
 		return
-	var tween := _begin_animation(&"damage")
+	_commit_body_animation()
+	var tween := _new_animation(&"damage")
 	if tween == null:
 		body.scale = Vector3.ONE
 		return
+	body_animation = tween
 	body.scale = target_scale
 	tween.tween_property(body, "scale", Vector3.ONE, 0.12)
 
 
 func _animate_defeat() -> void:
-	var tween := _begin_animation(&"defeat")
+	if defeat_animation != null:
+		_commit_defeat_animation()
+	animation_kind = &"defeat"
+	if not visible:
+		return
+	var tween := _new_animation(&"defeat")
 	if tween == null:
 		_finish_defeat()
 		return
-	tween.tween_property(self, "scale", Vector3(1.08, 0.08, 1.08), 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	defeat_animation = tween
+	tween.tween_property(self, "scale", DEFEAT_SCALE, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(Callable(self, "_finish_defeat"))
 
 
 func _finish_defeat() -> void:
+	scale = DEFEAT_SCALE
 	visible = false
 
 
@@ -183,10 +203,13 @@ func _animate_phase_visual() -> void:
 	material.emission_enabled = true
 	material.emission = PLAYER_GOLD if last_phase == team else Color(0.04, 0.04, 0.05)
 	var target_energy := 0.18 if last_phase == team else 0.05
-	var tween := _begin_animation(&"phase_visual_changed")
+	_commit_phase_animation()
+	_phase_animation_target = target_energy
+	var tween := _new_animation(&"phase_visual_changed")
 	if tween == null:
 		_set_phase_visual_energy(target_energy)
 		return
+	phase_animation = tween
 	tween.tween_method(
 		Callable(self, "_set_phase_visual_energy"),
 		phase_visual_energy,
@@ -205,12 +228,7 @@ func _set_phase_visual_energy(value: float) -> void:
 		material.emission_energy_multiplier = phase_visual_energy
 
 
-func _begin_animation(kind: StringName) -> Tween:
-	if active_animation != null and active_animation.is_valid():
-		active_animation.kill()
-	var body := get_node_or_null("Body") as MeshInstance3D
-	if body != null:
-		body.scale = Vector3.ONE
+func _new_animation(kind: StringName) -> Tween:
 	animation_kind = kind
 	if not is_inside_tree():
 		active_animation = null
@@ -220,9 +238,70 @@ func _begin_animation(kind: StringName) -> Tween:
 	return active_animation
 
 
+func _commit_position_animation() -> void:
+	if position_animation == null:
+		return
+	var previous := position_animation
+	if previous.is_valid():
+		previous.kill()
+	position = _position_animation_target
+	position_animation = null
+	_clear_active_animation(previous)
+
+
+func _commit_body_animation() -> void:
+	if body_animation == null:
+		return
+	var previous := body_animation
+	if previous.is_valid():
+		previous.kill()
+	var body := get_node_or_null("Body") as MeshInstance3D
+	if body != null:
+		body.scale = Vector3.ONE
+	body_animation = null
+	_clear_active_animation(previous)
+
+
+func _commit_phase_animation() -> void:
+	if phase_animation == null:
+		return
+	var previous := phase_animation
+	if previous.is_valid():
+		previous.kill()
+	_set_phase_visual_energy(_phase_animation_target)
+	phase_animation = null
+	_clear_active_animation(previous)
+
+
+func _commit_defeat_animation() -> void:
+	if defeat_animation == null:
+		return
+	var previous := defeat_animation
+	if previous.is_valid():
+		previous.kill()
+	_finish_defeat()
+	defeat_animation = null
+	_clear_active_animation(previous)
+
+
+func _clear_active_animation(previous: Tween) -> void:
+	if active_animation == previous:
+		active_animation = null
+
+
+func _commit_all_animation_terminals() -> void:
+	_commit_position_animation()
+	_commit_body_animation()
+	_commit_phase_animation()
+	_commit_defeat_animation()
+
+
+func _exit_tree() -> void:
+	_commit_all_animation_terminals()
+
+
 func _clear_visuals() -> void:
-	if active_animation != null and active_animation.is_valid():
-		active_animation.kill()
+	_commit_all_animation_terminals()
 	active_animation = null
 	animation_kind = &""
 	phase_visual_energy = 0.0

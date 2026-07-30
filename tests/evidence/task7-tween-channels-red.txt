@@ -1,0 +1,28 @@
+Task 7 independent Tween channels RED evidence
+==============================================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_battle_scene.gd
+GreyboxUnit exposes deterministic Tween animation state: Expected a truthy value.
+Move and phase use independent Tween channels: Expected a truthy value.
+Phase visual has its own Tween channel: Expected a truthy value.
+Same-batch move and phase finish at the move target: Expected (2.0, 0.7, 5.0), got (1.0, 0.7, 8.0).
+Defeat has an independent Tween channel: Expected a truthy value.
+Same-batch defeat and phase finish hidden: Expected a truthy value.
+Defeat Tween commits its terminal scale: Expected (1.08, 0.08, 1.08), got (1.0, 1.0, 1.0).
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 8 test file(s): 7 passed, 1 failed.
+TASK7_CHANNELS_RED_EXIT=1

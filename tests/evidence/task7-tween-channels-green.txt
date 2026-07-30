@@ -1,0 +1,34 @@
+Task 7 independent Tween channels GREEN evidence
+================================================
+
+Full suite command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_battle_scene.gd
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 8 test file(s): 8 passed, 0 failed.
+TASK7_CHANNELS_GREEN_EXIT=0
+
+The passing regression test emits real single event batches through BattleSession.events_flushed:
+- unit_moved followed by phase_changed finishes at the destination while preserving the phase visual;
+- unit_defeated followed by phase_changed commits zero visual HP, terminal defeat scale, and hidden visibility while preserving the phase visual;
+- replacing an in-flight move Tween commits the previous destination before starting the replacement.
+
+GreyboxUnit now owns independent position, body/damage, phase-material, and defeat Tween channels. Each channel commits its deterministic terminal state before replacement, reconfiguration, or tree exit.
+
+Direct two-frame battle scene command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' res://src/scenes/battle/battle_scene.tscn --quit-after 2
+
+Observed scene exit code: 0
+Scene stderr was empty.
