@@ -53,6 +53,7 @@ func _configure_scene(scene: Node, path: String) -> void:
 		DEPLOYMENT:
 			scene.configure(chapter)
 			_connect_once(scene.deployment_confirmed, _on_deployment_confirmed)
+			_connect_once(scene.navigation_requested, _on_deployment_navigation_requested)
 		BATTLE:
 			if battle_session == null:
 				battle_session = BattleSession.new(_deployed_chapter())
@@ -76,6 +77,11 @@ func _on_deployment_confirmed(_path: String, rows: Array) -> void:
 	confirmed_deployment = rows.duplicate(true)
 	battle_session = BattleSession.new(_deployed_chapter())
 	_request_scene(BATTLE)
+
+
+func _on_deployment_navigation_requested(path: String) -> void:
+	if path == TITLE:
+		_request_scene(TITLE)
 
 
 func _on_battle_result_requested(_path: String, summary: Dictionary) -> void:

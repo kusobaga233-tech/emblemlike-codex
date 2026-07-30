@@ -20,6 +20,11 @@ func run() -> void:
 	(tree.current_scene.get_node("Layout/Start") as Button).pressed.emit()
 	await _frames(3)
 	assert_equal(tree.current_scene.scene_file_path, DEPLOYMENT, "Start advances to deployment")
+	Input.parse_input_event(_escape_event())
+	await _frames(3)
+	assert_equal(tree.current_scene.scene_file_path, TITLE, "Deployment Escape returns through coordinator")
+	(tree.current_scene.get_node("Layout/Start") as Button).pressed.emit()
+	await _frames(3)
 	var deployment := tree.current_scene
 	var rows: Array = deployment.get_deployment()
 	deployment.swap_slots(0, 1)
@@ -32,10 +37,32 @@ func run() -> void:
 	assert_equal(_player_deployment(battle.session), expected, "Confirmed deployment reaches BattleSession")
 	assert_true(battle.get_node_or_null("BattleHud") != null, "Battle owns its HUD")
 	assert_true(battle.get_node_or_null("CombatForecastPanel") != null, "Battle owns its forecast panel")
-	var selected_before: StringName = battle.session.selected_unit_id
-	battle.get_node("BattleHud").command_selected.emit({"type": &"select", "unit_id": &"fenn-1"})
-	assert_true(battle.session.selected_unit_id != selected_before, "HUD command changes session state")
-	battle.session.events_flushed.emit(_terminal_events(&"victory"))
+	battle.get_unit_node(&"fenn-1").pick()
+	assert_equal(battle.session.selected_unit_id, &"fenn-1", "Clicking a player unit selects it")
+	(battle.get_node("BattleHud/Layout/Commands/Move") as Button).pressed.emit()
+	assert_equal(battle.interaction_mode, &"move", "Move button enters destination mode")
+	battle.get_node("GreyboxBoard").pick_cell(Vector2i(0, 8))
+	var moved_fenn: Variant = _unit(battle.session, &"fenn-1")
+	assert_equal(Vector2i(moved_fenn.grid_position.x, moved_fenn.grid_position.y), Vector2i(0, 8), "Board move reaches the session")
+	battle.get_unit_node(&"fenn-1").pick()
+	assert_equal(battle.session.selected_unit_id, &"fenn-1", "Moved unit can be reselected")
+	(battle.get_node("BattleHud/Layout/Commands/Wait") as Button).pressed.emit()
+	assert_true(_unit(battle.session, &"fenn-1").acted, "Wait button uses legal session wait")
+	var round_before: int = battle.session.turn_state.round
+	(battle.get_node("BattleHud/Layout/Commands/EndPhase") as Button).pressed.emit()
+	await _frames(4)
+	assert_equal(battle.session.turn_state.phase, &"player", "End Phase completes deferred enemy AI")
+	assert_equal(battle.session.turn_state.round, round_before + 1, "End Phase returns on the next round")
+	var captain: Variant = _unit(battle.session, &"captain-1")
+	captain.current_hp = 1
+	captain.grid_position.x = 0
+	captain.grid_position.y = 6
+	_unit(battle.session, &"fenn-1").definition.hit = 100
+	battle.get_unit_node(&"fenn-1").pick()
+	(battle.get_node("BattleHud/Layout/Commands/Attack") as Button).pressed.emit()
+	battle.get_unit_node(&"captain-1").hover()
+	assert_true(battle.get_node("CombatForecastPanel").visible, "Forecast panel is visible for legal target")
+	battle.get_unit_node(&"captain-1").pick()
 	await _frames(3)
 	assert_equal(tree.current_scene.scene_file_path, RESULT, "Terminal battle advances to result")
 	assert_equal(coordinator.result_summary["outcome"], &"victory", "Coordinator retains result summary")
@@ -66,8 +93,18 @@ func _player_deployment(session: Variant) -> Array:
 	return rows
 
 
-func _terminal_events(outcome: StringName) -> Array[Dictionary]:
-	return [{"type": &"battle_status_changed", "actor_id": &"", "target_id": &"", "payload": {"from": &"ongoing", "to": outcome}}]
+func _unit(session: Variant, id: StringName) -> Variant:
+	for unit: Variant in session.units:
+		if unit.instance_id == id:
+			return unit
+	return null
+
+
+func _escape_event() -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = KEY_ESCAPE
+	event.pressed = true
+	return event
 
 
 func _frames(count: int) -> void:

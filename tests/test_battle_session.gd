@@ -28,6 +28,7 @@ func run() -> void:
 	_test_mutations_flush_matching_ordered_events()
 	_test_rejected_commands_are_exact_no_ops()
 	_test_unit_acted_is_an_exact_no_op()
+	_test_wait_selected_marks_only_a_valid_selected_player()
 	_test_occupancy_and_blocking_are_enforced()
 	_test_enemy_ai_targets_only_opponents()
 	_test_objective_victory_and_defeat_propagate()
@@ -135,6 +136,26 @@ func _test_rejected_commands_are_exact_no_ops() -> void:
 	assert_true(session.end_player_phase()["ok"], "Player phase ends for wrong-phase validation")
 	_assert_rejected_no_op(session, func() -> Dictionary: return session.select_unit(&"fenn-1"), &"wrong_phase", flush_count, "Selection during enemy phase")
 	_assert_rejected_no_op(session, func() -> Dictionary: return session.end_player_phase(), &"wrong_phase", flush_count, "Double player phase end")
+
+
+func _test_wait_selected_marks_only_a_valid_selected_player() -> void:
+	var session: Variant = _new_session(705)
+	var before: Dictionary = _snapshot(session)
+	var rejected: Dictionary = session.wait_selected()
+	assert_true(not rejected["ok"], "Wait rejects without a selected unit")
+	assert_equal(_snapshot(session), before, "Rejected wait is an exact no-op")
+	session.select_unit(&"fenn-1")
+	var flushed: Array = []
+	session.events_flushed.connect(func(events: Array[Dictionary]) -> void: flushed.append(events))
+	var accepted: Dictionary = session.wait_selected()
+	assert_true(accepted["ok"], "Selected living player can wait")
+	assert_true(_unit(session, &"fenn-1").acted, "Wait marks selected unit acted")
+	assert_equal(accepted["events"][0]["type"], &"unit_acted", "Wait emits stable acted event")
+	assert_equal(flushed.size(), 1, "Wait flushes exactly once")
+	var after: Dictionary = _snapshot(session)
+	var repeated: Dictionary = session.wait_selected()
+	assert_true(not repeated["ok"], "Acted unit cannot wait twice")
+	assert_equal(_snapshot(session), after, "Repeated wait is an exact no-op")
 
 
 func _test_occupancy_and_blocking_are_enforced() -> void:

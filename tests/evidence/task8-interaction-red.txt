@@ -1,0 +1,15 @@
+Task 8 interaction-state RED evidence
+=====================================
+
+Command:
+Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Relevant failures:
+- BattleSession had no public wait_selected command.
+- Deployment Escape remained on deployment because FlowCoordinator did not consume navigation_requested.
+- E2E could not call the required public board/unit pick and hover interaction paths.
+- HUD Wait and End Phase were not backed by the required session/deferred AI behavior.
+
+Suite summary: 8 passed, 2 failed.

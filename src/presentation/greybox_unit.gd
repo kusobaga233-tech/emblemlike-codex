@@ -1,6 +1,9 @@
 class_name GreyboxUnit
 extends Node3D
 
+signal picked(unit_id: StringName)
+signal hovered(unit_id: StringName)
+
 const PLAYER_BLUE := Color("245fa8")
 const PLAYER_GOLD := Color("d5ad38")
 const ENEMY_CRIMSON := Color("9f2942")
@@ -46,6 +49,14 @@ func set_selected(selected: bool) -> void:
 	var outline := get_node_or_null("SelectionOutline") as MeshInstance3D
 	if outline != null:
 		outline.visible = selected
+
+
+func pick() -> void:
+	picked.emit(unit_id)
+
+
+func hover() -> void:
+	hovered.emit(unit_id)
 
 
 func play_event(event: Dictionary) -> void:

@@ -1,6 +1,8 @@
 class_name GreyboxBoard
 extends Node3D
 
+signal cell_picked(position: Vector2i)
+
 const TERRAIN_COLORS := {
 	&"plain": Color("8b8f86"),
 	&"bridge": Color("586579"),
@@ -39,6 +41,10 @@ func show_move_cells(cells: Array) -> void:
 
 func show_attack_cells(cells: Array) -> void:
 	_show_overlay(_ensure_root("AttackOverlay"), cells, ATTACK_COLOR, "Attack")
+
+
+func pick_cell(position: Vector2i) -> void:
+	cell_picked.emit(position)
 
 
 func _make_tile(grid_position: Vector2i, terrain_id: StringName) -> MeshInstance3D:

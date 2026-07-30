@@ -40,5 +40,9 @@ static func end_player_phase() -> CommandData:
 	return CommandData.new(&"end_player_phase")
 
 
+static func wait_selected() -> CommandData:
+	return CommandData.new(&"wait_selected")
+
+
 static func advance_enemy_phase() -> CommandData:
 	return CommandData.new(&"advance_enemy_phase")

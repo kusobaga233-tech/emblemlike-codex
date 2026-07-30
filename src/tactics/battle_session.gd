@@ -55,6 +55,10 @@ func end_player_phase() -> Dictionary:
 	return _execute(BattleCommandScript.end_player_phase())
 
 
+func wait_selected() -> Dictionary:
+	return _execute(BattleCommandScript.wait_selected())
+
+
 func advance_enemy_phase() -> Dictionary:
 	return _execute(BattleCommandScript.advance_enemy_phase())
 
@@ -73,6 +77,8 @@ func _execute(command: Variant) -> Dictionary:
 			return _confirm_attack(command.target_id)
 		&"end_player_phase":
 			return _end_player_phase()
+		&"wait_selected":
+			return _wait_selected()
 		&"advance_enemy_phase":
 			return _advance_enemy_phase()
 	return _reject(&"invalid_target")
@@ -98,6 +104,20 @@ func _select_unit(id: StringName) -> Dictionary:
 		id,
 		&"",
 		{"previous_unit_id": previous_id},
+	)])
+
+
+func _wait_selected() -> Dictionary:
+	var selected_result := _selected_player_unit()
+	if not selected_result["ok"]:
+		return selected_result
+	var unit: Variant = selected_result["unit"]
+	unit.acted = true
+	return _accept([BattleEventScript.state_changed(
+		&"unit_acted",
+		unit.instance_id,
+		&"",
+		{"action": &"wait"},
 	)])
 
 
