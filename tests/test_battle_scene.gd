@@ -39,7 +39,8 @@ func run() -> void:
 	_test_board_build_palette_rebuild_and_overlays()
 	_test_unit_primitives_selection_hp_and_event_playback()
 	_test_tactical_camera_reset_focus_orbit_and_zoom_clamps()
-	_test_battle_scene_smoke_signal_isolation_ownership_and_cleanup()
+	_test_tactical_camera_projects_every_board_corner_at_clamp_extremes()
+	await _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup()
 
 
 func _test_board_build_palette_rebuild_and_overlays() -> void:
@@ -86,6 +87,11 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	var enemy_state: Variant = _unit_state(session, &"blade-1")
 	var player: Node3D = _unit_script.new()
 	var enemy: Node3D = _unit_script.new()
+	var animation_root := Node3D.new()
+	var tree := Engine.get_main_loop() as SceneTree
+	tree.root.add_child(animation_root)
+	animation_root.add_child(player)
+	animation_root.add_child(enemy)
 	player.configure(player_state)
 	enemy.configure(enemy_state)
 
@@ -101,14 +107,33 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	assert_true(player.get_node("SelectionOutline").visible, "Selection outline can be shown")
 	player.set_selected(false)
 	assert_true(not player.get_node("SelectionOutline").visible, "Selection outline can be hidden")
+	var supports_deterministic_animation := (
+		_has_property(player, &"active_animation")
+		and _has_property(player, &"animation_kind")
+		and _has_property(player, &"phase_visual_energy")
+	)
+	assert_true(
+		supports_deterministic_animation,
+		"GreyboxUnit exposes deterministic Tween animation state",
+	)
+	if not supports_deterministic_animation:
+		animation_root.free()
+		return
 
 	var before_state: Dictionary = _session_snapshot(session)
+	var move_origin := player.position
 	player.play_event({
 		"type": &"unit_moved",
 		"actor_id": &"fenn-1",
 		"target_id": &"",
 		"payload": {"from": Vector2i(1, 8), "to": Vector2i(4, 5)},
 	})
+	assert_equal(player.get("animation_kind"), &"move", "Move event starts the move Tween")
+	assert_equal(player.position, move_origin, "Move Tween begins at the current presentation position")
+	var move_tween := player.get("active_animation") as Tween
+	assert_true(move_tween != null and move_tween.is_valid(), "Move event owns a valid headless Tween")
+	if move_tween != null:
+		move_tween.custom_step(1.0)
 	assert_equal(player.position, Vector3(4.0, 0.7, 5.0), "Move event updates only the presentation position")
 	player.play_event({
 		"type": &"damage_applied",
@@ -118,6 +143,14 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	})
 	assert_equal(player.visual_hp, 12, "Damage event updates visual HP")
 	assert_true(player.get_node("HpBar/Fill").scale.x > 0.0, "Damage event keeps a visible proportional HP fill")
+	assert_equal(player.get("animation_kind"), &"damage", "Damage event starts the damage Tween")
+	var body := player.get_node("Body") as MeshInstance3D
+	assert_true(body.scale != Vector3.ONE, "Damage Tween begins from a visible squash pose")
+	var damage_tween := player.get("active_animation") as Tween
+	assert_true(damage_tween != null and damage_tween.is_valid(), "Damage event owns a valid headless Tween")
+	if damage_tween != null:
+		damage_tween.custom_step(1.0)
+	assert_equal(body.scale, Vector3.ONE, "Damage Tween deterministically restores body scale")
 	player.play_event({
 		"type": &"phase_changed",
 		"actor_id": &"",
@@ -125,16 +158,27 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 		"payload": {"from": &"player", "to": &"enemy"},
 	})
 	assert_equal(player.last_phase, &"enemy", "Phase event is handled visually")
+	assert_equal(player.get("animation_kind"), &"phase_visual_changed", "Phase event starts its visual Tween")
+	var phase_tween := player.get("active_animation") as Tween
+	assert_true(phase_tween != null and phase_tween.is_valid(), "Phase event owns a valid headless Tween")
+	if phase_tween != null:
+		phase_tween.custom_step(1.0)
+	assert_true(float(player.get("phase_visual_energy")) > 0.0, "Phase Tween reaches a visible emission energy")
 	player.play_event({
 		"type": &"unit_defeated",
 		"actor_id": &"blade-1",
 		"target_id": &"fenn-1",
 		"payload": {"remaining_hp": 0},
 	})
+	assert_equal(player.get("animation_kind"), &"defeat", "Defeat event starts the defeat Tween")
+	assert_true(player.visible, "Defeat Tween keeps the unit visible at animation start")
+	var defeat_tween := player.get("active_animation") as Tween
+	assert_true(defeat_tween != null and defeat_tween.is_valid(), "Defeat event owns a valid headless Tween")
+	if defeat_tween != null:
+		defeat_tween.custom_step(1.0)
 	assert_true(not player.visible, "Defeat event hides the defeated presentation node")
 	assert_equal(_session_snapshot(session), before_state, "Direct event playback cannot mutate BattleSession")
-	player.free()
-	enemy.free()
+	animation_root.free()
 
 
 func _test_tactical_camera_reset_focus_orbit_and_zoom_clamps() -> void:
@@ -160,7 +204,41 @@ func _test_tactical_camera_reset_focus_orbit_and_zoom_clamps() -> void:
 	camera.free()
 
 
+func _test_tactical_camera_projects_every_board_corner_at_clamp_extremes() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(720, 1280)]:
+		var viewport := SubViewport.new()
+		viewport.size = viewport_size
+		tree.root.add_child(viewport)
+		var camera: Camera3D = _camera_script.new()
+		viewport.add_child(camera)
+		camera.current = true
+		camera.configure_board(8, 10)
+		var configured_min_distance: float = camera.min_distance
+		assert_true(configured_min_distance > 6.0, "Safe minimum distance is derived from board projection")
+		for yaw: float in [-180.0, -90.0, -45.0, 0.0, 45.0, 90.0, 180.0]:
+			for pitch: float in [camera.min_pitch_degrees, camera.max_pitch_degrees]:
+				_set_camera_angles(camera, yaw, pitch)
+				camera.zoom(-10000.0)
+				_assert_board_corners_visible(camera, viewport_size, "center yaw %.0f pitch %.0f" % [yaw, pitch])
+		camera.focus(Vector3(0.0, 0.0, 0.0))
+		assert_true(camera.min_distance > configured_min_distance, "Corner focus expands the safe minimum distance")
+		for yaw: float in [-135.0, 45.0]:
+			for pitch: float in [camera.min_pitch_degrees, camera.max_pitch_degrees]:
+				_set_camera_angles(camera, yaw, pitch)
+				camera.zoom(-10000.0)
+				_assert_board_corners_visible(camera, viewport_size, "corner yaw %.0f pitch %.0f" % [yaw, pitch])
+		camera.fov = 42.0
+		camera.configure_board(8, 10)
+		assert_true(camera.min_distance > configured_min_distance, "Narrower FOV expands the safe minimum distance")
+		_set_camera_angles(camera, 45.0, camera.max_pitch_degrees)
+		camera.zoom(-10000.0)
+		_assert_board_corners_visible(camera, viewport_size, "narrow FOV clamp extreme")
+		viewport.free()
+
+
 func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
+	var orphan_baseline := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
 	var packed_scene := load(BATTLE_SCENE_PATH) as PackedScene
 	assert_true(packed_scene != null, "Battle scene parses and loads")
 	if packed_scene == null:
@@ -171,6 +249,8 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	scene.setup_battle(chapter, session)
 	var tree := Engine.get_main_loop() as SceneTree
 	tree.root.add_child(scene)
+	await tree.process_frame
+	await tree.process_frame
 
 	assert_equal(scene.get_node("GreyboxBoard/Terrain").get_child_count(), 80, "Battle scene owns eighty board cells")
 	assert_equal(scene.get_node("Units").get_child_count(), 7, "Battle scene owns seven unit nodes")
@@ -181,12 +261,17 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 
 	var fenn: Node3D = scene.get_unit_node(&"fenn-1")
 	var before_state := _session_snapshot(session)
-	var events: Array[Dictionary] = [{
+	var move_events: Array[Dictionary] = [{
 		"type": &"unit_moved",
 		"actor_id": &"fenn-1",
 		"target_id": &"",
 		"payload": {"from": Vector2i(1, 8), "to": Vector2i(2, 5)},
-	}, {
+	}]
+	session.events_flushed.emit(move_events)
+	var move_tween := fenn.get("active_animation") as Tween
+	if move_tween != null:
+		move_tween.custom_step(1.0)
+	var followup_events: Array[Dictionary] = [{
 		"type": &"damage_applied",
 		"actor_id": &"blade-1",
 		"target_id": &"fenn-1",
@@ -197,15 +282,22 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 		"target_id": &"",
 		"payload": {"from": &"player", "to": &"enemy"},
 	}]
-	session.events_flushed.emit(events)
+	session.events_flushed.emit(followup_events)
 	assert_equal(fenn.position, Vector3(2.0, 0.7, 5.0), "Scene consumes flushed move events")
 	assert_equal(fenn.visual_hp, 20, "Scene consumes flushed damage events")
 	assert_equal(fenn.last_phase, &"enemy", "Scene consumes flushed phase events")
 	assert_equal(_session_snapshot(session), before_state, "Scene event consumption leaves the session snapshot identical")
 
 	var scene_weak: WeakRef = weakref(scene)
-	scene.free()
-	assert_true(scene_weak.get_ref() == null, "Freeing the scene releases the scene root immediately")
+	scene.queue_free()
+	await tree.process_frame
+	await tree.process_frame
+	assert_true(scene_weak.get_ref() == null, "Queued scene cleanup releases the scene root")
+	assert_equal(
+		int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)),
+		orphan_baseline,
+		"Battle scene cleanup returns orphan node count to baseline",
+	)
 
 
 func _assert_terrain_color(terrain_root: Node, terrain_id: StringName, expected: Color) -> void:
@@ -220,6 +312,34 @@ func _assert_terrain_color(terrain_root: Node, terrain_id: StringName, expected:
 func _material_color(mesh_instance: MeshInstance3D) -> Color:
 	var material := mesh_instance.material_override as StandardMaterial3D
 	return material.albedo_color if material != null else Color.TRANSPARENT
+
+
+func _has_property(object: Object, property_name: StringName) -> bool:
+	for property: Dictionary in object.get_property_list():
+		if StringName(property.get("name", &"")) == property_name:
+			return true
+	return false
+
+
+func _set_camera_angles(camera: Camera3D, yaw: float, pitch: float) -> void:
+	camera.orbit(Vector2(
+		(yaw - camera.yaw_degrees) / camera.orbit_sensitivity,
+		(pitch - camera.pitch_degrees) / camera.orbit_sensitivity,
+	))
+
+
+func _assert_board_corners_visible(camera: Camera3D, viewport_size: Vector2i, label: String) -> void:
+	var corners := [
+		Vector3(-0.5, 0.0, -0.5),
+		Vector3(7.5, 0.0, -0.5),
+		Vector3(-0.5, 0.0, 9.5),
+		Vector3(7.5, 0.0, 9.5),
+	]
+	for corner: Vector3 in corners:
+		assert_true(not camera.is_position_behind(corner), "%s keeps corner in front" % label)
+		var screen := camera.unproject_position(corner)
+		assert_true(screen.x >= 0.0 and screen.x <= viewport_size.x, "%s keeps corner inside viewport width" % label)
+		assert_true(screen.y >= 0.0 and screen.y <= viewport_size.y, "%s keeps corner inside viewport height" % label)
 
 
 func _unit_state(session: Variant, instance_id: StringName) -> Variant:

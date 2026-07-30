@@ -1,0 +1,49 @@
+Task 7 specification hardening RED evidence
+===========================================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Relevant Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_battle_scene.gd
+GreyboxUnit exposes deterministic Tween animation state: Expected a truthy value.
+Safe minimum distance is derived from board projection: Expected a truthy value.
+Multiple center and corner-focus projection assertions failed across 1280x720 and 720x1280 viewports at legal yaw/pitch clamp extremes because board corners projected outside the viewport.
+Corner focus expands the safe minimum distance: Expected a truthy value.
+WARNING: ObjectDB instances leaked at exit (the existing runner returned before the awaited smoke cleanup resumed).
+
+FAIL test_runner_self.gd
+Async test failure exits with failure: Expected 1, got 0.
+Runner waits for async test assertions after a process frame: Expected a truthy value.
+
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_turn_objective_ai.gd
+Ran 8 test file(s): 6 passed, 2 failed.
+TASK7_HARDENING_RED_EXIT=1
+
+Secondary animation self-review RED cycle
+-----------------------------------------
+
+After the first GREEN implementation, a deterministic damage Tween assertion was added before correcting the implementation.
+
+Observed process exit code: 1
+
+FAIL test_battle_scene.gd
+Damage Tween begins from a visible squash pose: Expected a truthy value.
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 8 test file(s): 7 passed, 1 failed.
+TASK7_ANIMATION_RED_EXIT=1

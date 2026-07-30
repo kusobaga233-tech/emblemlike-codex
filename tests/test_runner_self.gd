@@ -10,6 +10,7 @@ func run() -> void:
 	_test_malformed_test_fails_without_crashing_summary()
 	_test_runtime_script_error_fails_without_false_pass()
 	_test_plain_text_script_error_phrase_still_passes()
+	_test_async_test_is_awaited()
 
 
 func _test_missing_tests_directory_fails() -> void:
@@ -93,6 +94,23 @@ func _test_plain_text_script_error_phrase_still_passes() -> void:
 	assert_true(
 		not result.output.contains("Test suite emitted SCRIPT ERROR"),
 		"Plain text phrase does not trigger controlled script-error failure",
+	)
+
+
+func _test_async_test_is_awaited() -> void:
+	var result := _run_fixture("async_test", {
+		"tests/test_case.gd": FileAccess.get_file_as_string(TEST_CASE_SOURCE_PATH),
+		"tests/test_async.gd": (
+			"extends \"res://tests/test_case.gd\"\n\n"
+			+ "func run() -> void:\n"
+			+ "\tawait Engine.get_main_loop().process_frame\n"
+			+ "\tfailures.append(\"async failure reached\")\n"
+		),
+	})
+	assert_equal(result.exit_code, 1, "Async test failure exits with failure")
+	assert_true(
+		result.output.contains("async failure reached"),
+		"Runner waits for async test assertions after a process frame",
 	)
 
 

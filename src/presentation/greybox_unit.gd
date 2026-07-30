@@ -14,6 +14,9 @@ var max_hp: int = 1
 var visual_hp: int = 1
 var last_phase: StringName = &"player"
 var last_event_type: StringName = &""
+var active_animation: Tween
+var animation_kind: StringName = &""
+var phase_visual_energy: float = 0.0
 
 
 func configure(unit_state: Variant) -> void:
@@ -48,8 +51,7 @@ func play_event(event: Dictionary) -> void:
 		&"unit_moved":
 			if actor_id == unit_id:
 				var destination: Vector2i = payload.get("to", Vector2i.ZERO)
-				position = Vector3(destination.x, 0.7, destination.y)
-				_pulse_body(Vector3(1.0, 1.12, 1.0))
+				_animate_move(Vector3(destination.x, 0.7, destination.y))
 		&"damage_applied":
 			if target_id == unit_id:
 				visual_hp = clampi(int(payload.get("remaining_hp", visual_hp)), 0, max_hp)
@@ -59,10 +61,10 @@ func play_event(event: Dictionary) -> void:
 			if target_id == unit_id:
 				visual_hp = 0
 				_update_hp_bar()
-				visible = false
-		&"phase_changed":
+				_animate_defeat()
+		&"phase_changed", &"phase_visual_changed":
 			last_phase = StringName(payload.get("to", last_phase))
-			_apply_phase_emission()
+			_animate_phase_visual()
 
 
 func _build_body() -> void:
@@ -138,16 +140,40 @@ func _update_hp_bar() -> void:
 	fill.visible = ratio > 0.0
 
 
+func _animate_move(destination: Vector3) -> void:
+	var tween := _begin_animation(&"move")
+	if tween == null:
+		position = destination
+		return
+	tween.tween_property(self, "position", destination, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
 func _pulse_body(target_scale: Vector3) -> void:
 	var body := get_node_or_null("Body") as MeshInstance3D
-	if body == null or not is_inside_tree():
+	if body == null:
+		return
+	var tween := _begin_animation(&"damage")
+	if tween == null:
+		body.scale = Vector3.ONE
 		return
 	body.scale = target_scale
-	var tween := create_tween()
 	tween.tween_property(body, "scale", Vector3.ONE, 0.12)
 
 
-func _apply_phase_emission() -> void:
+func _animate_defeat() -> void:
+	var tween := _begin_animation(&"defeat")
+	if tween == null:
+		_finish_defeat()
+		return
+	tween.tween_property(self, "scale", Vector3(1.08, 0.08, 1.08), 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(Callable(self, "_finish_defeat"))
+
+
+func _finish_defeat() -> void:
+	visible = false
+
+
+func _animate_phase_visual() -> void:
 	var body := get_node_or_null("Body") as MeshInstance3D
 	if body == null:
 		return
@@ -156,13 +182,54 @@ func _apply_phase_emission() -> void:
 		return
 	material.emission_enabled = true
 	material.emission = PLAYER_GOLD if last_phase == team else Color(0.04, 0.04, 0.05)
-	material.emission_energy_multiplier = 0.18 if last_phase == team else 0.05
+	var target_energy := 0.18 if last_phase == team else 0.05
+	var tween := _begin_animation(&"phase_visual_changed")
+	if tween == null:
+		_set_phase_visual_energy(target_energy)
+		return
+	tween.tween_method(
+		Callable(self, "_set_phase_visual_energy"),
+		phase_visual_energy,
+		target_energy,
+		0.16,
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _set_phase_visual_energy(value: float) -> void:
+	phase_visual_energy = value
+	var body := get_node_or_null("Body") as MeshInstance3D
+	if body == null:
+		return
+	var material := body.material_override as StandardMaterial3D
+	if material != null:
+		material.emission_energy_multiplier = phase_visual_energy
+
+
+func _begin_animation(kind: StringName) -> Tween:
+	if active_animation != null and active_animation.is_valid():
+		active_animation.kill()
+	var body := get_node_or_null("Body") as MeshInstance3D
+	if body != null:
+		body.scale = Vector3.ONE
+	animation_kind = kind
+	if not is_inside_tree():
+		active_animation = null
+		return null
+	active_animation = create_tween()
+	active_animation.set_process_mode(Tween.TWEEN_PROCESS_IDLE)
+	return active_animation
 
 
 func _clear_visuals() -> void:
+	if active_animation != null and active_animation.is_valid():
+		active_animation.kill()
+	active_animation = null
+	animation_kind = &""
+	phase_visual_energy = 0.0
 	for child: Node in get_children():
 		child.free()
 	visible = true
+	scale = Vector3.ONE
 	last_event_type = &""
 
 

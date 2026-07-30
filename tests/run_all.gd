@@ -66,7 +66,7 @@ func _run_test_process(test_path: String, file_name: String) -> bool:
 			"--script",
 			get_script().resource_path,
 			"--quit-after",
-			"2",
+			"120",
 			"--",
 			WORKER_FLAG,
 			test_path,
@@ -125,7 +125,7 @@ func _run_single_test(test_path: String) -> void:
 		quit(1)
 		return
 
-	test_case.run()
+	await test_case.run()
 	var failures: Array = test_case.failures
 	if failures.is_empty():
 		print("PASS %s" % file_name)

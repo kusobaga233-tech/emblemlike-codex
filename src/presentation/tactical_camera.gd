@@ -8,6 +8,8 @@ extends Camera3D
 @export var orbit_sensitivity: float = 0.18
 @export var zoom_step: float = 1.5
 
+const FRAMING_MARGIN := 1.08
+
 var board_width: int = 1
 var board_height: int = 1
 var focus_point: Vector3 = Vector3.ZERO
@@ -21,9 +23,6 @@ var _middle_orbiting: bool = false
 func configure_board(width: int, height: int) -> void:
 	board_width = maxi(1, width)
 	board_height = maxi(1, height)
-	var board_diagonal := Vector2(board_width, board_height).length()
-	max_distance = maxf(18.0, board_diagonal * 1.85)
-	distance = clampf(board_diagonal * 1.28, min_distance, max_distance)
 	reset_view()
 
 
@@ -33,6 +32,8 @@ func focus(target: Vector3) -> void:
 		0.0,
 		clampf(target.z, 0.0, float(board_height - 1)),
 	)
+	_update_safe_distance_limits()
+	distance = clampf(distance, min_distance, max_distance)
 	_apply_transform()
 
 
@@ -59,8 +60,8 @@ func reset_view() -> void:
 	)
 	yaw_degrees = 0.0
 	pitch_degrees = 40.0
-	var board_diagonal := Vector2(board_width, board_height).length()
-	distance = clampf(board_diagonal * 1.28, min_distance, max_distance)
+	_update_safe_distance_limits()
+	distance = min_distance
 	_apply_transform()
 
 
@@ -93,3 +94,47 @@ func _apply_transform() -> void:
 		cos(yaw) * cos(pitch),
 	) * distance
 	look_at_from_position(focus_point + offset, focus_point, Vector3.UP)
+
+
+func _update_safe_distance_limits() -> void:
+	var radius := _board_radius_from_focus()
+	var half_angle := _limiting_half_fov_radians()
+	var projected_distance := radius / maxf(0.01, sin(half_angle))
+	var near_safe_distance := radius + near + 0.05
+	min_distance = maxf(projected_distance * FRAMING_MARGIN, near_safe_distance)
+	max_distance = maxf(24.0, min_distance * 1.85)
+
+
+func _board_radius_from_focus() -> float:
+	var result := 0.0
+	for corner: Vector3 in _board_corners():
+		result = maxf(result, focus_point.distance_to(corner))
+	return maxf(result, 0.5)
+
+
+func _board_corners() -> Array[Vector3]:
+	return [
+		Vector3(-0.5, 0.0, -0.5),
+		Vector3(float(board_width) - 0.5, 0.0, -0.5),
+		Vector3(-0.5, 0.0, float(board_height) - 0.5),
+		Vector3(float(board_width) - 0.5, 0.0, float(board_height) - 0.5),
+	]
+
+
+func _limiting_half_fov_radians() -> float:
+	var viewport_size := Vector2(1920.0, 1080.0)
+	if get_viewport() != null:
+		var visible_size := get_viewport().get_visible_rect().size
+		if visible_size.x > 0.0 and visible_size.y > 0.0:
+			viewport_size = visible_size
+	var aspect := maxf(0.01, viewport_size.x / viewport_size.y)
+	var configured_half_fov := deg_to_rad(clampf(fov, 1.0, 179.0) * 0.5)
+	var horizontal_half_fov: float
+	var vertical_half_fov: float
+	if keep_aspect == Camera3D.KEEP_WIDTH:
+		horizontal_half_fov = configured_half_fov
+		vertical_half_fov = atan(tan(horizontal_half_fov) / aspect)
+	else:
+		vertical_half_fov = configured_half_fov
+		horizontal_half_fov = atan(tan(vertical_half_fov) * aspect)
+	return minf(horizontal_half_fov, vertical_half_fov)
