@@ -2,6 +2,15 @@ class_name BattleEvent
 extends RefCounted
 
 
+static func state_changed(
+	event_type: StringName,
+	actor_id: StringName = &"",
+	target_id: StringName = &"",
+	payload: Dictionary = {},
+) -> Dictionary:
+	return _make(event_type, actor_id, target_id, payload)
+
+
 static func attack_started(
 	actor_id: StringName,
 	target_id: StringName,

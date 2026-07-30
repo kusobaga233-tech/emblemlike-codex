@@ -1,0 +1,44 @@
+class_name BattleCommand
+extends RefCounted
+
+class CommandData extends RefCounted:
+	var type: StringName = &""
+	var unit_id: StringName = &""
+	var target_id: StringName = &""
+	var destination: Vector2i = Vector2i.ZERO
+
+
+	func _init(
+		initial_type: StringName = &"",
+		initial_unit_id: StringName = &"",
+		initial_target_id: StringName = &"",
+		initial_destination: Vector2i = Vector2i.ZERO,
+	) -> void:
+		type = initial_type
+		unit_id = initial_unit_id
+		target_id = initial_target_id
+		destination = initial_destination
+
+
+static func select_unit(id: StringName) -> CommandData:
+	return CommandData.new(&"select_unit", id)
+
+
+static func move_selected(to: Vector2i) -> CommandData:
+	return CommandData.new(&"move_selected", &"", &"", to)
+
+
+static func forecast_attack(target: StringName) -> CommandData:
+	return CommandData.new(&"forecast_attack", &"", target)
+
+
+static func confirm_attack(target: StringName) -> CommandData:
+	return CommandData.new(&"confirm_attack", &"", target)
+
+
+static func end_player_phase() -> CommandData:
+	return CommandData.new(&"end_player_phase")
+
+
+static func advance_enemy_phase() -> CommandData:
+	return CommandData.new(&"advance_enemy_phase")
