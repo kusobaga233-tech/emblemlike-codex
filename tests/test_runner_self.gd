@@ -8,6 +8,7 @@ func run() -> void:
 	_test_missing_tests_directory_fails()
 	_test_zero_eligible_tests_fails()
 	_test_malformed_test_fails_without_crashing_summary()
+	_test_runtime_script_error_fails_without_false_pass()
 
 
 func _test_missing_tests_directory_fails() -> void:
@@ -44,6 +45,33 @@ func _test_malformed_test_fails_without_crashing_summary() -> void:
 	assert_true(
 		result.output.contains("Ran 1 test file(s): 0 passed, 1 failed."),
 		"Malformed test is included in the final summary",
+	)
+
+
+func _test_runtime_script_error_fails_without_false_pass() -> void:
+	var result := _run_fixture("runtime_script_error", {
+		"tests/test_case.gd": FileAccess.get_file_as_string(TEST_CASE_SOURCE_PATH),
+		"tests/test_runtime_error.gd": (
+			"extends \"res://tests/test_case.gd\"\n\n"
+			+ "func run() -> void:\n"
+			+ "\t_trigger_runtime_error()\n\n"
+			+ "func _trigger_runtime_error() -> void:\n"
+			+ "\tvar value: Variant = null\n"
+			+ "\tvalue.call(\"definitely_missing_method\")\n"
+		),
+	})
+	assert_equal(result.exit_code, 1, "Runtime SCRIPT ERROR exits with failure")
+	assert_true(
+		result.output.contains("SCRIPT ERROR:"),
+		"Runtime SCRIPT ERROR remains visible for diagnosis",
+	)
+	assert_true(
+		result.output.contains("Test suite emitted SCRIPT ERROR"),
+		"Runner reports a controlled script-error failure",
+	)
+	assert_true(
+		not result.output.contains("PASS test_runtime_error.gd"),
+		"Runtime SCRIPT ERROR is not reported as a passing test",
 	)
 
 

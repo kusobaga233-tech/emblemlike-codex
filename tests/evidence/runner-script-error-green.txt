@@ -1,0 +1,35 @@
+Godot runner SCRIPT ERROR GREEN evidence
+=========================================
+
+This records output actually observed after changing the runner to execute each
+eligible test file in its own Godot subprocess. The parent runner captures
+stdout/stderr and the worker exit code. A `SCRIPT ERROR:` marker suppresses the
+worker's misleading PASS and becomes a controlled file-level failure.
+
+Full-suite command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed full-suite GREEN output:
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 5 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+The isolated runtime-error fixture was also run directly after the fix. Its
+actually observed controlled result was:
+
+SCRIPT ERROR: Invalid call. Nonexistent function 'definitely_missing_method (via call)' in base 'Nil'.
+at: _trigger_runtime_error (res://tests/test_runtime_error.gd:8)
+GDScript backtrace (most recent call first):
+[0] _trigger_runtime_error (res://tests/test_runtime_error.gd:8)
+[1] run (res://tests/test_runtime_error.gd:4)
+[2] _run_single_test (res://run_all.gd:120)
+FAIL test_runtime_error.gd
+  Test suite emitted SCRIPT ERROR while running this file; treating run as failed.
+Ran 1 test file(s): 0 passed, 1 failed.
+FIXTURE_EXIT_CODE=1
+
+No `PASS test_runtime_error.gd` line was emitted after the fix.

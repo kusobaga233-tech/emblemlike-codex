@@ -1,0 +1,35 @@
+Godot runner SCRIPT ERROR RED evidence
+=======================================
+
+This records output actually observed before modifying tests/run_all.gd. The
+isolated fixture test inherits TestCase and its run() calls a helper that invokes
+a nonexistent method on Nil, producing a runtime SCRIPT ERROR rather than a
+parse error.
+
+Full-suite command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed full-suite RED summary:
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+FAIL test_runner_self.gd
+  Runtime SCRIPT ERROR exits with failure: Expected 1, got 0.
+  Runner reports a controlled script-error failure: Expected a truthy value.
+  Runtime SCRIPT ERROR is not reported as a passing test: Expected a truthy value.
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 4 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The isolated fixture itself was then run directly. Its actually observed output
+demonstrates the false PASS and zero exit code:
+
+PASS test_runtime_error.gd
+Ran 1 test file(s): 1 passed, 0 failed.
+FIXTURE_EXIT_CODE=0
+SCRIPT ERROR: Invalid call. Nonexistent function 'definitely_missing_method (via call)' in base 'Nil'.
+   at: _trigger_runtime_error (res://tests/test_runtime_error.gd:8)
+   GDScript backtrace (most recent call first):
+       [0] _trigger_runtime_error (res://tests/test_runtime_error.gd:8)
+       [1] run (res://tests/test_runtime_error.gd:4)
+       [2] _run_all (res://run_all.gd:50)
