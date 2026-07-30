@@ -1,0 +1,31 @@
+Task 4 RED evidence
+===================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$task4Code=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$task4Code"
+exit $task4Code
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+FAIL test_turn_objective_ai.gd
+  AiRules class exists: Expected a truthy value.
+  ObjectiveRules class exists: Expected a truthy value.
+  ResonanceState class exists: Expected a truthy value.
+  TurnState class exists: Expected a truthy value.
+Ran 5 test file(s): 4 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The expected RED resources were not found:
+- res://src/core/ai_rules.gd
+- res://src/core/objective_rules.gd
+- res://src/core/resonance_state.gd
+- res://src/core/turn_state.gd

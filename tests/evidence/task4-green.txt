@@ -1,0 +1,21 @@
+Task 4 GREEN evidence
+=====================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$task4Code=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$task4Code"
+exit $task4Code
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 5 passed, 0 failed.
+GODOT_EXIT_CODE=0
