@@ -9,7 +9,7 @@ title = "雾桥初阵"
 subtitle = "晨雾中的第一道誓约"
 width = 8
 height = 10
-terrain = PackedStringArray("forest", "plain", "plain", "plain", "crystal", "plain", "plain", "forest", "plain", "plain", "water", "water", "plain", "plain", "plain", "plain", "plain", "forest", "water", "plain", "plain", "crystal", "plain", "plain", "plain", "plain", "water", "plain", "forest", "plain", "plain", "plain", "water", "bridge", "bridge", "bridge", "bridge", "bridge", "bridge", "water", "plain", "water", "plain", "forest", "plain", "plain", "plain", "water", "crystal", "water", "plain", "plain", "forest", "plain", "water", "plain", "plain", "plain", "plain", "water", "plain", "forest", "water", "plain", "plain", "plain", "plain", "water", "crystal", "plain", "water", "forest", "forest", "plain", "plain", "water", "plain", "plain", "water", "crystal")
+terrain = PackedStringArray("forest", "plain", "plain", "plain", "crystal", "plain", "plain", "forest", "plain", "plain", "water", "water", "plain", "plain", "plain", "plain", "plain", "forest", "water", "plain", "plain", "crystal", "plain", "plain", "plain", "plain", "water", "plain", "forest", "plain", "plain", "plain", "water", "bridge", "bridge", "bridge", "bridge", "bridge", "bridge", "water", "plain", "water", "plain", "forest", "plain", "plain", "plain", "water", "crystal", "water", "plain", "plain", "forest", "plain", "water", "plain", "plain", "plain", "plain", "water", "plain", "forest", "water", "plain", "plain", "plain", "plain", "plain", "crystal", "plain", "water", "forest", "forest", "plain", "plain", "water", "plain", "plain", "water", "crystal")
 deployments = Array[Dictionary]([{
 "instance_id": &"aurelia-1",
 "position": Vector2i(1, 7),

@@ -79,6 +79,13 @@ func _test_chapter_board_deployments_and_objectives() -> void:
 	_assert_deployment(chapter.deployments, &"bow-1", &"hollow-bow", &"enemy", Vector2i(6, 4))
 
 	assert_equal(chapter.objectives, [{"type": &"unit_defeated", "target_id": &"captain-1"}], "Victory targets the stable captain instance")
+	for deployment: Dictionary in chapter.deployments:
+		var position: Vector2i = deployment.position
+		assert_true(chapter.terrain[position.y * chapter.width + position.x] != "water", "Deployment terrain is passable: %s" % deployment.instance_id)
+	var blocked_deployment = chapter.deep_duplicate()
+	var elio_position: Vector2i = blocked_deployment.deployments[2].position
+	blocked_deployment.terrain[elio_position.y * blocked_deployment.width + elio_position.x] = "water"
+	assert_true(_error_codes(blocked_deployment.validate()).has(&"deployment_on_blocked_terrain"), "Validator rejects deployment on water")
 	assert_equal(chapter.failure_conditions, [{"type": &"unit_defeated", "target_id": &"aurelia-1"}], "Defeat occurs when Aurelia is defeated")
 	assert_equal(chapter.protected_unit_ids, [&"aurelia-1"], "Aurelia is explicitly protected for AI objective pressure")
 
@@ -306,3 +313,8 @@ func _assert_deployment(
 	assert_equal(found.get("unit_id"), unit_id, "Deployment unit id %s" % instance_id)
 	assert_equal(found.get("team"), team, "Deployment team %s" % instance_id)
 	assert_equal(found.get("position"), position, "Deployment position %s" % instance_id)
+
+func _error_codes(errors: Array[Dictionary]) -> Array[StringName]:
+	var result: Array[StringName] = []
+	for error in errors: result.append(StringName(error.code))
+	return result

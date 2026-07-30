@@ -34,6 +34,22 @@ func run() -> void:
 	assert_true(SaveService.restore(unknown_event, chapter) == null, "Unknown event id rejects")
 	var duplicate_event := payload.duplicate(true); duplicate_event.fired_event_ids = ["mist-teach", "mist-teach"]
 	assert_true(SaveService.restore(duplicate_event, chapter) == null, "Duplicate event id rejects")
+	var missing_moved := payload.duplicate(true); missing_moved.units[0].erase("moved")
+	assert_true(SaveService.restore(missing_moved, chapter) == null, "Version 1 requires moved")
+	var moved_payload := payload.duplicate(true); moved_payload.units[0].moved = true
+	var moved_restore = SaveService.restore(moved_payload, chapter)
+	assert_true(moved_restore != null and moved_restore.units[0].has_moved, "Moved round trips")
+	for field in ["base_seed", "combat_index"]:
+		var wrong := payload.duplicate(true); wrong[field] = "1"
+		assert_true(SaveService.restore(wrong, chapter) == null, "%s rejects wrong type" % field)
+	var wrong_exp := payload.duplicate(true); wrong_exp.units[0].experience = -1
+	assert_true(SaveService.restore(wrong_exp, chapter) == null, "Negative experience rejects")
+	var wrong_level := payload.duplicate(true); wrong_level.units[0].level = 101
+	assert_true(SaveService.restore(wrong_level, chapter) == null, "Excessive level rejects")
+	var blocked := payload.duplicate(true); blocked.units[0].x = 2; blocked.units[0].y = 1
+	assert_true(SaveService.restore(blocked, chapter) == null, "Water position rejects")
+	var false_victory := payload.duplicate(true); false_victory.battle_status = "victory"
+	assert_true(SaveService.restore(false_victory, chapter) == null, "Contradictory objective status rejects")
 	_test_file_durability(session, chapter)
 	_test_phase_boundary_continuation(chapter)
 
@@ -44,15 +60,24 @@ func _test_file_durability(session, chapter) -> void:
 	var first: Dictionary = SaveService.save_file(session, path)
 	assert_true(first.ok, "Isolated valid save writes")
 	var baseline := FileAccess.get_file_as_bytes(path)
-	var failed: Dictionary = SaveService.save_file(session, path, func(_temp, _target, _backup): return ERR_CANT_CREATE)
-	assert_true(not failed.ok, "Injected replace failure reports error")
+	var backup_failed: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup): return ERR_CANT_CREATE if stage == &"backup" else OK)
+	assert_true(not backup_failed.ok and backup_failed.error == &"backup_failed", "Backup stage failure is explicit")
+	assert_equal(FileAccess.get_file_as_bytes(path), baseline, "Backup failure preserves target")
+	var failed: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup): return ERR_CANT_CREATE if stage == &"promote" else OK)
+	assert_true(not failed.ok and failed.error == &"promote_failed", "Promote failure reports rollback success")
 	assert_equal(FileAccess.get_file_as_bytes(path), baseline, "Replace failure preserves valid bytes")
 	assert_true(not FileAccess.file_exists(path + ".tmp"), "Replace failure cleans temp")
+	var rollback_failed: Dictionary = SaveService.save_file(session, path, func(stage, _temp, _target, _backup): return ERR_CANT_CREATE if stage in [&"promote", &"rollback"] else OK)
+	assert_true(not rollback_failed.ok and rollback_failed.error == &"rollback_failed", "Rollback failure is explicit")
+	var recovered: Dictionary = SaveService.load_file_result(chapter, path)
+	assert_true(recovered.ok and recovered.recovered, "Backup remains loadable after rollback failure")
+	assert_true(SaveService.save_file(session, path).ok, "Successful save restores canonical target")
 	var malformed_path := directory + "/malformed.json"
 	var malformed := FileAccess.open(malformed_path, FileAccess.WRITE); malformed.store_string("{"); malformed.close()
 	var load_result: Dictionary = SaveService.load_file_result(chapter, malformed_path)
 	assert_true(not load_result.ok and load_result.error == &"malformed_json", "Malformed JSON reports explicit error")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	if FileAccess.file_exists(path + ".bak"): DirAccess.remove_absolute(ProjectSettings.globalize_path(path + ".bak"))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(malformed_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(directory))
 

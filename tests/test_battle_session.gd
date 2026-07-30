@@ -192,7 +192,7 @@ func _test_occupancy_and_blocking_are_enforced() -> void:
 
 func _test_unit_acted_is_an_exact_no_op() -> void:
 	var chapter: Variant = _chapter_one_script.build()
-	_set_deployment_position(chapter, &"captain-1", Vector2i(1, 6))
+	_set_deployment_position(chapter, &"captain-1", Vector2i(2, 6))
 	var session: Variant = _battle_session_script.new(chapter, 29)
 	var flushed := [0]
 	session.events_flushed.connect(func(_events: Array[Dictionary]) -> void:
@@ -242,7 +242,7 @@ func _test_enemy_ai_targets_only_opponents() -> void:
 
 func _test_objective_victory_and_defeat_propagate() -> void:
 	var victory_chapter: Variant = _chapter_one_script.build()
-	_set_deployment_position(victory_chapter, &"captain-1", Vector2i(1, 6))
+	_set_deployment_position(victory_chapter, &"captain-1", Vector2i(2, 6))
 	var victory_session: Variant = _battle_session_script.new(victory_chapter, 31)
 	var captain: Variant = _unit(victory_session, &"captain-1")
 	var fenn: Variant = _unit(victory_session, &"fenn-1")
@@ -276,7 +276,7 @@ func _test_objective_victory_and_defeat_propagate() -> void:
 
 func _test_terminal_battle_rejects_every_command_without_mutation() -> void:
 	var chapter: Variant = _chapter_one_script.build()
-	_set_deployment_position(chapter, &"captain-1", Vector2i(1, 6))
+	_set_deployment_position(chapter, &"captain-1", Vector2i(2, 6))
 	var session: Variant = _battle_session_script.new(chapter, 53)
 	var flush_count := [0]
 	session.events_flushed.connect(func(_events: Array[Dictionary]) -> void:

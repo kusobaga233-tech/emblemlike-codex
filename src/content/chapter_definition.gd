@@ -121,6 +121,13 @@ func _validate_deployments(errors: Array[Dictionary]) -> Dictionary:
 				"deployments[%d].position" % index,
 				"Deployment position must be inside the board.",
 			)
+		elif terrain.size() == width * height and terrain[position.y * width + position.x] == "water":
+			_add_error(
+				errors,
+				&"deployment_on_blocked_terrain",
+				"deployments[%d].position" % index,
+				"Deployment position cannot use blocked water terrain.",
+			)
 		if occupied_positions.has(position):
 			_add_error(
 				errors,

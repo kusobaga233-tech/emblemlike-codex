@@ -272,6 +272,7 @@ func _end_player_phase() -> Dictionary:
 		return _reject(&"wrong_phase")
 	var enemy_acted_before := _acted_ids(&"enemy")
 	var round_before: int = turn_state.round
+	selected_unit_id = &""
 	turn_state.end_player_phase()
 	var events: Array[Dictionary] = [BattleEventScript.state_changed(
 		&"phase_changed",

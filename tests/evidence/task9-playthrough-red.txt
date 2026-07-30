@@ -1,4 +1,4 @@
-﻿Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 
 FAIL test_chapter_one_playthrough.gd
   Frozen playthrough support count is fixed: Expected 7, got 6.

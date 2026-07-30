@@ -1,0 +1,11 @@
+Task 9 review hardening RED
+
+Command: Godot --headless --script res://tests/run_all.gd -- --test-runner-worker res://tests/test_chapter_one_content.gd
+Observed failure:
+FAIL test_chapter_one_content.gd
+  Validator rejects deployment on water: Expected a truthy value.
+
+Additional reviewer failures reproduced by inspection/tests before GREEN:
+- Version 1 accepted a unit without moved.
+- Save replacement injection ran only before all stages, so backup/promote/rollback could not be tested independently.
+- Nine Task 9 evidence files had UTF-16LE BOMs and failed strict UTF-8 decoding.
