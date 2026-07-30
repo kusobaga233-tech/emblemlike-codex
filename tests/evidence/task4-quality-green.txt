@@ -1,0 +1,31 @@
+Task 4 quality GREEN evidence
+=============================
+
+Hardened test command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$qualityCode=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$qualityCode"
+exit $qualityCode
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 5 test file(s): 5 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+Editor parse command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --editor --path 'D:\godot-proj\star-ember-oath-godot' --quit 2>&1 | Out-Host
+$editorCode=$LASTEXITCODE
+Write-Output "GODOT_EDITOR_EXIT_CODE=$editorCode"
+exit $editorCode
+
+Observed editor process exit code: 0
+All Task 4 global classes were registered without parse errors.
+Godot warned that missing generated .uid cache files were recreated; those untracked cache files were removed after verification.

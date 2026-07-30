@@ -40,11 +40,27 @@ static func _condition_is_satisfied(units: Array, condition: Dictionary) -> bool
 
 
 static func _find_target(units: Array, target_id: StringName) -> Variant:
+	var instance_match: Variant = null
+	var instance_match_count := 0
 	for unit: Variant in units:
 		if unit == null:
 			continue
 		if unit.instance_id == target_id:
-			return unit
-		if unit.definition != null and unit.definition.id == target_id:
-			return unit
+			instance_match = unit
+			instance_match_count += 1
+	if instance_match_count == 1:
+		return instance_match
+	if instance_match_count > 1:
+		return null
+
+	var definition_match: Variant = null
+	var definition_match_count := 0
+	for unit: Variant in units:
+		if unit == null or unit.definition == null:
+			continue
+		if unit.definition.id == target_id:
+			definition_match = unit
+			definition_match_count += 1
+	if definition_match_count == 1:
+		return definition_match
 	return null

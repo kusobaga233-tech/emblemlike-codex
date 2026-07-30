@@ -8,6 +8,7 @@ var units: Array = []
 
 func _init(initial_units: Array = []) -> void:
 	units = initial_units.duplicate()
+	begin_player_phase()
 
 
 func begin_player_phase() -> void:

@@ -52,11 +52,11 @@ static func _candidate_destinations(enemy: Variant, units: Array, board: Diction
 	var board_blocked: Variant = board.get("blocked", {})
 	if board_blocked is Dictionary:
 		blocked = board_blocked.duplicate()
+	blocked.erase(origin)
 	for unit: Variant in units:
 		if not _has_unit_state(unit) or unit == enemy or unit.current_hp <= 0:
 			continue
 		blocked[Vector2i(unit.grid_position.x, unit.grid_position.y)] = true
-	blocked.erase(origin)
 
 	var reachable: Array = GridRulesScript.reachable(
 		enemy.grid_position,
@@ -81,11 +81,15 @@ static func _attack_candidate(
 	if not forecast.legal:
 		return {}
 
-	var expected_damage: int = mini(int(forecast.damage), int(target.current_hp)) * int(forecast.hit_rate)
+	var expected_damage := _saturating_nonnegative_product(
+		mini(int(forecast.damage), int(target.current_hp)),
+		int(forecast.hit_rate),
+		999_999,
+	)
 	var guaranteed_defeat: int = int(forecast.hit_rate == 100 and forecast.defender_remaining_hp == 0)
 	var protected_objective: int = int(_is_protected(target.instance_id, board))
 	var terrain_benefit: int = _terrain_benefit(destination, board)
-	var received_damage_risk: int = _received_damage_risk(target, positioned_enemy)
+	var received_damage_risk: int = _received_damage_risk(target, positioned_enemy, forecast)
 	var score: int = (
 		guaranteed_defeat * GUARANTEED_DEFEAT_WEIGHT
 		+ protected_objective * PROTECTED_OBJECTIVE_WEIGHT
@@ -128,11 +132,29 @@ static func _is_better(candidate: Dictionary, current: Dictionary) -> bool:
 	return candidate_destination.x < current_destination.x
 
 
-static func _received_damage_risk(target: Variant, positioned_enemy: Variant) -> int:
+static func _received_damage_risk(
+	target: Variant,
+	positioned_enemy: Variant,
+	outgoing_forecast: Variant,
+) -> int:
+	if not outgoing_forecast.can_counter:
+		return 0
 	var counter_forecast: Variant = CombatRulesScript.forecast(target, positioned_enemy)
 	if not counter_forecast.legal:
 		return 0
-	return mini(counter_forecast.damage, positioned_enemy.current_hp) * counter_forecast.hit_rate
+	return _saturating_nonnegative_product(
+		mini(int(counter_forecast.damage), int(positioned_enemy.current_hp)),
+		int(counter_forecast.hit_rate),
+		999,
+	)
+
+
+static func _saturating_nonnegative_product(left: int, right: int, cap: int) -> int:
+	if left <= 0 or right <= 0 or cap <= 0:
+		return 0
+	if left > cap / right:
+		return cap
+	return left * right
 
 
 static func _is_protected(target_id: StringName, board: Dictionary) -> bool:

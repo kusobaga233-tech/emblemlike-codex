@@ -1,0 +1,30 @@
+Task 4 quality RED evidence
+===========================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' 2>&1 | Out-Host
+$qualityCode=$LASTEXITCODE
+Write-Output "GODOT_EXIT_CODE=$qualityCode"
+exit $qualityCode
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+FAIL test_turn_objective_ai.gd
+Constructing a player phase resets player acted flags: Expected false, got true.
+Unique instance id match outranks a definition id collision: Expected ongoing, got victory.
+Unique instance match remains authoritative when defeated: Expected victory, got ongoing.
+Duplicate instance ids remain unresolved: Expected ongoing, got victory.
+Duplicate definition ids remain unresolved without an instance match: Expected ongoing, got victory.
+Defeated targets cannot contribute counterattack risk: Expected alpha-lethal, got zeta-lethal.
+Extreme expected damage does not overflow and reverse ordering: Expected huge-damage, got small-damage.
+Extreme received damage saturates instead of becoming a preferred negative risk: Expected safe-risk, got overflow-risk.
+A co-located living unit keeps the acting origin occupied: Expected wait, got attack.
+Ran 5 test file(s): 4 passed, 1 failed.
+GODOT_EXIT_CODE=1
