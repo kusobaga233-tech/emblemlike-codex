@@ -1,0 +1,15 @@
+Task 8 real-pointer RED evidence
+================================
+
+Command:
+Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Relevant failures:
+- All 80 terrain cells lacked PickArea/CollisionShape3D.
+- GreyboxUnit lacked PickArea/CollisionShape3D.
+- BattleScene exposed no pointer-input counter proving viewport physics dispatch.
+- E2E could not use InputEventMouseButton/InputEventMouseMotion as its critical interaction path.
+
+Suite summary: 8 passed, 2 failed.

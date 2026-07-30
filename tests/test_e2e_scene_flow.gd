@@ -10,6 +10,7 @@ func run() -> void:
 	var orphan_baseline := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
 	assert_true(ResourceLoader.exists("res://src/scenes/flow_coordinator.gd"), "Persistent flow coordinator exists")
 	var tree := Engine.get_main_loop() as SceneTree
+	var original_viewport_size: Vector2i = tree.root.size
 	var coordinator := tree.root.get_node_or_null("FlowCoordinator")
 	assert_true(coordinator != null, "Flow coordinator is an autoload")
 	if coordinator == null:
@@ -37,14 +38,23 @@ func run() -> void:
 	assert_equal(_player_deployment(battle.session), expected, "Confirmed deployment reaches BattleSession")
 	assert_true(battle.get_node_or_null("BattleHud") != null, "Battle owns its HUD")
 	assert_true(battle.get_node_or_null("CombatForecastPanel") != null, "Battle owns its forecast panel")
-	battle.get_unit_node(&"fenn-1").pick()
+	tree.root.size = Vector2i(1280, 720)
+	await _frames(2)
+	var pointer_before: int = battle.pointer_input_count
+	await _click_world(battle.get_unit_node(&"fenn-1").global_position)
+	assert_true(battle.pointer_input_count > pointer_before, "Viewport mouse click reaches unit input_event")
 	assert_equal(battle.session.selected_unit_id, &"fenn-1", "Clicking a player unit selects it")
 	(battle.get_node("BattleHud/Layout/Commands/Move") as Button).pressed.emit()
 	assert_equal(battle.interaction_mode, &"move", "Move button enters destination mode")
-	battle.get_node("GreyboxBoard").pick_cell(Vector2i(0, 8))
+	var move_overlay_count: int = battle.get_node("GreyboxBoard/MoveOverlay").get_child_count()
+	await _click_world(battle.get_unit_node(&"brann-1").global_position)
+	assert_equal(battle.session.selected_unit_id, &"fenn-1", "Move mode rejects clicking another unit")
+	assert_equal(battle.interaction_mode, &"move", "Rejected unit click preserves move mode")
+	assert_equal(battle.get_node("GreyboxBoard/MoveOverlay").get_child_count(), move_overlay_count, "Rejected unit click preserves move overlay")
+	await _click_world(Vector3(0.0, 0.1, 8.0))
 	var moved_fenn: Variant = _unit(battle.session, &"fenn-1")
 	assert_equal(Vector2i(moved_fenn.grid_position.x, moved_fenn.grid_position.y), Vector2i(0, 8), "Board move reaches the session")
-	battle.get_unit_node(&"fenn-1").pick()
+	await _click_world(battle.get_unit_node(&"fenn-1").global_position)
 	assert_equal(battle.session.selected_unit_id, &"fenn-1", "Moved unit can be reselected")
 	(battle.get_node("BattleHud/Layout/Commands/Wait") as Button).pressed.emit()
 	assert_true(_unit(battle.session, &"fenn-1").acted, "Wait button uses legal session wait")
@@ -58,11 +68,13 @@ func run() -> void:
 	captain.grid_position.x = 0
 	captain.grid_position.y = 6
 	_unit(battle.session, &"fenn-1").definition.hit = 100
-	battle.get_unit_node(&"fenn-1").pick()
+	tree.root.size = Vector2i(720, 1280)
+	await _frames(2)
+	await _click_world(battle.get_unit_node(&"fenn-1").global_position)
 	(battle.get_node("BattleHud/Layout/Commands/Attack") as Button).pressed.emit()
-	battle.get_unit_node(&"captain-1").hover()
+	await _move_pointer_world(battle.get_unit_node(&"captain-1").global_position)
 	assert_true(battle.get_node("CombatForecastPanel").visible, "Forecast panel is visible for legal target")
-	battle.get_unit_node(&"captain-1").pick()
+	await _click_world(battle.get_unit_node(&"captain-1").global_position)
 	await _frames(3)
 	assert_equal(tree.current_scene.scene_file_path, RESULT, "Terminal battle advances to result")
 	assert_equal(coordinator.result_summary["outcome"], &"victory", "Coordinator retains result summary")
@@ -79,6 +91,7 @@ func run() -> void:
 	(tree.current_scene.get_node("Layout/Actions/Title") as Button).pressed.emit()
 	await _frames(3)
 	assert_equal(tree.current_scene.scene_file_path, TITLE, "Title action returns to title")
+	tree.root.size = original_viewport_size
 	tree.current_scene.queue_free()
 	await _frames(3)
 	assert_equal(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), orphan_baseline, "E2E cleanup returns orphan nodes to baseline")
@@ -110,3 +123,28 @@ func _escape_event() -> InputEventKey:
 func _frames(count: int) -> void:
 	for unused: int in count:
 		await (Engine.get_main_loop() as SceneTree).process_frame
+
+
+func _click_world(world_position: Vector3) -> void:
+	var camera := ((Engine.get_main_loop() as SceneTree).current_scene.get_node("TacticalCamera") as Camera3D)
+	var screen := camera.unproject_position(world_position)
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = screen
+	Input.parse_input_event(press)
+	await (Engine.get_main_loop() as SceneTree).physics_frame
+	await (Engine.get_main_loop() as SceneTree).process_frame
+	var release := press.duplicate() as InputEventMouseButton
+	release.pressed = false
+	Input.parse_input_event(release)
+	await (Engine.get_main_loop() as SceneTree).process_frame
+
+
+func _move_pointer_world(world_position: Vector3) -> void:
+	var camera := ((Engine.get_main_loop() as SceneTree).current_scene.get_node("TacticalCamera") as Camera3D)
+	var motion := InputEventMouseMotion.new()
+	motion.position = camera.unproject_position(world_position)
+	Input.parse_input_event(motion)
+	await (Engine.get_main_loop() as SceneTree).physics_frame
+	await (Engine.get_main_loop() as SceneTree).process_frame

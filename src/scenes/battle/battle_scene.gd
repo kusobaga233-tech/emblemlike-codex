@@ -13,6 +13,7 @@ var last_command_result: Dictionary = {}
 var interaction_mode: StringName = &"idle"
 var pending_target_id: StringName = &""
 var _phase_advancing: bool = false
+var pointer_input_count: int = 0
 
 signal result_requested(path: String, summary: Dictionary)
 
@@ -75,6 +76,8 @@ func handle_board_pick(kind: StringName, value: Variant) -> bool:
 			cancel_interaction()
 			return true
 		return false
+	if interaction_mode == &"move" and kind == &"unit":
+		return false
 	if kind != &"unit" or not value is StringName:
 		return false
 	var unit_id: StringName = value
@@ -104,14 +107,17 @@ func handle_board_hover(unit_id: StringName) -> bool:
 
 
 func _on_unit_picked(unit_id: StringName) -> void:
+	pointer_input_count += 1
 	handle_board_pick(&"unit", unit_id)
 
 
 func _on_unit_hovered(unit_id: StringName) -> void:
+	pointer_input_count += 1
 	handle_board_hover(unit_id)
 
 
 func _on_cell_picked(position: Vector2i) -> void:
+	pointer_input_count += 1
 	handle_board_pick(&"cell", position)
 
 

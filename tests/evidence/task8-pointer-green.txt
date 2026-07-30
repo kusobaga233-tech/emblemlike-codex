@@ -1,0 +1,21 @@
+Task 8 real-pointer GREEN evidence
+==================================
+
+Command:
+Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd
+
+Observed process exit code: 0
+
+PASS test_battle_scene.gd
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_e2e_scene_flow.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_scene_flow.gd
+PASS test_turn_objective_ai.gd
+Ran 10 test file(s): 10 passed, 0 failed.
+
+E2E also passed independently while injecting viewport mouse events at 1280x720 and 720x1280.

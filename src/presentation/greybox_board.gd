@@ -2,6 +2,7 @@ class_name GreyboxBoard
 extends Node3D
 
 signal cell_picked(position: Vector2i)
+signal cell_hovered(position: Vector2i)
 
 const TERRAIN_COLORS := {
 	&"plain": Color("8b8f86"),
@@ -58,7 +59,37 @@ func _make_tile(grid_position: Vector2i, terrain_id: StringName) -> MeshInstance
 	tile.material_override = _material(TERRAIN_COLORS.get(terrain_id, TERRAIN_COLORS[&"plain"]))
 	tile.set_meta("grid_position", grid_position)
 	tile.set_meta("terrain_id", terrain_id)
+	var pick_area := Area3D.new()
+	pick_area.name = "PickArea"
+	pick_area.collision_layer = 1
+	pick_area.collision_mask = 0
+	pick_area.input_ray_pickable = true
+	pick_area.input_event.connect(_on_cell_input_event.bind(grid_position))
+	pick_area.mouse_entered.connect(_on_cell_mouse_entered.bind(grid_position))
+	tile.add_child(pick_area)
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(0.92, maxf(0.06, height), 0.92)
+	collision.shape = shape
+	pick_area.add_child(collision)
 	return tile
+
+
+func _on_cell_input_event(
+	_camera: Node,
+	event: InputEvent,
+	_event_position: Vector3,
+	_normal: Vector3,
+	_shape_index: int,
+	grid_position: Vector2i,
+) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		cell_picked.emit(grid_position)
+
+
+func _on_cell_mouse_entered(grid_position: Vector2i) -> void:
+	cell_hovered.emit(grid_position)
 
 
 func _show_overlay(root: Node3D, cells: Array, color: Color, prefix: String) -> void:
@@ -96,6 +127,8 @@ func _clear_children(root: Node) -> void:
 func _assign_scene_owner(node: Node) -> void:
 	if owner != null:
 		node.owner = owner
+		for child: Node in node.get_children():
+			_assign_scene_owner(child)
 
 
 func _material(color: Color, transparent: bool = false) -> StandardMaterial3D:

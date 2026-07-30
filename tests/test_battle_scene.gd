@@ -56,6 +56,7 @@ func _test_board_build_palette_rebuild_and_overlays() -> void:
 	for child: Node in terrain_root.get_children():
 		assert_true(child is MeshInstance3D, "Every terrain cell is a MeshInstance3D")
 		assert_true((child as MeshInstance3D).mesh is BoxMesh, "Every terrain cell uses BoxMesh")
+		assert_true(child.get_node_or_null("PickArea/CollisionShape3D") is CollisionShape3D, "Every terrain cell owns a physics pick shape")
 
 	_assert_terrain_color(terrain_root, &"bridge", Color("586579"))
 	_assert_terrain_color(terrain_root, &"forest", Color("377a4a"))
@@ -94,6 +95,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	animation_root.add_child(enemy)
 	player.configure(player_state)
 	enemy.configure(enemy_state)
+	assert_true(player.get_node_or_null("PickArea/CollisionShape3D") is CollisionShape3D, "Player unit owns a physics pick shape")
 
 	assert_true(player.get_node("Body").mesh is CapsuleMesh, "Player unit uses CapsuleMesh")
 	assert_true(enemy.get_node("Body").mesh is CylinderMesh, "Enemy unit uses CylinderMesh")

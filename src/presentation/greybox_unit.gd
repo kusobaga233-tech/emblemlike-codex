@@ -42,6 +42,7 @@ func configure(unit_state: Variant) -> void:
 	_build_body()
 	_build_selection_outline()
 	_build_hp_bar()
+	_build_pick_area()
 	_update_hp_bar()
 
 
@@ -57,6 +58,40 @@ func pick() -> void:
 
 func hover() -> void:
 	hovered.emit(unit_id)
+
+
+func _build_pick_area() -> void:
+	var pick_area := Area3D.new()
+	pick_area.name = "PickArea"
+	pick_area.collision_layer = 2
+	pick_area.collision_mask = 0
+	pick_area.input_ray_pickable = visual_hp > 0
+	pick_area.input_event.connect(_on_pick_input_event)
+	pick_area.mouse_entered.connect(_on_pick_mouse_entered)
+	add_child(pick_area)
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.36
+	shape.height = 1.2
+	collision.shape = shape
+	pick_area.add_child(collision)
+
+
+func _on_pick_input_event(
+	_camera: Node,
+	event: InputEvent,
+	_event_position: Vector3,
+	_normal: Vector3,
+	_shape_index: int,
+) -> void:
+	if visual_hp > 0 and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		picked.emit(unit_id)
+
+
+func _on_pick_mouse_entered() -> void:
+	if visual_hp > 0:
+		hovered.emit(unit_id)
 
 
 func play_event(event: Dictionary) -> void:
@@ -79,6 +114,10 @@ func play_event(event: Dictionary) -> void:
 		&"unit_defeated":
 			if target_id == unit_id:
 				visual_hp = 0
+				var pick_area := get_node_or_null("PickArea") as Area3D
+				if pick_area != null:
+					pick_area.input_ray_pickable = false
+					pick_area.monitorable = false
 				_update_hp_bar()
 				_animate_defeat()
 		&"phase_changed", &"phase_visual_changed":
