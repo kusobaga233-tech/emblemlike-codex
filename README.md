@@ -9,10 +9,10 @@
 
 ## 运行测试
 
-在 PowerShell 中执行：
+在项目根目录中打开 PowerShell 并执行（`godot` 需已加入 PATH）：
 
 ```powershell
-& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+godot --headless --path . --script res://tests/run_all.gd
 ```
 
 测试运行器会发现 `tests` 目录中的 `test_*.gd` 测试脚本，并在任一测试失败时以退出码 1 结束。

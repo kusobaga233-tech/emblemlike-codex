@@ -8,7 +8,13 @@ func _init() -> void:
 
 
 func _run_all() -> void:
-	var test_files := DirAccess.get_files_at(TESTS_DIRECTORY)
+	var tests_directory := DirAccess.open(TESTS_DIRECTORY)
+	if tests_directory == null:
+		print("ERROR Test directory is missing or unreadable: %s" % TESTS_DIRECTORY)
+		quit(1)
+		return
+
+	var test_files := tests_directory.get_files()
 	test_files.sort()
 
 	var tests_run := 0
@@ -35,6 +41,11 @@ func _run_all() -> void:
 			print("FAIL %s" % file_name)
 			print("  Test script does not define run().")
 			continue
+		if not _inherits_test_case(test_script):
+			tests_failed += 1
+			print("FAIL %s" % file_name)
+			print("  Malformed test: expected TestCase inheritance.")
+			continue
 
 		test_case.run()
 		var failures: Array = test_case.failures
@@ -47,9 +58,23 @@ func _run_all() -> void:
 		for failure in failures:
 			print("  %s" % failure)
 
+	if tests_run == 0:
+		print("ERROR No eligible tests found in %s." % TESTS_DIRECTORY)
+		quit(1)
+		return
+
 	print("Ran %d test file(s): %d passed, %d failed." % [
 		tests_run,
 		tests_run - tests_failed,
 		tests_failed,
 	])
 	quit(1 if tests_failed > 0 else 0)
+
+
+func _inherits_test_case(test_script: Script) -> bool:
+	var base_script := test_script.get_base_script()
+	while base_script != null:
+		if base_script.resource_path == "res://tests/test_case.gd":
+			return true
+		base_script = base_script.get_base_script()
+	return false

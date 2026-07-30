@@ -1,0 +1,28 @@
+Godot test runner hardening RED evidence
+=========================================
+
+This is the output actually observed after adding the runner integration
+self-test and before changing tests/run_all.gd.
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+PowerShell wait wrapper used to capture the real process exit code:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd | Out-Host; $exitCode = $LASTEXITCODE; Write-Output "GODOT_EXIT_CODE=$exitCode"; exit $exitCode
+
+Observed output:
+PASS test_project_smoke.gd
+FAIL test_runner_self.gd
+  Missing tests directory exits with failure: Expected 1, got 0.
+  Missing tests directory reports a clear error: Expected a truthy value.
+  Zero eligible tests exits with failure: Expected 1, got 0.
+  Zero eligible tests reports a clear error: Expected a truthy value.
+  Malformed test exits with failure: Expected 1, got 0.
+  Malformed test reports its contract violation: Expected a truthy value.
+  Malformed test is included in the final summary: Expected a truthy value.
+Ran 2 test file(s): 1 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The nested fixture exit codes of 0 prove the old runner falsely passed missing
+and empty test directories. The absent malformed-test message and summary prove
+the old runner did not safely validate TestCase inheritance.

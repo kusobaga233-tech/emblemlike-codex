@@ -1,0 +1,18 @@
+Godot test runner hardening GREEN evidence
+===========================================
+
+This is the output actually observed after the minimal runner hardening
+implementation. It verifies missing/unreadable test directories, zero eligible
+tests, and malformed tests through the committed runner self-test fixtures.
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+PowerShell wait wrapper used to capture the real process exit code:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd | Out-Host; $exitCode = $LASTEXITCODE; Write-Output "GODOT_EXIT_CODE=$exitCode"; exit $exitCode
+
+Observed output:
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+Ran 2 test file(s): 2 passed, 0 failed.
+GODOT_EXIT_CODE=0
