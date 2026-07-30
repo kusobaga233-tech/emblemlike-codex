@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://src/ui/combat_forecast_panel.gd" type="Script" id="1"]
+
+[node name="CombatForecastPanel" type="PanelContainer"]
+script = ExtResource("1")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Damage" type="Label" parent="Layout"]
+layout_mode = 2
+[node name="HitRate" type="Label" parent="Layout"]
+layout_mode = 2
+[node name="CriticalRate" type="Label" parent="Layout"]
+layout_mode = 2
+[node name="StrikeCount" type="Label" parent="Layout"]
+layout_mode = 2
+[node name="Counter" type="Label" parent="Layout"]
+layout_mode = 2
+[node name="RemainingHp" type="Label" parent="Layout"]
+layout_mode = 2

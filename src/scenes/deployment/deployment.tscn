@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://src/scenes/deployment/deployment.gd" type="Script" id="1"]
+
+[node name="Deployment" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -220.0
+offset_right = 260.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Heading" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Deployment"
+
+[node name="Instructions" type="Label" parent="Layout"]
+layout_mode = 2
+text = "Select two unit slots to exchange their starting positions."
+
+[node name="UnitCards" type="VBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Actions" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Reset" type="Button" parent="Layout/Actions"]
+layout_mode = 2
+text = "Reset Defaults"
+
+[node name="Confirm" type="Button" parent="Layout/Actions"]
+layout_mode = 2
+text = "Confirm"
