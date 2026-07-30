@@ -5,4 +5,3 @@ Focused result before implementation:
 FAIL test_save_service.gd
 
 Expected failures were observed for a 1 MiB + 1 byte file, a 129-character canonical string, arrays and dictionaries with 1025 entries, and 33 levels of nesting.
-

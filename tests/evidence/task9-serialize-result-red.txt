@@ -5,4 +5,3 @@ Focused result before implementation:
 FAIL test_save_service.gd
 
 The serialize_result interface was absent. Real BattleSession instances corrupted with a null unit, definition, grid position, turn state, or resonance state emitted SCRIPT ERROR diagnostics; one path also mutated target and backup bytes instead of returning invalid_session before filesystem work.
-

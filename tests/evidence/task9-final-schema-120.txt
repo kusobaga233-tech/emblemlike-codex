@@ -1,4 +1,4 @@
-﻿WorkerThreadPool: 16 threads, 4 max low-priority.
+WorkerThreadPool: 16 threads, 4 max low-priority.
 Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
 TextServer: Added interface "Dummy"
 TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"

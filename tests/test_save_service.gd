@@ -200,6 +200,9 @@ func _test_generic_events(chapter) -> void:
 	renamed_round.round = 4
 	renamed_round.fired_event_ids = ["opening", "bridge-turn"]
 	assert_true(SaveService.restore(renamed_round, renamed_session.chapter) != null, "Renamed deterministic round event restores")
+	var renamed_reversed := renamed_round.duplicate(true)
+	renamed_reversed.fired_event_ids = ["bridge-turn", "opening"]
+	assert_true(SaveService.restore(renamed_reversed, renamed_session.chapter) == null, "Deterministic renamed events reject descending causal order")
 	var resonance_first := renamed_round.duplicate(true)
 	resonance_first.fired_event_ids = ["opening", "harmony-ready", "bridge-turn"]
 	assert_true(SaveService.restore(resonance_first, renamed_session.chapter) != null, "Historical resonance before round event restores")
@@ -218,6 +221,23 @@ func _test_generic_events(chapter) -> void:
 	var second_payload := SaveService.serialize(second_session)
 	second_payload.fired_event_ids = ["chapter-two-story"]
 	assert_true(SaveService.restore(second_payload, second_session.chapter) != null, "Second chapter narrative event round trips without special cases")
+	var ordered_chapter = chapter.deep_duplicate()
+	ordered_chapter.id = &"chapter-ordered-events"
+	var ordered_events: Array[Dictionary] = [
+		{"id": &"start-one", "trigger": &"round-start:1"},
+		{"id": &"turn-two", "trigger": &"round:2"},
+		{"id": &"start-four", "trigger": &"round-start:4"},
+		{"id": &"turn-four", "trigger": &"round:4"},
+	]
+	ordered_chapter.events = ordered_events
+	var ordered_session = BattleSession.new(ordered_chapter, 404)
+	var ordered_payload := SaveService.serialize(ordered_session)
+	ordered_payload.round = 4
+	ordered_payload.fired_event_ids = ["start-one", "turn-two", "start-four", "turn-four"]
+	assert_true(SaveService.restore(ordered_payload, ordered_session.chapter) != null, "Renamed multi-round events restore in deterministic key order")
+	var same_round_reversed := ordered_payload.duplicate(true)
+	same_round_reversed.fired_event_ids = ["start-one", "turn-two", "turn-four", "start-four"]
+	assert_true(SaveService.restore(same_round_reversed, ordered_session.chapter) == null, "Same-round turn event cannot precede round-start event")
 
 func _test_resource_limits(payload: Dictionary, chapter) -> void:
 	var directory := "user://task9-resource-limits"

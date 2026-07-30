@@ -7,7 +7,7 @@ At line:2 char:1
 + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: (SCRIPT ERROR: I...e 'RefCounted'.:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
- 
+
    at: serialize (res://src/core/save_service.gd:9)
    GDScript backtrace (most recent call first):
        [0] serialize (res://src/core/save_service.gd:9)

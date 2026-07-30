@@ -1,0 +1,7 @@
+Task 9 deterministic event ordering RED evidence
+Date: 2026-07-30
+
+Focused result before implementation:
+FAIL test_save_service.gd
+
+Descending renamed deterministic events and a same-round round:N event before round-start:N were accepted.

@@ -65,11 +65,19 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	var valid_event_ids := {}
 	for event: Dictionary in chapter.events:
 		var defined_id := String(event.get("id", ""))
-		valid_event_ids[defined_id] = true
+		valid_event_ids[defined_id] = event
 	var seen_events := {}
+	var has_last_deterministic_key := false
+	var last_deterministic_key := Vector2i(-1, -1)
 	for event_id in payload.fired_event_ids:
 		if not event_id is String or not valid_event_ids.has(event_id) or seen_events.has(event_id): return null
 		seen_events[event_id] = true
+		var definition: Dictionary = valid_event_ids[event_id]
+		var deterministic_key := _deterministic_event_key(String(definition.get("trigger", "")))
+		if deterministic_key.x >= 0:
+			if has_last_deterministic_key and (deterministic_key.x < last_deterministic_key.x or (deterministic_key.x == last_deterministic_key.x and deterministic_key.y < last_deterministic_key.y)): return null
+			last_deterministic_key = deterministic_key
+			has_last_deterministic_key = true
 	for event: Dictionary in chapter.events:
 		var trigger := String(event.get("trigger", ""))
 		var event_id := String(event.get("id", ""))
@@ -313,3 +321,10 @@ static func _trigger_threshold(trigger: String, prefix: String) -> int:
 	if not suffix.is_valid_int(): return -1
 	var threshold := int(suffix)
 	return threshold if threshold >= 0 else -1
+
+static func _deterministic_event_key(trigger: String) -> Vector2i:
+	var round_start := _trigger_threshold(trigger, "round-start:")
+	if round_start >= 0: return Vector2i(round_start, 0)
+	var round_event := _trigger_threshold(trigger, "round:")
+	if round_event >= 0: return Vector2i(round_event, 1)
+	return Vector2i(-1, -1)

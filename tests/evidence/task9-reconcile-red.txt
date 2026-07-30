@@ -5,4 +5,3 @@ Focused result before implementation:
 FAIL test_save_service.gd
 
 Observed failures: an interrupted rotation blocked the next save; load did not restore a valid previous slot to target; invalid previous slots were not removed; and unrecoverable target/previous combinations did not report recovery_failed.
-

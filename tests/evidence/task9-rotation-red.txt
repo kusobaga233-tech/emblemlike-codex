@@ -5,4 +5,3 @@ Focused test result before implementation:
 FAIL test_save_service.gd
 
 Observed failures confirmed that the old implementation deleted the existing backup before staging, did not preserve .previous.new after rollback failure, and did not expose target -> previous -> backup recovery sources.
-
