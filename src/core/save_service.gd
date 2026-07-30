@@ -80,11 +80,21 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	return session
 
 static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PATH, replace_strategy: Callable = Callable()) -> Dictionary:
+	if session == null or not session is BattleSessionScript:
+		return {"ok": false, "error": &"invalid_session"}
+	var payload := serialize(session)
+	var restored: Variant = restore(payload, session.chapter)
+	if restored == null:
+		return {"ok": false, "error": &"invalid_session"}
+	var payload_result := canonical_result(payload)
+	var restored_result := canonical_result(serialize(restored))
+	if not payload_result.ok or not restored_result.ok or payload_result.text != restored_result.text:
+		return {"ok": false, "error": &"invalid_session"}
 	var temp := path + ".tmp"
 	var backup := path + ".bak"
 	var file := FileAccess.open(temp, FileAccess.WRITE)
 	if file == null: return {"ok": false, "error": "open_failed"}
-	file.store_string(JSON.stringify(serialize(session))); file.close()
+	file.store_string(JSON.stringify(payload)); file.close()
 	var absolute_path := ProjectSettings.globalize_path(path)
 	var absolute_temp := ProjectSettings.globalize_path(temp)
 	var absolute_backup := ProjectSettings.globalize_path(backup)

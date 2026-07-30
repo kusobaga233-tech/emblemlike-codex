@@ -76,6 +76,7 @@ func run() -> void:
 	var captain_then_resonance := payload.duplicate(true); captain_then_resonance.round = 4; captain_then_resonance.fired_event_ids = ["mist-teach", "captain-advance", "first-resonance"]
 	assert_true(SaveService.restore(captain_then_resonance, chapter) != null, "Captain then resonance causal order restores")
 	_test_file_durability(session, chapter)
+	_test_save_preflight(session, chapter)
 	_test_phase_boundary_continuation(chapter)
 
 func _test_file_durability(session, chapter) -> void:
@@ -121,3 +122,24 @@ func _test_phase_boundary_continuation(chapter) -> void:
 	var restored_events: Dictionary = enemy_restored.advance_enemy_phase()
 	assert_equal(SaveService.canonical_json(baseline_events.events), SaveService.canonical_json(restored_events.events), "Enemy boundary continuation event digest matches")
 	assert_equal(SaveService.canonical_json(SaveService.serialize(baseline)), SaveService.canonical_json(SaveService.serialize(enemy_restored)), "Enemy boundary continuation final state matches")
+
+func _test_save_preflight(session, chapter) -> void:
+	var directory := "user://task9-preflight"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	var path := directory + "/save.json"
+	assert_true(SaveService.save_file(session, path).ok, "Preflight baseline writes")
+	var target_bytes := FileAccess.get_file_as_bytes(path)
+	var backup_bytes := FileAccess.get_file_as_bytes(path + ".bak") if FileAccess.file_exists(path + ".bak") else PackedByteArray()
+	for invalid in [null, RefCounted.new()]:
+		var result: Dictionary = SaveService.save_file(invalid, path)
+		assert_true(not result.ok and result.error == &"invalid_session", "Invalid object fails preflight")
+		assert_equal(FileAccess.get_file_as_bytes(path), target_bytes, "Invalid object preserves target")
+		assert_equal(FileAccess.get_file_as_bytes(path + ".bak") if FileAccess.file_exists(path + ".bak") else PackedByteArray(), backup_bytes, "Invalid object preserves backup")
+	var contradictory = BattleSession.new(chapter, 12); contradictory.battle_status = &"victory"
+	assert_true(SaveService.save_file(contradictory, path).error == &"invalid_session", "Contradictory session fails preflight")
+	var blocked = BattleSession.new(chapter, 12); blocked.units[0].grid_position.x = 2; blocked.units[0].grid_position.y = 1
+	assert_true(SaveService.save_file(blocked, path).error == &"invalid_session", "Blocked session fails preflight")
+	assert_true(not FileAccess.file_exists(path + ".tmp") and not FileAccess.file_exists(path + ".previous.new"), "Preflight creates no stage files")
+	for suffix in ["", ".bak", ".tmp", ".previous.new"]:
+		if FileAccess.file_exists(path + suffix): DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(directory))
