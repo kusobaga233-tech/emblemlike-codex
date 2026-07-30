@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/scenes/battle/battle_scene.gd" id="1_scene"]
+[ext_resource type="Script" path="res://src/presentation/greybox_board.gd" id="2_board"]
+[ext_resource type="Script" path="res://src/presentation/tactical_camera.gd" id="3_camera"]
+
+[node name="BattleScene" type="Node3D"]
+script = ExtResource("1_scene")
+
+[node name="GreyboxBoard" type="Node3D" parent="."]
+script = ExtResource("2_board")
+
+[node name="Units" type="Node3D" parent="."]
+
+[node name="TacticalCamera" type="Camera3D" parent="."]
+current = true
+script = ExtResource("3_camera")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-58, -32, 0)
+light_color = Color(1, 0.94, 0.84, 1)
+light_energy = 1.1
+shadow_enabled = true

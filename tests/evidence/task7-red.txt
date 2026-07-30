@@ -1,0 +1,31 @@
+Task 7 RED evidence
+===================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Attempt to open script 'res://src/presentation/greybox_board.gd' resulted in error 'File not found'.
+ERROR: Failed loading resource: res://src/presentation/greybox_board.gd.
+ERROR: Attempt to open script 'res://src/presentation/greybox_unit.gd' resulted in error 'File not found'.
+ERROR: Failed loading resource: res://src/presentation/greybox_unit.gd.
+ERROR: Attempt to open script 'res://src/presentation/tactical_camera.gd' resulted in error 'File not found'.
+ERROR: Failed loading resource: res://src/presentation/tactical_camera.gd.
+FAIL test_battle_scene.gd
+GreyboxBoard script loads: Expected a truthy value.
+GreyboxUnit script loads: Expected a truthy value.
+TacticalCamera script loads: Expected a truthy value.
+Battle scene exists: Expected a truthy value.
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 8 test file(s): 7 passed, 1 failed.
+TASK7_EXIT_CODE=1
