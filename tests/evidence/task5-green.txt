@@ -1,0 +1,32 @@
+Task 5 GREEN evidence
+=====================
+
+Full-suite command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path . --script res://tests/run_all.gd
+
+Observed process exit code: 0
+
+Godot output:
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_chapter_one_content.gd
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 6 test file(s): 6 passed, 0 failed.
+GODOT_EXIT_CODE=0
+
+Editor parse command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --editor --path . --quit
+
+Observed editor process exit code: 0
+
+The editor registered ChapterDefinition, ChapterOne, and UnitCatalog. It emitted no Parse Error,
+SCRIPT ERROR, or warning associated with res://src/content/chapter_one.tres. Existing repository
+scripts without checked-in .uid files emitted unrelated missing-.uid warnings during filesystem scan.
+
+The chapter content test loads chapter_one.tres with ResourceLoader.CACHE_MODE_IGNORE and compares
+all contract fields to a fresh ChapterOne.build() result. It also mutates nested data in one build
+and verifies a second build remains unchanged.

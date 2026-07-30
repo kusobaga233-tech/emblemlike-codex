@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="ChapterDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/content/chapter_definition.gd" id="1_chapter"]
+
+[resource]
+script = ExtResource("1_chapter")
+id = &"chapter-1"
+title = "雾桥初阵"
+subtitle = "晨雾中的第一道誓约"
+width = 8
+height = 10
+terrain = PackedStringArray("forest", "plain", "plain", "plain", "crystal", "plain", "plain", "forest", "plain", "plain", "water", "water", "plain", "plain", "plain", "plain", "plain", "forest", "water", "plain", "plain", "crystal", "plain", "plain", "plain", "plain", "water", "plain", "forest", "plain", "plain", "plain", "water", "bridge", "bridge", "bridge", "bridge", "bridge", "bridge", "water", "plain", "water", "plain", "forest", "plain", "plain", "plain", "water", "crystal", "water", "plain", "plain", "forest", "plain", "water", "plain", "plain", "plain", "plain", "water", "plain", "forest", "water", "plain", "plain", "plain", "plain", "water", "crystal", "plain", "water", "forest", "forest", "plain", "plain", "water", "plain", "plain", "water", "crystal")
+deployments = Array[Dictionary]([{
+"instance_id": &"aurelia-1",
+"position": Vector2i(1, 7),
+"team": &"player",
+"unit_id": &"aurelia"
+}, {
+"instance_id": &"brann-1",
+"position": Vector2i(2, 8),
+"team": &"player",
+"unit_id": &"brann"
+}, {
+"instance_id": &"elio-1",
+"position": Vector2i(3, 8),
+"team": &"player",
+"unit_id": &"elio"
+}, {
+"instance_id": &"fenn-1",
+"position": Vector2i(1, 8),
+"team": &"player",
+"unit_id": &"fenn"
+}, {
+"instance_id": &"captain-1",
+"position": Vector2i(6, 3),
+"team": &"enemy",
+"unit_id": &"bridge-captain"
+}, {
+"instance_id": &"blade-1",
+"position": Vector2i(5, 5),
+"team": &"enemy",
+"unit_id": &"hollow-blade"
+}, {
+"instance_id": &"bow-1",
+"position": Vector2i(6, 4),
+"team": &"enemy",
+"unit_id": &"hollow-bow"
+}])
+objectives = Array[Dictionary]([{
+"target_id": &"bridge-captain",
+"type": &"unit_defeated"
+}])
+failure_conditions = Array[Dictionary]([{
+"target_id": &"aurelia-1",
+"type": &"unit_defeated"
+}])
+protected_unit_ids = Array[StringName]([&"aurelia-1"])
+events = Array[Dictionary]([{
+"id": &"mist-teach",
+"text": "雾气遮住了桥面，先确认可移动范围。",
+"trigger": &"round-start:1"
+}, {
+"id": &"captain-advance",
+"text": "守桥队长拔剑前进。",
+"trigger": &"round:4"
+}, {
+"id": &"first-resonance",
+"text": "星誓共鸣已准备完成。",
+"trigger": &"resonance:100"
+}])
+dialogue = {
+"defeat": ["雾重新吞没了桥面。"],
+"midpoint": ["布兰：别让他们切断退路！"],
+"prologue": ["星核的残光穿过雾桥。", "奥蕾莉亚：我们必须在王庭援军赶到前通过。"],
+"victory": ["桥上的雾散开了，第一枚星屑落入掌心。"]
+}
+turn_limit = 20

@@ -1,0 +1,30 @@
+Task 5 RED evidence
+===================
+
+Command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path . --script res://tests/run_all.gd
+
+Observed process exit code: 1
+
+Godot output (relevant lines):
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Attempt to open script 'res://src/content/chapter_definition.gd' resulted in error 'File not found'.
+ERROR: Failed loading resource: res://src/content/chapter_definition.gd.
+ERROR: Attempt to open script 'res://src/content/chapter_one.gd' resulted in error 'File not found'.
+ERROR: Failed loading resource: res://src/content/chapter_one.gd.
+ERROR: Attempt to open script 'res://src/content/unit_catalog.gd' resulted in error 'File not found'.
+ERROR: Failed loading resource: res://src/content/unit_catalog.gd.
+FAIL test_chapter_one_content.gd
+ChapterDefinition class exists: Expected a truthy value.
+ChapterOne class exists: Expected a truthy value.
+UnitCatalog class exists: Expected a truthy value.
+PASS test_combat_rules.gd
+PASS test_grid_rules.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_turn_objective_ai.gd
+Ran 6 test file(s): 5 passed, 1 failed.
+GODOT_EXIT_CODE=1
+
+The failure is the expected RED condition: all Task 5 production resources are still absent.
