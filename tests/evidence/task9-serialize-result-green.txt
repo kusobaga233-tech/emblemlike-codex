@@ -1,0 +1,10 @@
+Task 9 structured serializer GREEN evidence
+Date: 2026-07-30
+
+Command:
+D:\godot-proj\Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd --quit-after 120 -- --test-runner-worker res://tests/test_save_service.gd
+
+Result:
+PASS test_save_service.gd
+
+serialize_result validates the BattleSession object graph and required typed fields before dereferencing nested state. It returns {ok, payload, reason}; serialize remains a compatibility wrapper; save_file consumes only the structured result and rejects damaged sessions with invalid_session before reconciliation, staging, or slot mutation.

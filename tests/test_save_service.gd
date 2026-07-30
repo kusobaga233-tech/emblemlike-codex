@@ -266,6 +266,9 @@ func _test_save_preflight(session, chapter) -> void:
 	var directory := "user://task9-preflight"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
 	var path := directory + "/save.json"
+	assert_true(SaveService.new().has_method("serialize_result"), "SaveService exposes structured serialization")
+	var structured: Dictionary = SaveService.serialize_result(session)
+	assert_true(structured.get("ok", false) and structured.get("reason") == &"" and structured.get("payload") == SaveService.serialize(session), "Structured serialization returns the compatibility payload")
 	assert_true(SaveService.save_file(session, path).ok, "Preflight baseline writes")
 	var target_bytes := FileAccess.get_file_as_bytes(path)
 	var backup_bytes := FileAccess.get_file_as_bytes(path + ".bak") if FileAccess.file_exists(path + ".bak") else PackedByteArray()
@@ -278,6 +281,20 @@ func _test_save_preflight(session, chapter) -> void:
 	assert_true(SaveService.save_file(contradictory, path).error == &"invalid_session", "Contradictory session fails preflight")
 	var blocked = BattleSession.new(chapter, 12); blocked.units[0].grid_position.x = 2; blocked.units[0].grid_position.y = 1
 	assert_true(SaveService.save_file(blocked, path).error == &"invalid_session", "Blocked session fails preflight")
+	var corruptions: Array[Callable] = [
+		func(value): value.units[0] = null,
+		func(value): value.units[0].definition = null,
+		func(value): value.units[0].grid_position = null,
+		func(value): value.turn_state = null,
+		func(value): value.resonance_state = null,
+	]
+	for corrupt: Callable in corruptions:
+		var damaged = BattleSession.new(chapter, 12)
+		corrupt.call(damaged)
+		var damaged_result: Dictionary = SaveService.save_file(damaged, path)
+		assert_true(not damaged_result.get("ok", false) and damaged_result.get("error") == &"invalid_session", "Damaged session fails structured preflight")
+		assert_equal(FileAccess.get_file_as_bytes(path), target_bytes, "Damaged session preserves target bytes")
+		assert_equal(FileAccess.get_file_as_bytes(path + ".bak") if FileAccess.file_exists(path + ".bak") else PackedByteArray(), backup_bytes, "Damaged session preserves backup bytes")
 	assert_true(not FileAccess.file_exists(path + ".tmp") and not FileAccess.file_exists(path + ".previous.new"), "Preflight creates no stage files")
 	for suffix in ["", ".bak", ".tmp", ".previous.new"]:
 		if FileAccess.file_exists(path + suffix): DirAccess.remove_absolute(ProjectSettings.globalize_path(path + suffix))

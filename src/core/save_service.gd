@@ -2,8 +2,14 @@ class_name SaveService
 extends RefCounted
 
 const BattleSessionScript = preload("res://src/tactics/battle_session.gd")
+const ChapterDefinitionScript = preload("res://src/content/chapter_definition.gd")
+const GridPointScript = preload("res://src/core/grid_point.gd")
 const SaveDataScript = preload("res://src/core/save_data.gd")
 const ObjectiveRulesScript = preload("res://src/core/objective_rules.gd")
+const ResonanceStateScript = preload("res://src/core/resonance_state.gd")
+const TurnStateScript = preload("res://src/core/turn_state.gd")
+const UnitDefinitionScript = preload("res://src/core/unit_definition.gd")
+const UnitStateScript = preload("res://src/core/unit_state.gd")
 const MAX_SAVE_BYTES := 1024 * 1024
 const MAX_STRING_LENGTH := 128
 const MAX_CONTAINER_ITEMS := 1024
@@ -15,11 +21,31 @@ const CONCURRENCY_CONTRACT := &"main_thread_single_writer"
 static var _active_save_paths: Dictionary = {}
 
 static func serialize(session: Variant) -> Dictionary:
-	if session == null or session.chapter == null: return {}
+	var result := serialize_result(session)
+	return result.payload if result.ok else {}
+
+static func serialize_result(session: Variant) -> Dictionary:
+	if session == null or not session is BattleSessionScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if session.chapter == null or not session.chapter is ChapterDefinitionScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if session.turn_state == null or not session.turn_state is TurnStateScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if session.resonance_state == null or not session.resonance_state is ResonanceStateScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if not session.units is Array or not session.fired_scripted_event_ids is Array: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if not session.turn_state.round is int or not session.turn_state.phase is StringName: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if not session.resonance_state.value is int or not session.selected_unit_id is StringName or not session.battle_status is StringName: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	if not session._base_seed is int or not session._combat_index is int: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
 	var units: Array = []
 	for unit in session.units:
+		if unit == null or not unit is UnitStateScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+		if unit.definition == null or not unit.definition is UnitDefinitionScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+		if unit.grid_position == null or not unit.grid_position is GridPointScript: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+		if not unit.instance_id is StringName or not unit.current_hp is int or not unit.acted is bool or not unit.has_moved is bool: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+		if not unit.experience is int or not unit.level is int or not unit.grid_position.x is int or not unit.grid_position.y is int: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+		if not unit.definition.id is StringName or not unit.definition.team is StringName or not unit.definition.max_hp is int: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
 		units.append({"id": String(unit.instance_id), "definition_id": String(unit.definition.id), "team": String(unit.definition.team), "x": unit.grid_position.x, "y": unit.grid_position.y, "hp": unit.current_hp, "acted": unit.acted, "moved": unit.has_moved, "experience": unit.experience, "level": unit.level})
-	return {"version": SaveDataScript.VERSION, "chapter_id": String(session.chapter.id), "round": session.turn_state.round, "phase": String(session.turn_state.phase), "selected_unit_id": String(session.selected_unit_id), "battle_status": String(session.battle_status), "resonance": session.resonance_value(), "fired_event_ids": Array(session.fired_scripted_event_ids).map(func(id): return String(id)), "base_seed": session._base_seed, "combat_index": session._combat_index, "units": units}
+	for event_id in session.fired_scripted_event_ids:
+		if not event_id is StringName: return {"ok": false, "payload": {}, "reason": &"invalid_session"}
+	var payload := {"version": SaveDataScript.VERSION, "chapter_id": String(session.chapter.id), "round": session.turn_state.round, "phase": String(session.turn_state.phase), "selected_unit_id": String(session.selected_unit_id), "battle_status": String(session.battle_status), "resonance": session.resonance_state.value, "fired_event_ids": Array(session.fired_scripted_event_ids).map(func(id): return String(id)), "base_seed": session._base_seed, "combat_index": session._combat_index, "units": units}
+	return {"ok": true, "payload": payload, "reason": &""}
 
 static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	if not canonical_result(input).ok: return null
@@ -99,14 +125,16 @@ static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PA
 	return result
 
 static func _save_file_internal(session: Variant, path: String, replace_strategy: Callable) -> Dictionary:
-	if session == null or not session is BattleSessionScript:
-		return {"ok": false, "error": &"invalid_session"}
-	var payload := serialize(session)
+	var serialization := serialize_result(session)
+	if not serialization.ok: return {"ok": false, "error": &"invalid_session"}
+	var payload: Dictionary = serialization.payload
 	var restored: Variant = restore(payload, session.chapter)
 	if restored == null:
 		return {"ok": false, "error": &"invalid_session"}
 	var payload_result := canonical_result(payload)
-	var restored_result := canonical_result(serialize(restored))
+	var restored_serialization := serialize_result(restored)
+	if not restored_serialization.ok: return {"ok": false, "error": &"invalid_session"}
+	var restored_result := canonical_result(restored_serialization.payload)
 	if not payload_result.ok or not restored_result.ok or payload_result.text != restored_result.text:
 		return {"ok": false, "error": &"invalid_session"}
 	var reconciliation := _reconcile_slots(path, session.chapter)
