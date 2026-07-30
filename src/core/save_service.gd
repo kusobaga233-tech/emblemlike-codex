@@ -9,6 +9,10 @@ const MAX_STRING_LENGTH := 128
 const MAX_CONTAINER_ITEMS := 1024
 const MAX_NESTING_DEPTH := 32
 const MAX_CANONICAL_NODES := 8192
+# SaveService is a main-thread, single-writer service. Reentrant saves to the
+# same path are rejected instead of sharing mutable staging slots.
+const CONCURRENCY_CONTRACT := &"main_thread_single_writer"
+static var _active_save_paths: Dictionary = {}
 
 static func serialize(session: Variant) -> Dictionary:
 	if session == null or session.chapter == null: return {}
@@ -87,6 +91,13 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	return session
 
 static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PATH, replace_strategy: Callable = Callable()) -> Dictionary:
+	if _active_save_paths.has(path): return {"ok": false, "error": &"save_in_progress"}
+	_active_save_paths[path] = true
+	var result := _save_file_internal(session, path, replace_strategy)
+	_active_save_paths.erase(path)
+	return result
+
+static func _save_file_internal(session: Variant, path: String, replace_strategy: Callable) -> Dictionary:
 	if session == null or not session is BattleSessionScript:
 		return {"ok": false, "error": &"invalid_session"}
 	var payload := serialize(session)
@@ -97,6 +108,8 @@ static func save_file(session: Variant, path: String = SaveDataScript.DEFAULT_PA
 	var restored_result := canonical_result(serialize(restored))
 	if not payload_result.ok or not restored_result.ok or payload_result.text != restored_result.text:
 		return {"ok": false, "error": &"invalid_session"}
+	var reconciliation := _reconcile_slots(path, session.chapter)
+	if not reconciliation.ok: return reconciliation
 	var temp := path + ".tmp"
 	var backup := path + ".bak"
 	var previous := path + ".previous.new"
@@ -147,9 +160,12 @@ static func load_file(chapter: Variant, path: String = SaveDataScript.DEFAULT_PA
 	return result.get("session") if result.get("ok", false) else null
 
 static func load_file_result(chapter: Variant, path: String = SaveDataScript.DEFAULT_PATH) -> Dictionary:
+	var reconciliation := _reconcile_slots(path, chapter)
+	if not reconciliation.ok: return reconciliation
 	var primary := _load_one(chapter, path)
 	if primary.get("ok", false):
 		primary["source"] = &"target"
+		primary["recovered"] = reconciliation.get("recovered", false)
 		return primary
 	var previous := _load_one(chapter, path + ".previous.new")
 	if previous.get("ok", false):
@@ -164,6 +180,33 @@ static func load_file_result(chapter: Variant, path: String = SaveDataScript.DEF
 		backup["primary_error"] = primary.get("error")
 		return backup
 	return primary
+
+static func _reconcile_slots(path: String, chapter: Variant) -> Dictionary:
+	var previous_path := path + ".previous.new"
+	if not FileAccess.file_exists(previous_path): return {"ok": true, "error": &""}
+	var target_valid: bool = _load_one(chapter, path).get("ok", false)
+	var previous_valid: bool = _load_one(chapter, previous_path).get("ok", false)
+	var backup_valid: bool = _load_one(chapter, path + ".bak").get("ok", false)
+	var absolute_target := ProjectSettings.globalize_path(path)
+	var absolute_previous := ProjectSettings.globalize_path(previous_path)
+	var absolute_backup := ProjectSettings.globalize_path(path + ".bak")
+	if previous_valid:
+		if target_valid:
+			if FileAccess.file_exists(path + ".bak") and DirAccess.remove_absolute(absolute_backup) != OK:
+				return {"ok": false, "error": &"recovery_failed"}
+			if DirAccess.rename_absolute(absolute_previous, absolute_backup) != OK:
+				return {"ok": false, "error": &"recovery_failed"}
+			return {"ok": true, "error": &"", "recovered": true}
+		if FileAccess.file_exists(path) and DirAccess.remove_absolute(absolute_target) != OK:
+			return {"ok": false, "error": &"recovery_failed"}
+		if DirAccess.rename_absolute(absolute_previous, absolute_target) != OK:
+			return {"ok": false, "error": &"recovery_failed"}
+		return {"ok": true, "error": &"", "recovered": true}
+	if target_valid or backup_valid:
+		if DirAccess.remove_absolute(absolute_previous) != OK:
+			return {"ok": false, "error": &"recovery_failed"}
+		return {"ok": true, "error": &"", "recovered": true}
+	return {"ok": false, "error": &"recovery_failed"}
 
 static func _load_one(chapter: Variant, path: String) -> Dictionary:
 	var file := FileAccess.open(path, FileAccess.READ)

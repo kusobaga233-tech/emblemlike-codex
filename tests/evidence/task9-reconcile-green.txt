@@ -1,0 +1,10 @@
+Task 9 slot reconciliation GREEN evidence
+Date: 2026-07-30
+
+Command:
+D:\godot-proj\Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd --quit-after 120 -- --test-runner-worker res://tests/test_save_service.gd
+
+Result:
+PASS test_save_service.gd
+
+Save and load now reconcile schema-valid target, previous, and backup slots before staging or selection. Interrupted rotation self-heals, invalid previous slots are removed only when another valid slot exists, and same-path reentrant saves return save_in_progress under the documented main-thread single-writer contract.
