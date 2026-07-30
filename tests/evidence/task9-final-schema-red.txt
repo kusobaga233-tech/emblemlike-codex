@@ -1,0 +1,7 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_save_service.gd
+  Terminal selected unit rejects: Expected a truthy value.
+  Round one captain event rejects: Expected a truthy value.
+  Reversed event timeline rejects: Expected a truthy value.
+  Resonance event cannot precede captain event: Expected a truthy value.

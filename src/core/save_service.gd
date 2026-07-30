@@ -26,13 +26,20 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	if not _is_integer(payload.resonance) or payload.resonance < 0 or payload.resonance > 100 or not payload.units is Array: return null
 	if not payload.fired_event_ids is Array: return null
 	var valid_event_ids := {}
-	for event: Dictionary in chapter.events: valid_event_ids[String(event.get("id", ""))] = true
+	var defined_event_ids: Array[String] = []
+	for event: Dictionary in chapter.events:
+		var defined_id := String(event.get("id", ""))
+		valid_event_ids[defined_id] = true
+		defined_event_ids.append(defined_id)
 	var seen_events := {}
 	for event_id in payload.fired_event_ids:
 		if not event_id is String or not valid_event_ids.has(event_id) or seen_events.has(event_id): return null
 		seen_events[event_id] = true
+	for index in payload.fired_event_ids.size():
+		if index >= defined_event_ids.size() or payload.fired_event_ids[index] != defined_event_ids[index]: return null
 	for event: Dictionary in chapter.events:
 		var trigger := String(event.get("trigger", ""))
+		if trigger.begins_with("round:") and seen_events.has(String(event.get("id", ""))) and payload.round < int(trigger.get_slice(":", 1)): return null
 		var required: bool = trigger == "round-start:1" or (trigger.begins_with("round:") and payload.round >= int(trigger.get_slice(":", 1))) or (trigger == "resonance:100" and payload.resonance == 100)
 		if required and not seen_events.has(String(event.get("id", ""))): return null
 	var session = BattleSessionScript.new(chapter, payload.base_seed)
@@ -61,11 +68,12 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	if not (payload.selected_unit_id is String or payload.selected_unit_id is StringName or payload.selected_unit_id == null): return null
 	var selected_id := StringName(payload.selected_unit_id if payload.selected_unit_id != null else "")
 	if selected_id != &"" and not seen.has(selected_id): return null
+	if selected_id != &"" and (payload.battle_status != "ongoing" or payload.phase != "player"): return null
 	for state in payload.units:
 		var unit = session._find_unit(StringName(state.id)); unit.grid_position.x = int(state.x); unit.grid_position.y = int(state.y); unit.current_hp = int(state.hp); unit.acted = state.acted; unit.has_moved = bool(state.get("moved", false)); unit.experience = int(state.experience); unit.level = int(state.level)
 	if selected_id != &"":
 		var selected = session._find_unit(selected_id)
-		if selected.current_hp <= 0 or selected.acted or selected.definition.team != StringName(payload.phase): return null
+		if selected.current_hp <= 0 or selected.acted or selected.definition.team != &"player": return null
 	var evaluated := ObjectiveRulesScript.evaluate(session.units, {"victory": chapter.objectives, "defeat": chapter.failure_conditions})
 	if evaluated != StringName(payload.battle_status): return null
 	session.turn_state.round = int(payload.round); session.turn_state.phase = StringName(payload.phase); session.selected_unit_id = selected_id; session.battle_status = StringName(payload.battle_status); session.resonance_state.value = int(payload.resonance); session.fired_scripted_event_ids.clear()

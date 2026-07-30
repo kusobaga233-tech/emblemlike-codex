@@ -50,6 +50,18 @@ func run() -> void:
 	assert_true(SaveService.restore(blocked, chapter) == null, "Water position rejects")
 	var false_victory := payload.duplicate(true); false_victory.battle_status = "victory"
 	assert_true(SaveService.restore(false_victory, chapter) == null, "Contradictory objective status rejects")
+	var enemy_selected := payload.duplicate(true); enemy_selected.phase = "enemy"; enemy_selected.selected_unit_id = "aurelia-1"
+	assert_true(SaveService.restore(enemy_selected, chapter) == null, "Enemy phase selected unit rejects")
+	var terminal_selected := payload.duplicate(true); terminal_selected.units[4].hp = 0; terminal_selected.battle_status = "victory"; terminal_selected.selected_unit_id = "aurelia-1"
+	assert_true(SaveService.restore(terminal_selected, chapter) == null, "Terminal selected unit rejects")
+	var early_captain := payload.duplicate(true); early_captain.fired_event_ids = ["mist-teach", "captain-advance"]
+	assert_true(SaveService.restore(early_captain, chapter) == null, "Round one captain event rejects")
+	var reversed_events := payload.duplicate(true); reversed_events.fired_event_ids = ["captain-advance", "mist-teach"]
+	assert_true(SaveService.restore(reversed_events, chapter) == null, "Reversed event timeline rejects")
+	var skipped_mist := payload.duplicate(true); skipped_mist.round = 4; skipped_mist.fired_event_ids = ["captain-advance"]
+	assert_true(SaveService.restore(skipped_mist, chapter) == null, "Event timeline cannot skip mist")
+	var early_resonance := payload.duplicate(true); early_resonance.fired_event_ids = ["mist-teach", "first-resonance"]
+	assert_true(SaveService.restore(early_resonance, chapter) == null, "Resonance event cannot precede captain event")
 	_test_file_durability(session, chapter)
 	_test_phase_boundary_continuation(chapter)
 
