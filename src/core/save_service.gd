@@ -44,13 +44,14 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	for event_id in payload.fired_event_ids:
 		if not event_id is String or not valid_event_ids.has(event_id) or seen_events.has(event_id): return null
 		seen_events[event_id] = true
-	if payload.fired_event_ids.is_empty() or payload.fired_event_ids[0] != "mist-teach": return null
-	if seen_events.has("captain-advance") and payload.round < 4: return null
-	if payload.round >= 4 and not seen_events.has("captain-advance"): return null
-	if payload.resonance == 100 and not seen_events.has("first-resonance"): return null
 	for event: Dictionary in chapter.events:
 		var trigger := String(event.get("trigger", ""))
-		if trigger.begins_with("round:") and seen_events.has(String(event.get("id", ""))) and payload.round < int(trigger.get_slice(":", 1)): return null
+		var event_id := String(event.get("id", ""))
+		var round_threshold := _trigger_threshold(trigger, "round-start:")
+		if round_threshold < 0: round_threshold = _trigger_threshold(trigger, "round:")
+		if round_threshold >= 0 and seen_events.has(event_id) != (payload.round >= round_threshold): return null
+		var resonance_threshold := _trigger_threshold(trigger, "resonance:")
+		if resonance_threshold >= 0 and payload.resonance >= resonance_threshold and not seen_events.has(event_id): return null
 	var session = BattleSessionScript.new(chapter, payload.base_seed)
 	if payload.units.size() != chapter.deployments.size() or payload.units.size() != session.units.size(): return null
 	var seen := {}; var positions := {}
@@ -277,3 +278,10 @@ static func _canonical_typed(value: Variant, depth: int, budget: Dictionary) -> 
 
 static func _is_integer(value: Variant) -> bool:
 	return value is int or (value is float and is_finite(value) and value == floor(value))
+
+static func _trigger_threshold(trigger: String, prefix: String) -> int:
+	if not trigger.begins_with(prefix): return -1
+	var suffix := trigger.trim_prefix(prefix)
+	if not suffix.is_valid_int(): return -1
+	var threshold := int(suffix)
+	return threshold if threshold >= 0 else -1

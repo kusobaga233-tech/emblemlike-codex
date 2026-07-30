@@ -1,0 +1,8 @@
+Task 9 generic event schema RED evidence
+Date: 2026-07-30
+
+Focused result before implementation:
+FAIL test_save_service.gd
+
+The hard-coded validator rejected a chapter with no events, renamed round-start/round/resonance event IDs, both legal historical resonance orderings, and a second chapter containing a known narrative event.
+

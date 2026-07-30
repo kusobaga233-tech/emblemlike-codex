@@ -76,6 +76,7 @@ func run() -> void:
 	var captain_then_resonance := payload.duplicate(true); captain_then_resonance.round = 4; captain_then_resonance.fired_event_ids = ["mist-teach", "captain-advance", "first-resonance"]
 	assert_true(SaveService.restore(captain_then_resonance, chapter) != null, "Captain then resonance causal order restores")
 	_test_file_durability(session, chapter)
+	_test_generic_events(chapter)
 	_test_save_preflight(session, chapter)
 	_test_resource_limits(payload, chapter)
 	_test_phase_boundary_continuation(chapter)
@@ -173,6 +174,50 @@ func _write_text(path: String, contents: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(contents)
 	file.close()
+
+func _test_generic_events(chapter) -> void:
+	var no_events = chapter.deep_duplicate()
+	no_events.id = &"chapter-no-events"
+	var empty_events: Array[Dictionary] = []
+	no_events.events = empty_events
+	var no_event_session = BattleSession.new(no_events, 401)
+	var no_event_payload := SaveService.serialize(no_event_session)
+	assert_true(no_event_payload.fired_event_ids.is_empty(), "Chapter without scripted events serializes an empty history")
+	assert_true(SaveService.restore(no_event_payload, no_event_session.chapter) != null, "Chapter without scripted events round trips")
+	var renamed = chapter.deep_duplicate()
+	renamed.id = &"chapter-renamed-events"
+	var renamed_events: Array[Dictionary] = [
+		{"id": &"opening", "trigger": &"round-start:1", "text": "Opening"},
+		{"id": &"bridge-turn", "trigger": &"round:4", "text": "Advance"},
+		{"id": &"harmony-ready", "trigger": &"resonance:100", "text": "Ready"},
+	]
+	renamed.events = renamed_events
+	var renamed_session = BattleSession.new(renamed, 402)
+	var renamed_payload := SaveService.serialize(renamed_session)
+	assert_equal(renamed_payload.fired_event_ids, ["opening"], "Renamed opening event is recorded from chapter data")
+	assert_true(SaveService.restore(renamed_payload, renamed_session.chapter) != null, "Renamed opening event round trips")
+	var renamed_round := renamed_payload.duplicate(true)
+	renamed_round.round = 4
+	renamed_round.fired_event_ids = ["opening", "bridge-turn"]
+	assert_true(SaveService.restore(renamed_round, renamed_session.chapter) != null, "Renamed deterministic round event restores")
+	var resonance_first := renamed_round.duplicate(true)
+	resonance_first.fired_event_ids = ["opening", "harmony-ready", "bridge-turn"]
+	assert_true(SaveService.restore(resonance_first, renamed_session.chapter) != null, "Historical resonance before round event restores")
+	var round_first := renamed_round.duplicate(true)
+	round_first.fired_event_ids = ["opening", "bridge-turn", "harmony-ready"]
+	assert_true(SaveService.restore(round_first, renamed_session.chapter) != null, "Historical resonance after round event restores")
+	var resonance_required := renamed_payload.duplicate(true)
+	resonance_required.resonance = 100
+	resonance_required.fired_event_ids = ["opening", "harmony-ready"]
+	assert_true(SaveService.restore(resonance_required, renamed_session.chapter) != null, "Current resonance threshold requires renamed event")
+	var second_chapter = chapter.deep_duplicate()
+	second_chapter.id = &"chapter-2"
+	var second_events: Array[Dictionary] = [{"id": &"chapter-two-story", "trigger": &"dialogue:arrival", "text": "Arrival"}]
+	second_chapter.events = second_events
+	var second_session = BattleSession.new(second_chapter, 403)
+	var second_payload := SaveService.serialize(second_session)
+	second_payload.fired_event_ids = ["chapter-two-story"]
+	assert_true(SaveService.restore(second_payload, second_session.chapter) != null, "Second chapter narrative event round trips without special cases")
 
 func _test_resource_limits(payload: Dictionary, chapter) -> void:
 	var directory := "user://task9-resource-limits"

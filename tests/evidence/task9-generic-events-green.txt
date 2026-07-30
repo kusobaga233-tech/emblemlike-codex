@@ -1,0 +1,10 @@
+Task 9 generic event schema GREEN evidence
+Date: 2026-07-30
+
+Command:
+D:\godot-proj\Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd --quit-after 120 -- --test-runner-worker res://tests/test_save_service.gd
+
+Result:
+PASS test_save_service.gd
+
+Event validation now derives known and unique IDs from chapter.events. Deterministic round-start:N and round:N triggers must match the saved round; resonance:N is required after the current threshold and remains legal as historical evidence below it; narrative triggers require only a known ID. No global event ordering or fixed event names are used.
