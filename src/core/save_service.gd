@@ -4,6 +4,11 @@ extends RefCounted
 const BattleSessionScript = preload("res://src/tactics/battle_session.gd")
 const SaveDataScript = preload("res://src/core/save_data.gd")
 const ObjectiveRulesScript = preload("res://src/core/objective_rules.gd")
+const MAX_SAVE_BYTES := 1024 * 1024
+const MAX_STRING_LENGTH := 128
+const MAX_CONTAINER_ITEMS := 1024
+const MAX_NESTING_DEPTH := 32
+const MAX_CANONICAL_NODES := 8192
 
 static func serialize(session: Variant) -> Dictionary:
 	if session == null or session.chapter == null: return {}
@@ -13,6 +18,7 @@ static func serialize(session: Variant) -> Dictionary:
 	return {"version": SaveDataScript.VERSION, "chapter_id": String(session.chapter.id), "round": session.turn_state.round, "phase": String(session.turn_state.phase), "selected_unit_id": String(session.selected_unit_id), "battle_status": String(session.battle_status), "resonance": session.resonance_value(), "fired_event_ids": Array(session.fired_scripted_event_ids).map(func(id): return String(id)), "base_seed": session._base_seed, "combat_index": session._combat_index, "units": units}
 
 static func restore(input: Dictionary, chapter: Variant) -> Variant:
+	if not canonical_result(input).ok: return null
 	var payload := input.duplicate(true)
 	var migrated := not payload.has("version")
 	if migrated: payload["version"] = 1
@@ -25,6 +31,7 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	if payload.phase not in ["player", "enemy"] or payload.battle_status not in ["ongoing", "victory", "defeat"]: return null
 	if not _is_integer(payload.resonance) or payload.resonance < 0 or payload.resonance > 100 or not payload.units is Array: return null
 	if not payload.fired_event_ids is Array: return null
+	if payload.fired_event_ids.size() > chapter.events.size(): return null
 	var valid_event_ids := {}
 	for event: Dictionary in chapter.events:
 		var defined_id := String(event.get("id", ""))
@@ -41,7 +48,7 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 		var trigger := String(event.get("trigger", ""))
 		if trigger.begins_with("round:") and seen_events.has(String(event.get("id", ""))) and payload.round < int(trigger.get_slice(":", 1)): return null
 	var session = BattleSessionScript.new(chapter, payload.base_seed)
-	if payload.units.size() != session.units.size(): return null
+	if payload.units.size() != chapter.deployments.size() or payload.units.size() != session.units.size(): return null
 	var seen := {}; var positions := {}
 	for state in payload.units:
 		if not state is Dictionary: return null
@@ -161,6 +168,9 @@ static func load_file_result(chapter: Variant, path: String = SaveDataScript.DEF
 static func _load_one(chapter: Variant, path: String) -> Dictionary:
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null: return {"ok": false, "error": &"open_failed"}
+	if file.get_length() > MAX_SAVE_BYTES:
+		file.close()
+		return {"ok": false, "error": &"file_too_large"}
 	var parser := JSON.new()
 	if parser.parse(file.get_as_text()) != OK: return {"ok": false, "error": &"malformed_json"}
 	var parsed: Variant = parser.data
@@ -178,35 +188,44 @@ static func canonical_json(value: Variant) -> Variant:
 	return result.text if result.ok else null
 
 static func canonical_result(value: Variant) -> Dictionary:
-	return _canonical_typed(value)
+	return _canonical_typed(value, 0, {"count": 0})
 
-static func _canonical_typed(value: Variant) -> Dictionary:
+static func _canonical_typed(value: Variant, depth: int, budget: Dictionary) -> Dictionary:
+	budget.count += 1
+	if budget.count > MAX_CANONICAL_NODES: return {"ok": false, "text": "", "reason": &"too_many_values"}
+	if depth > MAX_NESTING_DEPTH: return {"ok": false, "text": "", "reason": &"nesting_too_deep"}
 	if value == null: return {"ok": true, "text": "z:null", "reason": &""}
 	if value is bool: return {"ok": true, "text": "b:1" if value else "b:0", "reason": &""}
 	if value is int: return {"ok": true, "text": "i:%d" % value, "reason": &""}
 	if value is float:
 		if not is_finite(value): return {"ok": false, "text": "", "reason": &"non_finite_float"}
-		var normalized := "0.0" if value == 0.0 else ("%.17g" % value)
+		var normalized := "0.0" if value == 0.0 else String.num(value, 17)
 		return {"ok": true, "text": "f:" + normalized, "reason": &""}
-	if value is String: return {"ok": true, "text": "s:" + JSON.stringify(value), "reason": &""}
-	if value is StringName: return {"ok": true, "text": "n:" + JSON.stringify(String(value)), "reason": &""}
+	if value is String:
+		if value.length() > MAX_STRING_LENGTH: return {"ok": false, "text": "", "reason": &"string_too_long"}
+		return {"ok": true, "text": "s:" + JSON.stringify(value), "reason": &""}
+	if value is StringName:
+		if String(value).length() > MAX_STRING_LENGTH: return {"ok": false, "text": "", "reason": &"string_too_long"}
+		return {"ok": true, "text": "n:" + JSON.stringify(String(value)), "reason": &""}
 	if value is Vector2i: return {"ok": true, "text": "v2i:%d,%d" % [value.x, value.y], "reason": &""}
 	if value is Array:
+		if value.size() > MAX_CONTAINER_ITEMS: return {"ok": false, "text": "", "reason": &"container_too_large"}
 		var array_parts: Array[String] = []
 		for item in value:
-			var item_result := _canonical_typed(item)
+			var item_result := _canonical_typed(item, depth + 1, budget)
 			if not item_result.ok: return item_result
 			array_parts.append(item_result.text)
 		return {"ok": true, "text": "a:%d:[%s]" % [value.size(), ",".join(array_parts)], "reason": &""}
 	if value is Dictionary:
+		if value.size() > MAX_CONTAINER_ITEMS: return {"ok": false, "text": "", "reason": &"container_too_large"}
 		var pairs: Array[String] = []
 		var seen_keys := {}
 		for key in value:
-			var key_result := _canonical_typed(key)
+			var key_result := _canonical_typed(key, depth + 1, budget)
 			if not key_result.ok: return {"ok": false, "text": "", "reason": &"unsupported_dictionary_key"}
 			if seen_keys.has(key_result.text): return {"ok": false, "text": "", "reason": &"duplicate_canonical_key"}
 			seen_keys[key_result.text] = true
-			var value_result := _canonical_typed(value[key])
+			var value_result := _canonical_typed(value[key], depth + 1, budget)
 			if not value_result.ok: return value_result
 			pairs.append(key_result.text + "=>" + value_result.text)
 		pairs.sort()

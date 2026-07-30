@@ -77,6 +77,7 @@ func run() -> void:
 	assert_true(SaveService.restore(captain_then_resonance, chapter) != null, "Captain then resonance causal order restores")
 	_test_file_durability(session, chapter)
 	_test_save_preflight(session, chapter)
+	_test_resource_limits(payload, chapter)
 	_test_phase_boundary_continuation(chapter)
 
 func _test_file_durability(session, chapter) -> void:
@@ -140,6 +141,33 @@ func _write_text(path: String, contents: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(contents)
 	file.close()
+
+func _test_resource_limits(payload: Dictionary, chapter) -> void:
+	var directory := "user://task9-resource-limits"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(directory))
+	var oversized_path := directory + "/oversized.json"
+	var oversized_file := FileAccess.open(oversized_path, FileAccess.WRITE)
+	var oversized_bytes := PackedByteArray()
+	oversized_bytes.resize(1024 * 1024 + 1)
+	oversized_file.store_buffer(oversized_bytes)
+	oversized_file.close()
+	var oversized_result: Dictionary = SaveService.load_file_result(chapter, oversized_path)
+	assert_true(not oversized_result.ok and oversized_result.error == &"file_too_large", "Save larger than one MiB rejects before parsing")
+	var long_id := payload.duplicate(true)
+	long_id.units[0].id = "x".repeat(129)
+	assert_true(SaveService.restore(long_id, chapter) == null, "Identifiers longer than 128 characters reject")
+	assert_true(not SaveService.canonical_result("x".repeat(129)).ok, "Canonical strings longer than 128 characters reject")
+	var too_many := []
+	too_many.resize(1025)
+	assert_true(not SaveService.canonical_result(too_many).ok, "Oversized arrays reject")
+	var too_wide := {}
+	for index in 1025: too_wide[index] = null
+	assert_true(not SaveService.canonical_result(too_wide).ok, "Oversized dictionaries reject")
+	var too_deep: Variant = null
+	for _index in 33: too_deep = [too_deep]
+	assert_true(not SaveService.canonical_result(too_deep).ok, "Excessively nested values reject")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(oversized_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(directory))
 
 func _test_phase_boundary_continuation(chapter) -> void:
 	var baseline = BattleSession.new(chapter, 91)
