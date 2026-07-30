@@ -1,0 +1,10 @@
+Task 9 generic round-start runtime GREEN evidence
+Date: 2026-07-30
+
+Command:
+D:\godot-proj\Godot_v4.6.3-stable_win64.exe --headless --path D:\godot-proj\star-ember-oath-godot --script res://tests/run_all.gd --quit-after 120 -- --test-runner-worker res://tests/test_battle_session.gd
+
+Result:
+PASS test_battle_session.gd
+
+BattleSession initialization and completed enemy phases use the shared ScriptedEventRules parser. New-round event order is phase_changed, round-start:N definitions, round:N definitions, then unit_ready; terminal enemy phases still return before finishing the round. Runtime-generated history survives JSON serialization, restoration, and deterministic continuation.

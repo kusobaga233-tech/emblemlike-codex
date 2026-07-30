@@ -1,0 +1,7 @@
+Task 9 generic round-start runtime RED evidence
+Date: 2026-07-30
+
+Focused result before implementation:
+FAIL test_battle_session.gd
+
+A real BattleSession advancing through rounds 2 and 3 emitted no round-start events; round 4 emitted only round:4, new-round event ordering could not be satisfied, and the runtime-generated history failed save restoration.

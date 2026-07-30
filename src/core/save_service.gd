@@ -7,6 +7,7 @@ const GridPointScript = preload("res://src/core/grid_point.gd")
 const SaveDataScript = preload("res://src/core/save_data.gd")
 const ObjectiveRulesScript = preload("res://src/core/objective_rules.gd")
 const ResonanceStateScript = preload("res://src/core/resonance_state.gd")
+const ScriptedEventRulesScript = preload("res://src/core/scripted_event_rules.gd")
 const TurnStateScript = preload("res://src/core/turn_state.gd")
 const UnitDefinitionScript = preload("res://src/core/unit_definition.gd")
 const UnitStateScript = preload("res://src/core/unit_state.gd")
@@ -73,7 +74,7 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 		if not event_id is String or not valid_event_ids.has(event_id) or seen_events.has(event_id): return null
 		seen_events[event_id] = true
 		var definition: Dictionary = valid_event_ids[event_id]
-		var deterministic_key := _deterministic_event_key(String(definition.get("trigger", "")))
+		var deterministic_key := ScriptedEventRulesScript.deterministic_key(String(definition.get("trigger", "")))
 		if deterministic_key.x >= 0:
 			if has_last_deterministic_key and (deterministic_key.x < last_deterministic_key.x or (deterministic_key.x == last_deterministic_key.x and deterministic_key.y < last_deterministic_key.y)): return null
 			last_deterministic_key = deterministic_key
@@ -81,10 +82,10 @@ static func restore(input: Dictionary, chapter: Variant) -> Variant:
 	for event: Dictionary in chapter.events:
 		var trigger := String(event.get("trigger", ""))
 		var event_id := String(event.get("id", ""))
-		var round_threshold := _trigger_threshold(trigger, "round-start:")
-		if round_threshold < 0: round_threshold = _trigger_threshold(trigger, "round:")
+		var round_threshold := ScriptedEventRulesScript.trigger_threshold(trigger, "round-start:")
+		if round_threshold < 0: round_threshold = ScriptedEventRulesScript.trigger_threshold(trigger, "round:")
 		if round_threshold >= 0 and seen_events.has(event_id) != (payload.round >= round_threshold): return null
-		var resonance_threshold := _trigger_threshold(trigger, "resonance:")
+		var resonance_threshold := ScriptedEventRulesScript.trigger_threshold(trigger, "resonance:")
 		if resonance_threshold >= 0 and payload.resonance >= resonance_threshold and not seen_events.has(event_id): return null
 	var session = BattleSessionScript.new(chapter, payload.base_seed)
 	if payload.units.size() != chapter.deployments.size() or payload.units.size() != session.units.size(): return null
@@ -314,17 +315,3 @@ static func _canonical_typed(value: Variant, depth: int, budget: Dictionary) -> 
 
 static func _is_integer(value: Variant) -> bool:
 	return value is int or (value is float and is_finite(value) and value == floor(value))
-
-static func _trigger_threshold(trigger: String, prefix: String) -> int:
-	if not trigger.begins_with(prefix): return -1
-	var suffix := trigger.trim_prefix(prefix)
-	if not suffix.is_valid_int(): return -1
-	var threshold := int(suffix)
-	return threshold if threshold >= 0 else -1
-
-static func _deterministic_event_key(trigger: String) -> Vector2i:
-	var round_start := _trigger_threshold(trigger, "round-start:")
-	if round_start >= 0: return Vector2i(round_start, 0)
-	var round_event := _trigger_threshold(trigger, "round:")
-	if round_event >= 0: return Vector2i(round_event, 1)
-	return Vector2i(-1, -1)

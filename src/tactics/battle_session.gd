@@ -11,6 +11,7 @@ const GridPointScript = preload("res://src/core/grid_point.gd")
 const GridRulesScript = preload("res://src/core/grid_rules.gd")
 const ObjectiveRulesScript = preload("res://src/core/objective_rules.gd")
 const ResonanceStateScript = preload("res://src/core/resonance_state.gd")
+const ScriptedEventRulesScript = preload("res://src/core/scripted_event_rules.gd")
 const TurnStateScript = preload("res://src/core/turn_state.gd")
 const UnitCatalogScript = preload("res://src/content/unit_catalog.gd")
 const UnitStateScript = preload("res://src/core/unit_state.gd")
@@ -37,7 +38,7 @@ func _init(initial_chapter: Variant = null, initial_seed: int = 1) -> void:
 	resonance_state = ResonanceStateScript.new()
 	_board = _build_board(chapter)
 	battle_status = _evaluate_objective()
-	_fire_scripted_trigger(&"round-start:1", [])
+	_fire_round_triggers(turn_state.round, [])
 
 
 func select_unit(id: StringName) -> Dictionary:
@@ -328,7 +329,6 @@ func _advance_enemy_phase() -> Dictionary:
 	var player_acted_before := _acted_ids(&"player")
 	var round_before: int = turn_state.round
 	turn_state.finish_round()
-	_fire_scripted_trigger(StringName("round:%d" % turn_state.round), events)
 	events.append(BattleEventScript.state_changed(
 		&"phase_changed",
 		&"",
@@ -340,6 +340,7 @@ func _advance_enemy_phase() -> Dictionary:
 			"round": turn_state.round,
 		},
 	))
+	_fire_round_triggers(turn_state.round, events)
 	events.append_array(_ready_events(player_acted_before))
 	return _accept(events)
 
@@ -564,5 +565,19 @@ func _fire_scripted_trigger(trigger: StringName, events: Array) -> void:
 	for definition: Dictionary in chapter.events:
 		var id := StringName(definition.get("id", &""))
 		if StringName(definition.get("trigger", &"")) != trigger or id == &"" or id in fired_scripted_event_ids: continue
-		fired_scripted_event_ids.append(id)
-		events.append(BattleEventScript.state_changed(&"scripted_event_fired", &"", &"", {"id": id, "trigger": trigger, "text": String(definition.get("text", ""))}))
+		_fire_scripted_definition(definition, trigger, events)
+
+func _fire_round_triggers(round_number: int, events: Array) -> void:
+	if chapter == null: return
+	for phase_index: int in 2:
+		var expected_key := Vector2i(round_number, phase_index)
+		for definition: Dictionary in chapter.events:
+			var trigger := StringName(definition.get("trigger", &""))
+			if ScriptedEventRulesScript.deterministic_key(String(trigger)) != expected_key: continue
+			_fire_scripted_definition(definition, trigger, events)
+
+func _fire_scripted_definition(definition: Dictionary, trigger: StringName, events: Array) -> void:
+	var id := StringName(definition.get("id", &""))
+	if id == &"" or id in fired_scripted_event_ids: return
+	fired_scripted_event_ids.append(id)
+	events.append(BattleEventScript.state_changed(&"scripted_event_fired", &"", &"", {"id": id, "trigger": trigger, "text": String(definition.get("text", ""))}))

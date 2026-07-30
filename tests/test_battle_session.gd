@@ -37,6 +37,7 @@ func run() -> void:
 	_test_fresh_sessions_repeat_ai_and_event_digest()
 	_test_phase_change_events_precede_acted_resets()
 	_test_phase_methods_cannot_double_advance()
+	_test_generic_round_start_runtime_and_save_continuation()
 
 
 func _test_battle_command_is_typed_data() -> void:
@@ -87,6 +88,58 @@ func _test_chapter_one_player_flow_enemy_phase_and_round_reset() -> void:
 	assert_equal(_unit(session, &"fenn-1").acted, false, "Round two resets Fenn's acted flag")
 	assert_true(_event_types(enemy_result["events"]).has("phase_changed"), "Enemy advancement emits its phase change")
 	assert_equal(flushed[-1], enemy_result["events"], "Signal flush matches the accepted command result")
+
+
+func _test_generic_round_start_runtime_and_save_continuation() -> void:
+	var chapter: Variant = _chapter_one_script.build()
+	chapter.id = &"runtime-round-events"
+	var runtime_events: Array[Dictionary] = [
+		{"id": &"start-two", "trigger": &"round-start:2"},
+		{"id": &"start-three", "trigger": &"round-start:3"},
+		{"id": &"start-four", "trigger": &"round-start:4"},
+		{"id": &"turn-four", "trigger": &"round:4"},
+	]
+	chapter.events = runtime_events
+	var session: Variant = _battle_session_script.new(chapter, 709)
+	for unit: Variant in session.units:
+		if unit.definition.team == &"enemy":
+			unit.definition.move = 0
+			unit.definition.ranges = PackedInt32Array()
+	assert_equal(session.fired_scripted_event_ids, [], "Future round-start events do not fire during initialization")
+	for expected_round: int in range(2, 5):
+		assert_true(session.select_unit(&"fenn-1").ok and session.wait_selected().ok, "Runtime event fixture spends one player action before round advance")
+		assert_true(session.end_player_phase().ok, "Runtime event fixture enters enemy phase")
+		var result: Dictionary = session.advance_enemy_phase()
+		assert_true(result.ok and session.turn_state.round == expected_round, "Runtime event fixture advances exactly one round")
+		var scripted_ids: Array[StringName] = []
+		var phase_index := -1
+		var first_scripted_index := -1
+		var first_ready_index := -1
+		for index: int in result.events.size():
+			var event: Dictionary = result.events[index]
+			if event.type == &"phase_changed": phase_index = index
+			elif event.type == &"scripted_event_fired":
+				if first_scripted_index < 0: first_scripted_index = index
+				scripted_ids.append(StringName(event.payload.id))
+			elif event.type == &"unit_ready" and first_ready_index < 0: first_ready_index = index
+		var expected_by_round := {2: &"start-two", 3: &"start-three", 4: &"start-four"}
+		var expected_ids: Array[StringName] = [expected_by_round[expected_round]]
+		if expected_round == 4: expected_ids.append(&"turn-four")
+		assert_equal(scripted_ids, expected_ids, "Round triggers fire on time in start-before-round order")
+		assert_true(phase_index >= 0 and first_scripted_index > phase_index and first_ready_index > first_scripted_index, "New-round scripted events are visible after phase change and before unit readiness")
+		var fired_before_repeat: Array = session.fired_scripted_event_ids.duplicate()
+		assert_equal(session.advance_enemy_phase(), {"ok": false, "reason": &"wrong_phase"}, "Repeated enemy advance rejects")
+		assert_equal(session.fired_scripted_event_ids, fired_before_repeat, "Rejected repeated advance does not duplicate scripted events")
+	var SaveService = load("res://src/core/save_service.gd")
+	var payload: Dictionary = JSON.parse_string(JSON.stringify(SaveService.serialize(session)))
+	var restored: Variant = SaveService.restore(payload, session.chapter)
+	assert_true(restored != null, "Runtime-generated round-start history restores")
+	if restored != null:
+		for candidate: Variant in [session, restored]:
+			assert_true(candidate.end_player_phase().ok, "Original and restored sessions enter the next enemy phase")
+		var original_next: Dictionary = session.advance_enemy_phase()
+		var restored_next: Dictionary = restored.advance_enemy_phase()
+		assert_equal(SaveService.canonical_json(original_next.events), SaveService.canonical_json(restored_next.events), "Runtime event continuation remains deterministic after restore")
 
 
 func _test_mutations_flush_matching_ordered_events() -> void:
