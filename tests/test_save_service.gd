@@ -26,6 +26,15 @@ func run() -> void:
 	var migrated := payload.duplicate(true); migrated.erase("version")
 	assert_true(SaveService.restore(migrated, chapter) != null, "Unversioned payload migrates")
 	assert_equal(SaveService.canonical_json(payload), SaveService.canonical_json(payload.duplicate(true)), "Canonical JSON is stable")
+	var canonical_string: Dictionary = SaveService.canonical_result("id")
+	var canonical_name: Dictionary = SaveService.canonical_result(&"id")
+	assert_true(canonical_string.ok and canonical_name.ok and canonical_string.text != canonical_name.text, "Canonical encoding distinguishes String and StringName")
+	assert_equal(SaveService.canonical_result(-0.0).text, SaveService.canonical_result(0.0).text, "Negative zero is canonicalized")
+	assert_true(not SaveService.canonical_result(NAN).ok, "Canonical encoding rejects NaN")
+	assert_true(not SaveService.canonical_result(INF).ok, "Canonical encoding rejects infinity")
+	assert_true(not SaveService.canonical_result(func(): pass).ok, "Canonical encoding rejects Callable")
+	var typed_dictionary := {&"name": 1, "value": Vector2i(2, 3), 4: true}
+	assert_true(SaveService.canonical_result(typed_dictionary).ok, "Canonical encoding supports typed dictionary keys")
 	var invalid_numbers := payload.duplicate(true); invalid_numbers.round = NAN
 	assert_true(SaveService.restore(invalid_numbers, chapter) == null, "NaN rejects")
 	invalid_numbers.round = INF

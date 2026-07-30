@@ -140,30 +140,45 @@ static func _stage_error(strategy: Callable, stage: StringName, temp: String, ta
 	if not strategy.is_valid(): return OK
 	return int(strategy.call(stage, temp, target, backup))
 
-static func canonical_json(value: Variant) -> String:
-	return _canonical(value)
+static func canonical_json(value: Variant) -> Variant:
+	var result := canonical_result(value)
+	return result.text if result.ok else null
 
-static func _canonical(value: Variant) -> String:
-	if value == null: return "null"
-	if value is bool: return "true" if value else "false"
-	if value is int: return str(value)
+static func canonical_result(value: Variant) -> Dictionary:
+	return _canonical_typed(value)
+
+static func _canonical_typed(value: Variant) -> Dictionary:
+	if value == null: return {"ok": true, "text": "z:null", "reason": &""}
+	if value is bool: return {"ok": true, "text": "b:1" if value else "b:0", "reason": &""}
+	if value is int: return {"ok": true, "text": "i:%d" % value, "reason": &""}
 	if value is float:
-		if not is_finite(value): return ""
-		return str(value)
-	if value is String or value is StringName: return JSON.stringify(String(value))
-	if value is Vector2i: return "{\"x\":%d,\"y\":%d}" % [value.x, value.y]
+		if not is_finite(value): return {"ok": false, "text": "", "reason": &"non_finite_float"}
+		var normalized := "0.0" if value == 0.0 else ("%.17g" % value)
+		return {"ok": true, "text": "f:" + normalized, "reason": &""}
+	if value is String: return {"ok": true, "text": "s:" + JSON.stringify(value), "reason": &""}
+	if value is StringName: return {"ok": true, "text": "n:" + JSON.stringify(String(value)), "reason": &""}
+	if value is Vector2i: return {"ok": true, "text": "v2i:%d,%d" % [value.x, value.y], "reason": &""}
 	if value is Array:
-		var parts: Array[String] = []
-		for item in value: parts.append(_canonical(item))
-		return "[" + ",".join(parts) + "]"
+		var array_parts: Array[String] = []
+		for item in value:
+			var item_result := _canonical_typed(item)
+			if not item_result.ok: return item_result
+			array_parts.append(item_result.text)
+		return {"ok": true, "text": "a:%d:[%s]" % [value.size(), ",".join(array_parts)], "reason": &""}
 	if value is Dictionary:
-		var keys: Array[String] = []
-		for key in value: keys.append(String(key))
-		keys.sort()
-		var parts: Array[String] = []
-		for key in keys: parts.append(JSON.stringify(key) + ":" + _canonical(value[key]))
-		return "{" + ",".join(parts) + "}"
-	return ""
+		var pairs: Array[String] = []
+		var seen_keys := {}
+		for key in value:
+			var key_result := _canonical_typed(key)
+			if not key_result.ok: return {"ok": false, "text": "", "reason": &"unsupported_dictionary_key"}
+			if seen_keys.has(key_result.text): return {"ok": false, "text": "", "reason": &"duplicate_canonical_key"}
+			seen_keys[key_result.text] = true
+			var value_result := _canonical_typed(value[key])
+			if not value_result.ok: return value_result
+			pairs.append(key_result.text + "=>" + value_result.text)
+		pairs.sort()
+		return {"ok": true, "text": "d:%d:{%s}" % [value.size(), ",".join(pairs)], "reason": &""}
+	return {"ok": false, "text": "", "reason": &"unsupported_type"}
 
 static func _is_integer(value: Variant) -> bool:
 	return value is int or (value is float and is_finite(value) and value == floor(value))

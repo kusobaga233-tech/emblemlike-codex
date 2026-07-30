@@ -77,7 +77,10 @@ func _replay_frozen_playthrough() -> Dictionary:
 		else: digest.append_array(result.get("events", []))
 		if battle.battle_status == &"defeat": player_defeat = true
 	var event_types := _types(digest)
-	return {"illegal_count": illegal_count, "support_count": support_count, "used_resonance": used_resonance, "fired_ids": battle.fired_scripted_event_ids.duplicate(), "status": battle.battle_status, "player_defeat": player_defeat, "last_event": event_types[-1] if not event_types.is_empty() else &"", "digest": SaveService.canonical_json(digest), "final_state": SaveService.canonical_json(SaveService.serialize(battle))}
+	var digest_result: Dictionary = SaveService.canonical_result(digest)
+	var state_result: Dictionary = SaveService.canonical_result(SaveService.serialize(battle))
+	assert_true(digest_result.ok and state_result.ok, "Playthrough digest values are canonically encodable")
+	return {"illegal_count": illegal_count, "support_count": support_count, "used_resonance": used_resonance, "fired_ids": battle.fired_scripted_event_ids.duplicate(), "status": battle.battle_status, "player_defeat": player_defeat, "last_event": event_types[-1] if not event_types.is_empty() else &"", "digest": digest_result.text, "final_state": state_result.text}
 
 func _unit(session, id: StringName):
 	for unit in session.units:
