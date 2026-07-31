@@ -279,6 +279,10 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	assert_equal(scene.get_node("Units").get_child_count(), 7, "Battle scene owns seven unit nodes")
 	assert_true(scene.get_node("Units/aurelia-1/ProductionVisual") != null, "Aurelia uses the imported hero production visual")
 	assert_true(scene.get_node("Units/captain-1/ProductionVisual") != null, "Bridge captain uses the imported boss production visual")
+	var aurelia_visual := scene.get_node("Units/aurelia-1")
+	assert_true(aurelia_visual.get("production_animation_player") is AnimationPlayer, "Aurelia exposes its imported AnimationPlayer")
+	if aurelia_visual.get("production_animation_player") is AnimationPlayer:
+		assert_equal(aurelia_visual.get("production_animation_player").current_animation, "idle", "Production visual starts in idle")
 	assert_equal(_count_type(scene, Camera3D), 1, "Battle scene has exactly one Camera3D")
 	assert_equal(_count_type(scene, DirectionalLight3D), 1, "Battle scene has exactly one DirectionalLight3D")
 	var world_environment := scene.get_node_or_null("WorldEnvironment") as WorldEnvironment

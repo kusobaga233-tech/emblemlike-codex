@@ -30,6 +30,7 @@ var position_animation: Tween
 var body_animation: Tween
 var phase_animation: Tween
 var defeat_animation: Tween
+var production_animation_player: AnimationPlayer
 
 var _position_animation_target: Vector3 = Vector3.ZERO
 var _phase_animation_target: float = 0.0
@@ -113,17 +114,22 @@ func play_event(event: Dictionary) -> void:
 	match last_event_type:
 		&"unit_selected":
 			set_selected(actor_id == unit_id)
+			if actor_id == unit_id:
+				_play_production_animation(&"select")
 		&"unit_moved":
 			if actor_id == unit_id:
+				_play_production_animation(&"locomotion")
 				var destination: Vector2i = payload.get("to", Vector2i.ZERO)
 				_animate_move(Vector3(destination.x, 0.7, destination.y))
 		&"damage_applied":
 			if target_id == unit_id:
+				_play_production_animation(&"hit")
 				visual_hp = clampi(int(payload.get("remaining_hp", visual_hp)), 0, max_hp)
 				_update_hp_bar()
 				_pulse_body(Vector3(1.12, 0.88, 1.12))
 		&"unit_defeated":
 			if target_id == unit_id:
+				_play_production_animation(&"defeat")
 				visual_hp = 0
 				var pick_area := get_node_or_null("PickArea") as Area3D
 				if pick_area != null:
@@ -134,6 +140,9 @@ func play_event(event: Dictionary) -> void:
 		&"phase_changed", &"phase_visual_changed":
 			last_phase = StringName(payload.get("to", last_phase))
 			_animate_phase_visual()
+		&"battle_status_changed":
+			if StringName(payload.get("to", &"")) == &"victory" and team == &"player":
+				_play_production_animation(&"victory")
 
 
 func _build_body() -> void:
@@ -169,9 +178,28 @@ func _build_production_visual(definition_id: StringName) -> void:
 	visual.position = Vector3(0.0, -0.7, 0.0)
 	visual.scale = Vector3.ONE * 0.78
 	add_child(visual)
+	production_animation_player = _find_animation_player(visual)
+	_play_production_animation(&"idle")
 	var body := get_node_or_null("Body") as MeshInstance3D
 	if body != null:
 		body.visible = false
+
+
+func _find_animation_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node
+	for child: Node in node.get_children():
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+
+func _play_production_animation(animation_name: StringName) -> void:
+	if production_animation_player == null:
+		return
+	if production_animation_player.has_animation(animation_name):
+		production_animation_player.play(animation_name)
 
 
 func _build_selection_outline() -> void:
@@ -385,6 +413,7 @@ func _clear_visuals() -> void:
 	active_animation = null
 	animation_kind = &""
 	phase_visual_energy = 0.0
+	production_animation_player = null
 	for child: Node in get_children():
 		child.free()
 	visible = true
