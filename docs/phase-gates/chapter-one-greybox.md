@@ -28,6 +28,6 @@ The complete validation Command is `powershell -NoProfile -ExecutionPolicy Bypas
 ## Limitations and next-stage blockers
 
 - All visuals remain greybox primitives and native Control UI. No production hero, boss, enemy, weapon, environment, UI raster, VFX, or audio asset is claimed as generated or approved.
-- Production image/reference work remains blocked until the asset and prompt registries are reviewed. Every generated reference image or raster asset must use the user-specified `$imagegen` skill.
+- Production image/reference work remains blocked until the asset and prompt registries are reviewed. Every generated reference image or raster asset must use `myimage-gen` through Right Code Draw (`tools/rightcode_draw.py`) with the registered model, dimensions, quality, timeout, manifests, contact sheet, and visual inspection evidence.
 - Four hero concepts, a boss with a mesh budget equal to a hero, two enemy types, weapons, environment, UI, VFX, and audio remain planned production slots.
 - The next phase must preserve deterministic tests, keyboard accessibility, viewport framing, save compatibility, clean engine logs, provenance, and license review while replacing greybox presentation.

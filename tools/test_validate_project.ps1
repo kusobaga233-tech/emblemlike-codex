@@ -47,6 +47,13 @@ try {
 
     Invoke-ValidatorCase 'missing-file' { param($root) Remove-Item -LiteralPath (Join-Path $root 'docs/imagegen/prompt-registry.md') -Force } 'Prompt registry|Required files'
 
+    Invoke-ValidatorCase 'legacy-imagegen-policy' {
+        param($root)
+        $path = Join-Path $root 'docs/imagegen/prompt-registry.md'
+        $text = "# Legacy registry`n`nThis file intentionally omits the Right Code Draw contract.`n"
+        Write-Utf8NoBom $path $text
+    } 'Prompt registry'
+
     Invoke-ValidatorCase 'bad-utf8' {
         param($root)
         [System.IO.File]::WriteAllBytes((Join-Path $root 'docs/bad-utf8.md'), [byte[]](0xC3, 0x28))
@@ -56,7 +63,7 @@ try {
         param($root)
         $path = Join-Path $root 'docs/asset-registry.csv'
         $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
-        $text = $text -replace 'Pending original generation via \$imagegen,"Planned concept only; no generated or selected file exists",res://assets/production/concepts/heroes/hero-ember-warden.png', ',"Planned concept only; no generated or selected file exists",res://assets/production/concepts/heroes/hero-ember-warden.png'
+        $text = $text -replace 'Pending original generation via myimage-gen / Right Code Draw,"Planned concept only; no generated or selected file exists",res://assets/production/concepts/heroes/hero-ember-warden.png', ',"Planned concept only; no generated or selected file exists",res://assets/production/concepts/heroes/hero-ember-warden.png'
         Write-Utf8NoBom $path $text
     } 'empty license'
 

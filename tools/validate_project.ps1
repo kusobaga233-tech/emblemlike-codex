@@ -104,7 +104,7 @@ function Test-AssetRegistry {
     $expected = 'asset_id,source_type,source_uri,license,original_changes,project_path,review_status'
     if ($rows.Count -eq 0 -or (($rows[0] -join ',') -cne $expected)) { $issues.Add("header must be exactly $expected"); return $issues }
     $ids = @{}; $paths = @{}
-    $sourceTypes = @('original', 'imagegen', 'open_source', 'commercial')
+    $sourceTypes = @('original', 'rightcode_draw_original', 'open_source', 'commercial')
     $statuses = @('planned', 'generated', 'reviewed', 'approved', 'rejected')
     for ($i = 1; $i -lt $rows.Count; $i++) {
         $row = $rows[$i]
@@ -115,7 +115,7 @@ function Test-AssetRegistry {
         if ($sourceTypes -notcontains $type) { $issues.Add("$id has invalid source_type: $type") }
         if ($statuses -notcontains $status) { $issues.Add("$id has invalid review_status: $status") }
         if ([string]::IsNullOrWhiteSpace($license)) { $issues.Add("$id has empty license") }
-        if ($type -eq 'original' -and $license -notmatch '(?i)original') { $issues.Add("$id original license must identify Original provenance") }
+        if ($type -in @('original', 'rightcode_draw_original') -and $license -notmatch '(?i)original') { $issues.Add("$id original license must identify Original provenance") }
         if ($type -ne 'original' -and [string]::IsNullOrWhiteSpace($license)) { $issues.Add("$id non-original license must not be empty") }
         if ($uri -match '(?i)(?:password|token|secret|api[_-]?key)\s*[:=]|(?:^[A-Za-z]:\\)|(?:^\\\\)|(?:^/tmp/)|(?:^file:)|(?:[\\/]AppData[\\/])|%TEMP%') { $issues.Add("$id source_uri contains a secret or local temporary path") }
         if ([string]::IsNullOrWhiteSpace($projectPath)) { $issues.Add("$id has empty project_path") }
@@ -159,9 +159,9 @@ if (Test-Path -LiteralPath $assetPath) {
 $promptPath = Join-Path $ProjectRoot 'docs/imagegen/prompt-registry.md'
 if (Test-Path -LiteralPath $promptPath) {
     $prompt = Get-Content -Raw -Encoding UTF8 -LiteralPath $promptPath
-    $promptPatterns = @('Asset ID', '\$imagegen use-case slug', 'Final prompt', 'Generated file', 'Selected version', 'Intended 3D/UI use', 'Reviewer', 'License/source notes', 'hero', 'boss', 'environment', 'UI', 'VFX', 'Boss mesh budget equals hero')
+    $promptPatterns = @('Asset ID', 'myimage-gen use-case slug', 'Right Code Draw', 'gpt-image-2', '1024x768', 'medium', '300', 'D:\\CODEX-PROJ\\draw.txt', 'concept_manifest_raw.json', 'concept_manifest_verified.json', 'concept_contact_sheet.png', 'prompts.md', 'Final prompt', 'Generated file', 'Selected version', 'Intended 3D/UI use', 'Reviewer', 'License/source notes', 'hero', 'boss', 'environment', 'UI', 'VFX', 'Boss mesh budget equals hero')
     $promptMissing = @($promptPatterns | Where-Object { $prompt -notmatch $_ })
-    Add-GateResult 'Prompt registry' ($promptMissing.Count -eq 0) $(if ($promptMissing.Count) { 'missing fields/topics: ' + ($promptMissing -join ', ') } else { 'required templates, categories, and $imagegen policy present' })
+    Add-GateResult 'Prompt registry' ($promptMissing.Count -eq 0 -and $prompt -notmatch '\$imagegen') $(if ($promptMissing.Count -or $prompt -match '\$imagegen') { 'missing fields/topics or legacy policy detected: ' + (($promptMissing + @('legacy $imagegen policy')) -join ', ') } else { 'Right Code Draw/myimage-gen templates, batch manifests, categories, and policy present' })
 } else { Add-GateResult 'Prompt registry' $false 'file missing' }
 
 $gatePath = Join-Path $ProjectRoot 'docs/phase-gates/chapter-one-greybox.md'
