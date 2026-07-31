@@ -23,6 +23,8 @@ func _test_title_flow() -> void:
 	await (Engine.get_main_loop() as SceneTree).process_frame
 	assert_true(title.get_node_or_null("Layout/Title") is Label, "Title has its heading")
 	assert_true(title.get_node_or_null("Layout/Start") is Button, "Title has its start button")
+	assert_equal(title.get_node("Layout/Title").text, "星烬誓约", "Title uses the approved Chinese product name")
+	assert_equal(title.get_node("Layout/Start").text, "开始第一章", "Title start action is localized")
 	var requests: Array = []
 	title.start_pressed.connect(func(path: String): requests.append(path))
 	Input.parse_input_event(_key_event(KEY_ENTER))
@@ -41,6 +43,7 @@ func _test_deployment_flow() -> void:
 	_add(deployment)
 	await (Engine.get_main_loop() as SceneTree).process_frame
 	assert_equal(deployment.get_node("Layout/UnitCards").get_child_count(), 4, "Deployment shows four player cards")
+	assert_equal(deployment.get_node("Layout/Heading").text, "出击准备", "Deployment heading is localized")
 	var default_focus := deployment.get_viewport().gui_get_focus_owner()
 	assert_equal(default_focus, deployment.get_node("Layout/Actions/Confirm"), "Deployment confirm owns default focus")
 	Input.parse_input_event(_key_event(KEY_TAB))

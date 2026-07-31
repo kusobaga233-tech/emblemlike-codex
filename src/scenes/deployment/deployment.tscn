@@ -27,11 +27,14 @@ grow_vertical = 2
 
 [node name="Heading" type="Label" parent="Layout"]
 layout_mode = 2
-text = "Deployment"
+theme_override_colors/font_color = Color(1, 0.69, 0.22, 1)
+theme_override_font_sizes/font_size = 36
+text = "出击准备"
 
 [node name="Instructions" type="Label" parent="Layout"]
 layout_mode = 2
-text = "Select two unit slots to exchange their starting positions."
+theme_override_font_sizes/font_size = 18
+text = "依次选择两个单位，即可交换初始位置。"
 
 [node name="UnitCards" type="VBoxContainer" parent="Layout"]
 layout_mode = 2
@@ -41,8 +44,10 @@ layout_mode = 2
 
 [node name="Reset" type="Button" parent="Layout/Actions"]
 layout_mode = 2
-text = "Reset Defaults"
+custom_minimum_size = Vector2(180, 48)
+text = "恢复默认"
 
 [node name="Confirm" type="Button" parent="Layout/Actions"]
 layout_mode = 2
-text = "Confirm"
+custom_minimum_size = Vector2(180, 48)
+text = "确认出击"
