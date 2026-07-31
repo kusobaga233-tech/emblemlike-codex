@@ -31,6 +31,18 @@
         "upper_arm_l",
         "upper_arm_r"
       ],
+      "bounds": {
+        "min": [
+          -0.96302,
+          0.045,
+          -0.24
+        ],
+        "max": [
+          0.8084,
+          3.36,
+          0.2113
+        ]
+      },
       "weapon": "ash_lance",
       "blend_source": "tools/production_source/characters_v02/hero_ash_vanguard.blend"
     },
@@ -63,6 +75,18 @@
         "upper_arm_l",
         "upper_arm_r"
       ],
+      "bounds": {
+        "min": [
+          -0.6944,
+          0.045,
+          -0.54
+        ],
+        "max": [
+          0.76,
+          3.23,
+          0.38
+        ]
+      },
       "weapon": "mender_staff",
       "blend_source": "tools/production_source/characters_v02/hero_starbound_mender.blend"
     },
@@ -95,6 +119,18 @@
         "upper_arm_l",
         "upper_arm_r"
       ],
+      "bounds": {
+        "min": [
+          -0.6374,
+          0.045,
+          -0.52
+        ],
+        "max": [
+          0.88608,
+          1.9672,
+          0.4
+        ]
+      },
       "weapon": "cinder_focus",
       "blend_source": "tools/production_source/characters_v02/hero_cinder_seer.blend"
     },
@@ -127,6 +163,18 @@
         "upper_arm_l",
         "upper_arm_r"
       ],
+      "bounds": {
+        "min": [
+          -0.6716,
+          0.045,
+          -0.26288
+        ],
+        "max": [
+          0.8,
+          2.3946,
+          0.2303
+        ]
+      },
       "weapon": "oathblade",
       "blend_source": "tools/production_source/characters_v02/enemy_ember_husk.blend"
     },
@@ -159,6 +207,18 @@
         "upper_arm_l",
         "upper_arm_r"
       ],
+      "bounds": {
+        "min": [
+          -0.6716,
+          0.045,
+          -0.23261
+        ],
+        "max": [
+          0.71221,
+          3.36,
+          0.1923
+        ]
+      },
       "weapon": "ash_lance",
       "blend_source": "tools/production_source/characters_v02/enemy_void_lancer.blend"
     }
@@ -167,31 +227,91 @@
     "oathblade": {
       "path": "assets/production/weapons/oathblade.glb",
       "triangles": 426,
-      "materials": 4,
+      "materials": 3,
+      "bounds": {
+        "min": [
+          -0.21,
+          -0.51,
+          -0.07
+        ],
+        "max": [
+          0.21,
+          0.51,
+          0.07
+        ]
+      },
       "blend_source": "tools/production_source/characters_v02/weapon_oathblade.blend"
     },
     "ash_lance": {
       "path": "assets/production/weapons/ash_lance.glb",
       "triangles": 322,
-      "materials": 4,
+      "materials": 3,
+      "bounds": {
+        "min": [
+          -0.17,
+          -1.175,
+          -0.16
+        ],
+        "max": [
+          0.17,
+          1.175,
+          0.16
+        ]
+      },
       "blend_source": "tools/production_source/characters_v02/weapon_ash_lance.blend"
     },
     "cinder_focus": {
       "path": "assets/production/weapons/cinder_focus.glb",
       "triangles": 332,
-      "materials": 4,
+      "materials": 3,
+      "bounds": {
+        "min": [
+          -0.17,
+          -0.275,
+          -0.12
+        ],
+        "max": [
+          0.17,
+          0.275,
+          0.12
+        ]
+      },
       "blend_source": "tools/production_source/characters_v02/weapon_cinder_focus.blend"
     },
     "mender_staff": {
       "path": "assets/production/weapons/mender_staff.glb",
       "triangles": 524,
-      "materials": 4,
+      "materials": 3,
+      "bounds": {
+        "min": [
+          -0.21,
+          -1.025,
+          -0.16
+        ],
+        "max": [
+          0.21,
+          1.025,
+          0.16
+        ]
+      },
       "blend_source": "tools/production_source/characters_v02/weapon_mender_staff.blend"
     },
     "star_eater_core": {
       "path": "assets/production/weapons/star_eater_core.glb",
       "triangles": 320,
-      "materials": 4,
+      "materials": 2,
+      "bounds": {
+        "min": [
+          -0.3,
+          -0.3,
+          -0.3
+        ],
+        "max": [
+          0.3,
+          0.3,
+          0.3
+        ]
+      },
       "blend_source": "tools/production_source/characters_v02/weapon_star_eater_core.blend"
     }
   }

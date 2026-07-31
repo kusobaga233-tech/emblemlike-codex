@@ -99,6 +99,12 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	player.configure(player_state)
 	enemy.configure(enemy_state)
 	assert_true(player.get_node_or_null("PickArea/CollisionShape3D") is CollisionShape3D, "Player unit owns a physics pick shape")
+	var production_bounds: AABB = player.get("production_visual_bounds")
+	assert_true(absf(production_bounds.position.y + 0.7) < 0.02, "Production visual is grounded on the board")
+	assert_true(production_bounds.size.y >= 1.2 and production_bounds.size.y <= 1.45, "Production visual has bounded display height")
+	assert_true(player.get_node("HpBar").position.y > production_bounds.end.y, "HP bar is above the normalized visual")
+	var pick_shape := player.get_node("PickArea/CollisionShape3D") as CollisionShape3D
+	assert_true((pick_shape.shape as CapsuleShape3D).height >= 1.2, "Pick collision covers the normalized torso and limbs")
 
 	assert_true(player.get_node("Body").mesh is CapsuleMesh, "Player unit uses CapsuleMesh")
 	assert_true(enemy.get_node("Body").mesh is CylinderMesh, "Enemy unit uses CylinderMesh")
@@ -107,6 +113,10 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	assert_equal(_material_color(enemy.get_node("Body")), Color("9f2942"), "Enemy body uses crimson palette")
 	assert_true(player.get_node("HpBar/Fill").material_override.albedo_texture == null, "HP bar uses no texture")
 	assert_true(player.get_node("SelectionOutline").material_override.albedo_texture == null, "Selection outline uses no texture")
+	player.play_event({"type": &"attack_started", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {}})
+	assert_equal(player.production_animation_player.current_animation, "attack_primary", "Attack start triggers primary production clip")
+	player.play_event({"type": &"attack_finished", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {}})
+	assert_equal(player.production_animation_player.current_animation, "idle", "Attack finish reliably returns production visual to idle")
 
 	player.set_selected(true)
 	assert_true(player.get_node("SelectionOutline").visible, "Selection outline can be shown")

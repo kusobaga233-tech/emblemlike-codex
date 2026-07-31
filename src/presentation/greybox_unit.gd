@@ -12,6 +12,8 @@ const ENEMY_OUTLINE := Color("e27b75")
 const HP_GREEN := Color("42b96b")
 const HP_EMPTY := Color("322f35")
 const DEFEAT_SCALE := Vector3(1.08, 0.08, 1.08)
+const PRODUCTION_DISPLAY_HEIGHT := 1.35
+const BOARD_GROUND_Y := -0.7
 const PRODUCTION_VISUALS := {
 	&"aurelia": "res://assets/production/models/hero_ember_warden.glb",
 	&"brann": "res://assets/production/models/hero_ash_vanguard.glb",
@@ -36,6 +38,8 @@ var body_animation: Tween
 var phase_animation: Tween
 var defeat_animation: Tween
 var production_animation_player: AnimationPlayer
+var production_visual_bounds := AABB()
+var production_uses_dynamic_fit := false
 
 var _position_animation_target: Vector3 = Vector3.ZERO
 var _phase_animation_target: float = 0.0
@@ -88,6 +92,7 @@ func _build_pick_area() -> void:
 	shape.radius = 0.36
 	shape.height = 1.2
 	collision.shape = shape
+	collision.position.y = 0.0
 	pick_area.add_child(collision)
 
 
@@ -126,6 +131,12 @@ func play_event(event: Dictionary) -> void:
 				_play_production_animation(&"locomotion")
 				var destination: Vector2i = payload.get("to", Vector2i.ZERO)
 				_animate_move(Vector3(destination.x, 0.7, destination.y))
+		&"attack_started":
+			if actor_id == unit_id:
+				_play_production_animation(&"attack_secondary" if bool(payload.get("secondary", false)) else &"attack_primary")
+		&"attack_finished":
+			if actor_id == unit_id and visual_hp > 0:
+				_play_production_animation(&"idle")
 		&"damage_applied":
 			if target_id == unit_id:
 				_play_production_animation(&"hit")
@@ -173,6 +184,7 @@ func _build_production_visual(definition_id: StringName) -> void:
 	var path := String(PRODUCTION_VISUALS.get(definition_id, ""))
 	if path.is_empty():
 		return
+	production_uses_dynamic_fit = definition_id not in [&"aurelia", &"bridge-captain"]
 	var packed := load(path) as PackedScene
 	if packed == null:
 		return
@@ -180,14 +192,65 @@ func _build_production_visual(definition_id: StringName) -> void:
 	if visual == null:
 		return
 	visual.name = "ProductionVisual"
-	visual.position = Vector3(0.0, -0.7, 0.0)
-	visual.scale = Vector3.ONE * 0.78
 	add_child(visual)
+	if production_uses_dynamic_fit:
+		_fit_production_visual(visual)
+	else:
+		visual.position = Vector3(0.0, -0.7, 0.0)
+		visual.scale = Vector3.ONE * 0.78
 	production_animation_player = _find_animation_player(visual)
+	_configure_production_animations()
 	_play_production_animation(&"idle")
 	var body := get_node_or_null("Body") as MeshInstance3D
 	if body != null:
 		body.visible = false
+
+
+func _fit_production_visual(visual: Node3D) -> void:
+	var source_bounds := _mesh_bounds(visual, Transform3D.IDENTITY)
+	if source_bounds.size.y <= 0.001:
+		return
+	var fit_scale := PRODUCTION_DISPLAY_HEIGHT / source_bounds.size.y
+	visual.scale = Vector3.ONE * fit_scale
+	visual.position = Vector3(0.0, BOARD_GROUND_Y - source_bounds.position.y * fit_scale, 0.0)
+	production_visual_bounds = AABB(
+		Vector3(source_bounds.position.x * fit_scale, BOARD_GROUND_Y, source_bounds.position.z * fit_scale),
+		source_bounds.size * fit_scale,
+	)
+
+
+func _mesh_bounds(node: Node3D, accumulated: Transform3D) -> AABB:
+	var result := AABB()
+	var has_bounds := false
+	if node is MeshInstance3D and node.mesh != null:
+		result = accumulated * node.get_aabb()
+		has_bounds = true
+	for child: Node in node.get_children():
+		if child is not Node3D:
+			continue
+		var child_bounds := _mesh_bounds(child, accumulated * child.transform)
+		if child_bounds.size.length_squared() <= 0.0:
+			continue
+		result = result.merge(child_bounds) if has_bounds else child_bounds
+		has_bounds = true
+	return result
+
+
+func _configure_production_animations() -> void:
+	if production_animation_player == null:
+		return
+	for library_name in production_animation_player.get_animation_library_list():
+		var library := production_animation_player.get_animation_library(library_name)
+		for looping_name in [&"idle", &"locomotion"]:
+			if library.has_animation(looping_name):
+				library.get_animation(looping_name).loop_mode = Animation.LOOP_LINEAR
+	if not production_animation_player.animation_finished.is_connected(_on_production_animation_finished):
+		production_animation_player.animation_finished.connect(_on_production_animation_finished)
+
+
+func _on_production_animation_finished(animation_name: StringName) -> void:
+	if animation_name not in [&"idle", &"locomotion", &"defeat", &"victory"] and visual_hp > 0:
+		_play_production_animation(&"idle")
 
 
 func _find_animation_player(node: Node) -> AnimationPlayer:
@@ -212,15 +275,16 @@ func _build_selection_outline() -> void:
 	outline.name = "SelectionOutline"
 	if team == &"player":
 		var capsule := CapsuleMesh.new()
-		capsule.radius = 0.34
-		capsule.height = 1.18
+		capsule.radius = clampf(minf(production_visual_bounds.size.x, production_visual_bounds.size.z) * 0.46, 0.35, 0.47)
+		capsule.height = PRODUCTION_DISPLAY_HEIGHT
 		outline.mesh = capsule
 		outline.material_override = _material(PLAYER_GOLD, true)
 	else:
 		var cylinder := CylinderMesh.new()
-		cylinder.top_radius = 0.33
-		cylinder.bottom_radius = 0.40
-		cylinder.height = 1.12
+		var footprint := clampf(minf(production_visual_bounds.size.x, production_visual_bounds.size.z) * 0.48, 0.36, 0.48)
+		cylinder.top_radius = footprint * 0.86
+		cylinder.bottom_radius = footprint
+		cylinder.height = PRODUCTION_DISPLAY_HEIGHT
 		outline.mesh = cylinder
 		outline.material_override = _material(ENEMY_OUTLINE, true)
 	outline.visible = false
@@ -230,7 +294,7 @@ func _build_selection_outline() -> void:
 func _build_hp_bar() -> void:
 	var hp_bar := Node3D.new()
 	hp_bar.name = "HpBar"
-	hp_bar.position = Vector3(0.0, 0.82, 0.0)
+	hp_bar.position = Vector3(0.0, maxf(0.82, production_visual_bounds.end.y + 0.12), 0.0)
 	add_child(hp_bar)
 	var background := MeshInstance3D.new()
 	background.name = "Background"
@@ -419,6 +483,8 @@ func _clear_visuals() -> void:
 	animation_kind = &""
 	phase_visual_energy = 0.0
 	production_animation_player = null
+	production_visual_bounds = AABB()
+	production_uses_dynamic_fit = false
 	for child: Node in get_children():
 		child.free()
 	visible = true

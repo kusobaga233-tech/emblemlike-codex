@@ -17,6 +17,9 @@ MODEL_DIR = PROJECT_ROOT / "assets" / "production" / "models"
 WEAPON_DIR = PROJECT_ROOT / "assets" / "production" / "weapons"
 REPORT_PATH = MODEL_DIR / "characters_v02_report.json"
 ANIMATIONS = ("idle", "locomotion", "attack_primary", "attack_secondary", "hit", "defeat", "select", "victory")
+import sys
+sys.path.insert(0, str(ROOT))
+from validate_characters_v02 import inspect_glb
 
 CHARACTERS = {
     "hero_ash_vanguard": {"kind": "hero", "weapon": "ash_lance", "scale": (1.12, 1.02, 1.0), "colors": ((0.10, 0.18, 0.27), (0.45, 0.24, 0.08), (0.80, 0.47, 0.12), (0.05, 0.07, 0.09))},
@@ -269,7 +272,8 @@ def export_character(asset_id, spec):
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.export_scene.gltf(filepath=str(glb_path), export_format="GLB", export_animations=True, export_animation_mode="ACTIONS", export_skins=True)
-    return {"path": str(glb_path.relative_to(PROJECT_ROOT)).replace("\\", "/"), "triangles": triangle_count(parts), "materials": len(materials), "animations": list(ANIMATIONS), "bones": len(rig.data.bones), "weighted_bones": sorted({group.name for obj in parts for group in obj.vertex_groups}), "weapon": spec["weapon"], "blend_source": str(blend_path.relative_to(PROJECT_ROOT)).replace("\\", "/")}
+    actual = inspect_glb(glb_path)
+    return {"path": str(glb_path.relative_to(PROJECT_ROOT)).replace("\\", "/"), "triangles": actual["triangles"], "materials": actual["materials"], "animations": list(ANIMATIONS), "bones": actual["bones"], "weighted_bones": actual["weighted_bones"], "bounds": actual["bounds"], "weapon": spec["weapon"], "blend_source": str(blend_path.relative_to(PROJECT_ROOT)).replace("\\", "/")}
 
 
 def export_weapon(name):
@@ -281,7 +285,8 @@ def export_weapon(name):
     bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.export_scene.gltf(filepath=str(glb_path), export_format="GLB", export_animations=False)
-    return {"path": str(glb_path.relative_to(PROJECT_ROOT)).replace("\\", "/"), "triangles": triangle_count(parts), "materials": len(materials), "blend_source": str(blend_path.relative_to(PROJECT_ROOT)).replace("\\", "/")}
+    actual = inspect_glb(glb_path)
+    return {"path": str(glb_path.relative_to(PROJECT_ROOT)).replace("\\", "/"), "triangles": actual["triangles"], "materials": actual["materials"], "bounds": actual["bounds"], "blend_source": str(blend_path.relative_to(PROJECT_ROOT)).replace("\\", "/")}
 
 
 def main():
