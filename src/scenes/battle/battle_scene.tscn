@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://src/scenes/battle/battle_scene.gd" id="1_scene"]
 [ext_resource type="Script" path="res://src/presentation/greybox_board.gd" id="2_board"]
 [ext_resource type="Script" path="res://src/presentation/tactical_camera.gd" id="3_camera"]
 [ext_resource type="PackedScene" path="res://src/ui/battle_hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://src/ui/combat_forecast_panel.tscn" id="5_forecast"]
+[ext_resource type="Script" path="res://src/audio/battle_audio.gd" id="6_audio"]
 
 [sub_resource type="Environment" id="Environment_battle"]
 background_mode = 1
@@ -32,6 +33,9 @@ script = ExtResource("2_board")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_battle")
+
+[node name="BattleAudio" type="AudioStreamPlayer" parent="."]
+script = ExtResource("6_audio")
 
 [node name="TacticalCamera" type="Camera3D" parent="."]
 current = true

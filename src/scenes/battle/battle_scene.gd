@@ -148,6 +148,7 @@ func cancel_interaction() -> void:
 
 
 func _on_events_flushed(events: Array[Dictionary]) -> void:
+	get_node("BattleAudio").play_events(events)
 	for event: Dictionary in events:
 		for unit: Node in get_node("Units").get_children():
 			unit.play_event(event)

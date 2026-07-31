@@ -292,6 +292,10 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	assert_equal(scene.get_node("BattleHud/Layout/Commands/Move").text, "移动", "Move command is localized")
 	assert_equal(scene.get_node("BattleHud/Layout/Commands/Attack").text, "攻击", "Attack command is localized")
 	assert_true(scene.get_node_or_null("CombatForecastPanel/Layout/Title") is Label, "Combat forecast has a production title")
+	var battle_audio := scene.get_node_or_null("BattleAudio")
+	assert_true(battle_audio != null, "Battle scene has an event-driven audio layer")
+	if battle_audio != null:
+		assert_equal(battle_audio.cue_for_event(&"unit_selected"), &"ui_select", "Selection maps to a stable audio cue")
 	_assert_descendant_owners(scene, scene)
 
 	var fenn: Node3D = scene.get_unit_node(&"fenn-1")
