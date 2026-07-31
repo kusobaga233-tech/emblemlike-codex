@@ -1,2 +1,5 @@
 .godot/
 *.tmp
+*.uid
+*.translation
+*.import
