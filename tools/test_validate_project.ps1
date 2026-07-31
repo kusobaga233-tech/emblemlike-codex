@@ -140,6 +140,36 @@ try {
         Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
     } '(?s)\[PASS\] Development benchmark.*\[FAIL\] Development performance'
 
+    Invoke-ValidatorCase 'benchmark-fake-relative-difference' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report.relative_difference = 0.0
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
+
+    Invoke-ValidatorCase 'benchmark-unstable-repeats' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report.runs[0].average_frame_ms = 1.0; $report.runs[0].elapsed_ms = 300.0; $report.runs[0].p95_frame_ms = 2.0; $report.runs[0].peak_frame_ms = 3.0
+        $report.runs[1].average_frame_ms = 40.0; $report.runs[1].elapsed_ms = 12000.0; $report.runs[1].p95_frame_ms = 45.0; $report.runs[1].peak_frame_ms = 50.0
+        $report.measurement_elapsed_ms = 12300.0; $report.average_frame_ms = 20.5; $report.average_fps = 48.7804878049
+        $report.p95_frame_ms = 45.0; $report.peak_frame_ms = 50.0; $report.relative_difference = (39.0 / 20.5)
+        $report | Add-Member -NotePropertyName relative_difference_threshold -NotePropertyValue 0.2 -Force
+        $report | Add-Member -NotePropertyName repeatability_pass -NotePropertyValue $false -Force
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '(?s)\[PASS\] Development benchmark.*\[FAIL\] Development repeatability'
+
+    Invoke-ValidatorCase 'benchmark-aggregate-p95-peak-mismatch' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report.p95_frame_ms = 999.0
+        $report.peak_frame_ms = 1000.0
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
+
     Invoke-ValidatorCase 'legacy-imagegen-policy' {
         param($root)
         $path = Join-Path $root 'docs/imagegen/prompt-registry.md'

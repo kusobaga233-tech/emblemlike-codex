@@ -6,6 +6,8 @@ const WARMUP_FRAMES := 60
 const SAMPLE_FRAMES := 300
 const RUN_COUNT := 2
 const PERFORMANCE_THRESHOLD_MS := 50.0
+const RELATIVE_DIFFERENCE_THRESHOLD := 0.20
+const AGGREGATION_METHOD := "average_frame_ms=total_elapsed/(sample_frames*run_count); p95_frame_ms=max(run.p95_frame_ms); peak_frame_ms=max(run.peak_frame_ms); focus_loss_frames=sum(run.focus_loss_frames)"
 
 
 func _init() -> void:
@@ -67,6 +69,7 @@ func _run() -> void:
 		and focus_loss_frames == 0
 	)
 	var performance_pass := average_frame_ms <= PERFORMANCE_THRESHOLD_MS
+	var repeatability_pass := relative_difference <= RELATIVE_DIFFERENCE_THRESHOLD
 	var version := Engine.get_version_info()
 	var report := {
 		"schema_version": 3,
@@ -85,6 +88,9 @@ func _run() -> void:
 		"run_count": RUN_COUNT,
 		"runs": runs,
 		"relative_difference": relative_difference,
+		"relative_difference_threshold": RELATIVE_DIFFERENCE_THRESHOLD,
+		"repeatability_pass": repeatability_pass,
+		"aggregation_method": AGGREGATION_METHOD,
 		"average_fps": 1000.0 / average_frame_ms,
 		"average_frame_ms": average_frame_ms,
 		"p95_frame_ms": p95_frame_ms,

@@ -170,17 +170,25 @@ if (Test-Path -LiteralPath $benchmarkPath) {
         $numericFields = @('average_frame_ms', 'average_fps', 'p95_frame_ms', 'peak_frame_ms', 'measurement_elapsed_ms', 'relative_difference', 'performance_threshold_ms')
         $finiteMetrics = @($numericFields | Where-Object { -not (Test-FiniteNumber $benchmark.$_ 1000000.0) }).Count -eq 0
         $runMetricsValid = $benchmark.runs.Count -eq $benchmark.run_count
+		$expectedFocusLossFrames = 0
+		$expectedP95 = 0.0
+		$expectedPeak = 0.0
         if ($runMetricsValid) {
             foreach ($run in $benchmark.runs) {
                 $runMetricsValid = $runMetricsValid -and (Test-FiniteNumber $run.elapsed_ms 1000000.0) -and (Test-FiniteNumber $run.average_frame_ms 1000000.0) -and (Test-FiniteNumber $run.p95_frame_ms 1000000.0) -and (Test-FiniteNumber $run.peak_frame_ms 1000000.0) -and $run.average_frame_ms -gt 0 -and $run.average_frame_ms -le $run.p95_frame_ms -and $run.p95_frame_ms -le $run.peak_frame_ms -and (Test-ApproximatelyEqual $run.average_frame_ms ($run.elapsed_ms / $benchmark.sample_frames)) -and $run.focus_loss_frames -eq 0 -and $run.window_focused_at_start -eq $true -and $run.window_focused_at_end -eq $true
+				$expectedFocusLossFrames += $run.focus_loss_frames
+				$expectedP95 = [math]::Max($expectedP95, $run.p95_frame_ms)
+				$expectedPeak = [math]::Max($expectedPeak, $run.peak_frame_ms)
             }
         }
         $expectedAverage = $benchmark.measurement_elapsed_ms / ($benchmark.sample_frames * $benchmark.run_count)
         $expectedPerformance = $benchmark.average_frame_ms -le $benchmark.performance_threshold_ms
+		$expectedRelativeDifference = [math]::Abs($benchmark.runs[0].average_frame_ms - $benchmark.runs[1].average_frame_ms) / $benchmark.average_frame_ms
+		$expectedRepeatability = $benchmark.relative_difference -le $benchmark.relative_difference_threshold
         $benchmarkValid = (
             $benchmark.schema_version -eq 3 -and
             $benchmark.sample_frames -ge 300 -and
-            $benchmark.run_count -ge 2 -and
+            $benchmark.run_count -eq 2 -and
             $benchmark.resolution.Count -eq 2 -and
             $benchmark.resolution[0] -eq 1920 -and
             $benchmark.resolution[1] -eq 1080 -and
@@ -191,6 +199,10 @@ if (Test-Path -LiteralPath $benchmarkPath) {
             $benchmark.p95_frame_ms -le $benchmark.peak_frame_ms -and
             (Test-ApproximatelyEqual $benchmark.average_frame_ms $expectedAverage) -and
             (Test-ApproximatelyEqual $benchmark.average_fps (1000.0 / $benchmark.average_frame_ms)) -and
+			(Test-ApproximatelyEqual $benchmark.relative_difference $expectedRelativeDifference) -and
+			(Test-ApproximatelyEqual $benchmark.p95_frame_ms $expectedP95) -and
+			(Test-ApproximatelyEqual $benchmark.peak_frame_ms $expectedPeak) -and
+			$benchmark.focus_loss_frames -eq $expectedFocusLossFrames -and
             $benchmark.max_draw_calls -gt 0 -and
             $benchmark.measurement_method -eq 'render_frame_post_draw_wall_clock' -and
             $benchmark.measurement_elapsed_ms -gt 0 -and
@@ -204,6 +216,10 @@ if (Test-Path -LiteralPath $benchmarkPath) {
             $benchmark.runtime_configuration.low_processor_usage_mode -eq $false -and
             $benchmark.performance_threshold_ms -gt 0 -and
             $benchmark.performance_pass -eq $expectedPerformance -and
+			$benchmark.relative_difference_threshold -gt 0 -and
+			$benchmark.relative_difference_threshold -le 0.20 -and
+			$benchmark.repeatability_pass -eq $expectedRepeatability -and
+			$benchmark.aggregation_method -eq 'average_frame_ms=total_elapsed/(sample_frames*run_count); p95_frame_ms=max(run.p95_frame_ms); peak_frame_ms=max(run.peak_frame_ms); focus_loss_frames=sum(run.focus_loss_frames)' -and
             -not [string]::IsNullOrWhiteSpace([string]$benchmark.run_id) -and
             -not [string]::IsNullOrWhiteSpace([string]$benchmark.godot_version) -and
             -not [string]::IsNullOrWhiteSpace([string]$benchmark.godot_build) -and
@@ -217,11 +233,13 @@ if (Test-Path -LiteralPath $benchmarkPath) {
         )
         Add-GateResult 'Development benchmark' $benchmarkValid $(if ($benchmarkValid) { "1920x1080/$($benchmark.sample_frames) render-complete frames; avg=$([math]::Round($benchmark.average_frame_ms, 3))ms p95=$([math]::Round($benchmark.p95_frame_ms, 3))ms; target certification explicitly pending" } else { 'missing/invalid render-completion methodology, runtime throttle settings, metrics, resolution/sample count, or qualification' })
         Add-GateResult 'Development performance' ($benchmarkValid -and $benchmark.performance_pass) $(if ($benchmarkValid -and $benchmark.performance_pass) { "avg=$([math]::Round($benchmark.average_frame_ms, 3))ms <= $($benchmark.performance_threshold_ms)ms development threshold" } elseif ($benchmarkValid) { "valid measurement but avg=$([math]::Round($benchmark.average_frame_ms, 3))ms exceeds $($benchmark.performance_threshold_ms)ms development threshold" } else { 'benchmark methodology invalid; performance not evaluated' })
+		Add-GateResult 'Development repeatability' ($benchmarkValid -and $benchmark.repeatability_pass) $(if ($benchmarkValid -and $benchmark.repeatability_pass) { "relative difference=$([math]::Round(100 * $benchmark.relative_difference, 2))% <= $([math]::Round(100 * $benchmark.relative_difference_threshold, 2))%" } elseif ($benchmarkValid) { "valid measurement but relative difference=$([math]::Round(100 * $benchmark.relative_difference, 2))% exceeds $([math]::Round(100 * $benchmark.relative_difference_threshold, 2))%" } else { 'benchmark methodology invalid; repeatability not evaluated' })
     } catch {
         Add-GateResult 'Development benchmark' $false "invalid report: $($_.Exception.Message)"
 		Add-GateResult 'Development performance' $false 'benchmark methodology invalid; performance not evaluated'
+		Add-GateResult 'Development repeatability' $false 'benchmark methodology invalid; repeatability not evaluated'
     }
-} else { Add-GateResult 'Development benchmark' $false 'report missing'; Add-GateResult 'Development performance' $false 'report missing' }
+} else { Add-GateResult 'Development benchmark' $false 'report missing'; Add-GateResult 'Development performance' $false 'report missing'; Add-GateResult 'Development repeatability' $false 'report missing' }
 
 $assetPath = Join-Path $ProjectRoot 'docs/asset-registry.csv'
 if (Test-Path -LiteralPath $assetPath) {

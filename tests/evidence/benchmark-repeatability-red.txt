@@ -1,0 +1,14 @@
+Benchmark repeatability validator RED evidence
+Date: 2026-07-31
+
+Pre-fix command (PowerShell, repository root):
+& .\tools\test_validate_project.ps1
+
+Exit code: 1
+
+Observed focused result:
+FAIL benchmark-fake-relative-difference
+FAIL benchmark-unstable-repeats
+Validator negative tests: 19 passed, 2 failed
+
+The pre-fix validator accepted a forged relative_difference and had no explicit repeatability threshold/gate for correctly reported unstable repeats. The combined aggregate-mismatch mutation was already rejected by the existing focus-zero requirement; the GREEN suite subsequently isolates conservative p95/peak aggregate recomputation.
