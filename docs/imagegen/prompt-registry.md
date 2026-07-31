@@ -40,11 +40,21 @@ This registry plans future concept and raster work; it does not claim that any i
 
 ## Planned prompt specifications
 
+## Generated batch: star-ember-oath-ch1-production-v01
+
+- Output directory: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-production-v01`
+- Model/size/quality: `gpt-image-2` / `1024x768` / `medium`
+- Raw manifest: `concept_manifest_raw.json`
+- Verified manifest: `concept_manifest_verified.json`
+- Prompts: `prompts.md`
+- Contact sheet: `concept_contact_sheet.png`
+- Visual inspection: Completed; all four images exist at 1448x1086. Hero, Boss, environment, and UI/VFX direction are coherent enough for blocking/modeling reference. No image is marked as a final shipped asset yet.
+
 ### Asset ID: hero-ember-warden-concept
 
 - `myimage-gen use-case slug`: `hero-ember-warden`
 - Final prompt: Original turn-based tactical fantasy hero concept, Ember Warden, readable full-body silhouette, practical layered armor, ember oath motif expressed through geometric seams and a restrained warm accent, orthographic-friendly front and three-quarter views, neutral studio background, no text, no logos, no existing franchise or living-artist imitation.
-- Generated file: Not generated
+- Generated file: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-production-v01\20260731-110231-gpt-image-2-original-tactical-fantasy-hero-c.png`
 - Selected version: None
 - Intended 3D/UI use: Hero 3D modeling reference and portrait planning.
 - Reviewer: Unassigned
@@ -55,7 +65,7 @@ This registry plans future concept and raster work; it does not claim that any i
 
 - `myimage-gen use-case slug`: `boss-star-eater`
 - Final prompt: Original tactical fantasy chapter boss, Star Eater, imposing but production-feasible silhouette, readable weak-point shapes, cosmic ash materials, front and three-quarter modeling reference, neutral background, no text, no logos, no franchise identifiers, no living-artist imitation. Boss mesh budget equals hero mesh budget; complexity must come from silhouette and material blocking rather than extra geometry.
-- Generated file: Not generated
+- Generated file: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-production-v01\20260731-110508-gpt-image-2-original-tactical-fantasy-chapte.png`
 - Selected version: None
 - Intended 3D/UI use: Boss 3D modeling reference, encounter portrait, and scale comparison.
 - Reviewer: Unassigned
@@ -66,7 +76,7 @@ This registry plans future concept and raster work; it does not claim that any i
 
 - `myimage-gen use-case slug`: `environment-chapter-one`
 - Final prompt: Original isometric tactical arena concept for a ruined ember observatory, modular square grid readability, clear deployment and objective landmarks, restrained ash-and-ember palette, gameplay-first negative space, production-feasible reusable kit, no characters, no text, no logos, no franchise identifiers, no living-artist imitation.
-- Generated file: Not generated
+- Generated file: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-production-v01\20260731-110625-gpt-image-2-original-isometric-tactical-aren.png`
 - Selected version: None
 - Intended 3D/UI use: Environment modular-kit planning, lighting reference, and viewport readability checks.
 - Reviewer: Unassigned
@@ -77,7 +87,7 @@ This registry plans future concept and raster work; it does not claim that any i
 
 - `myimage-gen use-case slug`: `ui-chapter-one-styleboard`
 - Final prompt: Original tactical RPG UI styleboard, ember oath geometry, high-contrast command states, keyboard focus clarity, scalable panels and icons, 16:9 and portrait-safe composition examples, neutral labels made from abstract bars rather than readable text, no logos, no franchise identifiers, no living-artist imitation.
-- Generated file: Not generated
+- Generated file: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-production-v01\20260731-110742-gpt-image-2-original-tactical-rpg-visual-dir.png`
 - Selected version: None
 - Intended 3D/UI use: UI art direction only; final controls remain native accessible Godot UI.
 - Reviewer: Unassigned
