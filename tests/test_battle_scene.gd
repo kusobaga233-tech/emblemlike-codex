@@ -270,6 +270,25 @@ func _test_tactical_camera_frames_local_group_without_losing_overview() -> void:
 	assert_true(camera.get("framing_mode") == &"overview", "Reset restores full-board overview mode")
 	_assert_board_corners_visible(camera, viewport.size, "reset overview after group framing")
 	camera.frame_group([Vector3(1.0, 0.7, 7.0), Vector3(3.0, 0.7, 8.0)])
+	var home_event := InputEventKey.new()
+	home_event.keycode = KEY_HOME
+	home_event.pressed = true
+	camera._unhandled_input(home_event)
+	assert_true(camera.get("framing_mode") == &"overview", "Home key exposes full-board overview during normal play")
+	var focus_target := Node3D.new()
+	focus_target.position = Vector3(2.0, 0.7, 8.0)
+	viewport.add_child(focus_target)
+	camera.focus_target = focus_target
+	var focus_event := InputEventKey.new()
+	focus_event.keycode = KEY_F
+	focus_event.pressed = true
+	camera._unhandled_input(focus_event)
+	assert_true(camera.get("framing_mode") == &"group" and camera.distance < overview_distance, "F key restores selected-unit local focus")
+	var reset_event := InputEventKey.new()
+	reset_event.keycode = KEY_R
+	reset_event.pressed = true
+	camera._unhandled_input(reset_event)
+	assert_true(camera.get("framing_mode") == &"overview" and absf(camera.distance - overview_distance) < 0.01, "R key restores overview distance")
 	viewport.size = Vector2i(720, 1280)
 	await tree.process_frame
 	await tree.process_frame

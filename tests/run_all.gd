@@ -2,14 +2,21 @@ extends SceneTree
 
 const TESTS_DIRECTORY := "res://tests"
 const WORKER_FLAG := "--test-runner-worker"
+const INNER_WORKER_FLAG := "--test-runner-inner-worker"
 
 
 func _init() -> void:
 	var user_arguments := OS.get_cmdline_user_args()
-	if user_arguments.size() >= 2 and user_arguments[0] == WORKER_FLAG:
+	if user_arguments.size() >= 2 and user_arguments[0] == INNER_WORKER_FLAG:
 		call_deferred("_run_single_test", user_arguments[1])
+	elif user_arguments.size() >= 2 and user_arguments[0] == WORKER_FLAG:
+		call_deferred("_run_scoped_worker", user_arguments[1])
 	else:
 		call_deferred("_run_all")
+
+
+func _run_scoped_worker(test_path: String) -> void:
+	quit(0 if _run_test_process(test_path, test_path.get_file()) else 1)
 
 
 func _run_all() -> void:
@@ -68,7 +75,7 @@ func _run_test_process(test_path: String, file_name: String) -> bool:
 			"--quit-after",
 			"120",
 			"--",
-			WORKER_FLAG,
+			INNER_WORKER_FLAG,
 			test_path,
 		]),
 		worker_output,

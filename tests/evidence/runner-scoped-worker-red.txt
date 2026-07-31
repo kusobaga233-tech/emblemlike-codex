@@ -1,0 +1,2 @@
+TDD RED — scoped worker trust
+Before supervision was added, direct --test-runner-worker execution could emit SCRIPT ERROR diagnostics and still terminate with exit code 0 / a trailing PASS from _run_single_test. Parse failures had the same trust gap. Regression tests now require exit 1 and prohibit PASS for both runtime and parse diagnostics.

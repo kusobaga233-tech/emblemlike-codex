@@ -5,16 +5,21 @@ signal command_selected(command: StringName)
 signal result_requested(path: String, summary: Dictionary)
 
 const RESULT_PATH := "res://src/scenes/result/result.tscn"
+const DEFAULT_WIDTH := 388.0
+const PORTRAIT_WIDTH_RATIO := 0.42
+const COMPACT_MAX_WIDTH := 300.0
 
 var _session: Variant
 var _result_was_requested: bool = false
 
 
 func _ready() -> void:
+	get_viewport().size_changed.connect(_update_responsive_layout)
 	for button: Button in [$Layout/Commands/Move, $Layout/Commands/Attack, $Layout/Commands/Wait, $Layout/Commands/EndPhase]:
 		button.pressed.connect(_emit_command.bind(StringName(button.name.to_snake_case())))
 	$Layout/Commands/Move.call_deferred("grab_focus")
 	_refresh()
+	_update_responsive_layout()
 
 
 func configure(session: Variant) -> void:
@@ -30,8 +35,22 @@ func configure(session: Variant) -> void:
 
 
 func _exit_tree() -> void:
+	if get_viewport() != null and get_viewport().size_changed.is_connected(_update_responsive_layout):
+		get_viewport().size_changed.disconnect(_update_responsive_layout)
 	if _session != null and _session.events_flushed.is_connected(_on_events_flushed):
 		_session.events_flushed.disconnect(_on_events_flushed)
+
+
+func _update_responsive_layout() -> void:
+	if not is_node_ready():
+		return
+	var viewport_width := get_viewport_rect().size.x
+	var compact := viewport_width < 900.0
+	var panel_width := minf(DEFAULT_WIDTH, minf(COMPACT_MAX_WIDTH, viewport_width * PORTRAIT_WIDTH_RATIO)) if compact else DEFAULT_WIDTH
+	$Backdrop.offset_right = panel_width
+	$Layout.offset_right = panel_width - 18.0
+	$Layout/Objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	$Layout/SelectedUnit.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
 func _emit_command(command: StringName) -> void:

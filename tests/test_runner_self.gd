@@ -9,6 +9,8 @@ func run() -> void:
 	_test_zero_eligible_tests_fails()
 	_test_malformed_test_fails_without_crashing_summary()
 	_test_runtime_script_error_fails_without_false_pass()
+	_test_direct_worker_runtime_script_error_fails_without_false_pass()
+	_test_parse_error_fails_without_false_pass()
 	_test_plain_text_script_error_phrase_still_passes()
 	_test_async_test_is_awaited()
 
@@ -97,6 +99,24 @@ func _test_plain_text_script_error_phrase_still_passes() -> void:
 	)
 
 
+func _test_direct_worker_runtime_script_error_fails_without_false_pass() -> void:
+	var result := _run_fixture("direct_worker_runtime_error", {
+		"tests/test_case.gd": FileAccess.get_file_as_string(TEST_CASE_SOURCE_PATH),
+		"tests/test_runtime_error.gd": "extends \"res://tests/test_case.gd\"\nfunc run() -> void:\n\tvar value: Variant = null\n\tvalue.call(\"missing\")\n",
+	}, ["--test-runner-worker", "res://tests/test_runtime_error.gd"])
+	assert_equal(result.exit_code, 1, "Direct scoped worker rejects runtime SCRIPT ERROR")
+	assert_true(not result.output.contains("PASS test_runtime_error.gd"), "Direct scoped worker cannot print PASS after SCRIPT ERROR")
+
+
+func _test_parse_error_fails_without_false_pass() -> void:
+	var result := _run_fixture("parse_error", {
+		"tests/test_case.gd": FileAccess.get_file_as_string(TEST_CASE_SOURCE_PATH),
+		"tests/test_parse_error.gd": "extends \"res://tests/test_case.gd\"\nfunc run() -> void:\n\tthis is not valid gdscript\n",
+	}, ["--test-runner-worker", "res://tests/test_parse_error.gd"])
+	assert_equal(result.exit_code, 1, "Direct scoped worker rejects parse errors")
+	assert_true(not result.output.contains("PASS test_parse_error.gd"), "Parse error cannot be accepted as PASS")
+
+
 func _test_async_test_is_awaited() -> void:
 	var result := _run_fixture("async_test", {
 		"tests/test_case.gd": FileAccess.get_file_as_string(TEST_CASE_SOURCE_PATH),
@@ -114,7 +134,7 @@ func _test_async_test_is_awaited() -> void:
 	)
 
 
-func _run_fixture(fixture_name: String, fixture_files: Dictionary) -> Dictionary:
+func _run_fixture(fixture_name: String, fixture_files: Dictionary, user_args: Array[String] = []) -> Dictionary:
 	var fixture_root := "%s/%s-%d" % [
 		ProjectSettings.globalize_path("res://.godot/runner-self-tests"),
 		fixture_name,
@@ -135,17 +155,15 @@ func _run_fixture(fixture_name: String, fixture_files: Dictionary) -> Dictionary
 		_write_utf8(fixture_root.path_join(relative_path), fixture_files[relative_path])
 
 	var output: Array = []
+	var arguments := PackedStringArray([
+		"--headless", "--path", fixture_root, "--script", "res://run_all.gd", "--quit-after", "3",
+	])
+	if not user_args.is_empty():
+		arguments.append("--")
+		arguments.append_array(PackedStringArray(user_args))
 	var exit_code := OS.execute(
 		OS.get_executable_path(),
-		PackedStringArray([
-			"--headless",
-			"--path",
-			fixture_root,
-			"--script",
-			"res://run_all.gd",
-			"--quit-after",
-			"2",
-		]),
+		arguments,
 		output,
 		true,
 	)

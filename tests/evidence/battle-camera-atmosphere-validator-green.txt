@@ -1,0 +1,20 @@
+
+=== Project validation summary ===
+[PASS] Required files - all present
+[PASS] Godot executable - D:\godot-proj\Godot_v4.6.3-stable_win64.exe
+[PASS] UTF-8 text scan - valid UTF-8; no UTF-16 BOM or NUL
+[PASS] JSON parse - all JSON parsed
+[PASS] Development benchmark - 1920x1080/300 render-complete frames; avg=1.052ms p95=1.292ms; target certification explicitly pending
+[PASS] Development performance - avg=1.052ms <= 50.0ms development threshold
+[PASS] Development repeatability - relative difference=2.14% <= 20.0%
+[PASS] Asset registry - schema, provenance, enums, uniqueness, and paths valid
+[PASS] Prompt registry - Right Code Draw/myimage-gen templates, batch manifests, categories, and policy present
+[PASS] Phase gate record - PASS claims include metadata and existing evidence links
+[PASS] git diff --check - no whitespace errors
+[PASS] Full test suite 15/15 - Ran 15 test file(s): 15 passed, 0 failed.
+[PASS] Fresh worker test_chapter_one_playthrough.gd - PASS test_chapter_one_playthrough.gd
+[PASS] Fresh worker test_save_service.gd - PASS test_save_service.gd
+[PASS] Fresh worker test_e2e_scene_flow.gd - PASS test_e2e_scene_flow.gd
+[PASS] Godot parser/resource smoke - headless main-scene parse/resource load completed cleanly
+[PASS] Boot smoke 120 frames - 120-frame boot completed without anchored diagnostics
+TOTAL: 17 passed, 0 failed

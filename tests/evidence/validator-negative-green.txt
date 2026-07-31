@@ -1,0 +1,24 @@
+PASS pristine-project
+PASS missing-file
+PASS missing-benchmark
+PASS benchmark-missing-methodology
+PASS benchmark-invalid-measurement
+PASS benchmark-inconsistent-metrics
+PASS benchmark-focus-loss
+PASS benchmark-missing-reproducibility
+PASS benchmark-slow-valid-not-conflated
+PASS benchmark-fake-relative-difference
+PASS benchmark-unstable-repeats
+PASS benchmark-aggregate-p95-peak-mismatch
+PASS legacy-imagegen-policy
+PASS bad-utf8
+PASS empty-license
+PASS duplicate-id-path
+PASS traversal
+PASS approved-missing-path
+PASS fake-pass-test-failure
+PASS stale-suite-count
+PASS script-error-cannot-fake-pass
+PASS parse-error-cannot-fake-pass
+PASS missing-godot-command
+Validator negative tests: 23 passed, 0 failed

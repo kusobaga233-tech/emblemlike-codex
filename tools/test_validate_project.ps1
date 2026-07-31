@@ -236,6 +236,24 @@ func _init() -> void:
         Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
     } $expectedGate
 
+	Invoke-ValidatorCase 'script-error-cannot-fake-pass' {
+		param($root)
+		$runner = @"
+extends SceneTree
+func _init() -> void:
+	print("Ran $eligibleTestCount test file(s): $eligibleTestCount passed, 0 failed.")
+	printerr("SCRIPT ERROR: injected validator trust regression")
+	quit(0)
+
+"@
+		Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
+	} 'Full test suite'
+
+	Invoke-ValidatorCase 'parse-error-cannot-fake-pass' {
+		param($root)
+		Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') "extends SceneTree`nfunc _init() -> void:`n`tthis is invalid gdscript`n"
+	} 'Full test suite'
+
     Invoke-ValidatorCase 'missing-godot-command' { param($root) } 'Godot executable|Godot executable or project.godot missing' (Join-Path $tempRoot 'does-not-exist.exe')
 } finally {
     if (Test-Path -LiteralPath $tempRoot) { Remove-Item -LiteralPath $tempRoot -Recurse -Force }

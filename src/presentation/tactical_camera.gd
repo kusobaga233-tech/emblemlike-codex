@@ -113,11 +113,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		orbit((event as InputEventMouseMotion).relative)
 	elif event is InputEventKey:
 		var key_event := event as InputEventKey
-		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_F:
+		if not key_event.pressed or key_event.echo:
+			return
+		if key_event.keycode in [KEY_R, KEY_HOME]:
+			reset_view()
+		elif key_event.keycode == KEY_F:
 			if is_instance_valid(focus_target):
-				focus(focus_target.global_position)
+				frame_group([focus_target.global_position])
 			else:
-				focus(focus_point)
+				frame_group([focus_point])
 
 
 func _apply_transform() -> void:

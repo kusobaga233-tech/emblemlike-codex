@@ -70,6 +70,19 @@ func run() -> void:
 	_unit(battle.session, &"fenn-1").definition.hit = 100
 	tree.root.size = Vector2i(720, 1280)
 	await _frames(2)
+	var portrait_hud_width := (battle.get_node("BattleHud/Backdrop") as Control).size.x
+	assert_true(portrait_hud_width <= 324.0, "Portrait HUD uses no more than 45 percent of viewport width")
+	assert_true((battle.get_node("BattleHud/Layout") as Control).size.x <= portrait_hud_width, "Portrait HUD content stays inside its compact backdrop")
+	var portrait_camera := battle.get_node("TacticalCamera") as Camera3D
+	assert_true(portrait_camera.get("framing_mode") == &"overview", "Portrait play exposes the interaction-safe overview")
+	var captain_screen := portrait_camera.unproject_position(battle.get_unit_node(&"captain-1").global_position)
+	assert_true(captain_screen.x > portrait_hud_width and captain_screen.x < 720.0, "Portrait enemy target projects into usable play area outside HUD")
+	var reset_key := InputEventKey.new()
+	reset_key.keycode = KEY_R
+	reset_key.pressed = true
+	Input.parse_input_event(reset_key)
+	await _frames(1)
+	assert_true(portrait_camera.get("framing_mode") == &"overview", "Portrait keyboard reset remains interactive")
 	await _click_world(battle.get_unit_node(&"fenn-1").global_position)
 	(battle.get_node("BattleHud/Layout/Commands/Attack") as Button).pressed.emit()
 	await _move_pointer_world(battle.get_unit_node(&"captain-1").global_position)
