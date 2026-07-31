@@ -24,12 +24,26 @@ var focus_target: Node3D
 var _middle_orbiting: bool = false
 
 
-func _process(_delta: float) -> void:
-	if framing_mode != &"group" or get_viewport() == null:
+func _ready() -> void:
+	if get_viewport() != null and not get_viewport().size_changed.is_connected(_on_viewport_size_changed):
+		get_viewport().size_changed.connect(_on_viewport_size_changed)
+
+
+func _exit_tree() -> void:
+	if get_viewport() != null and get_viewport().size_changed.is_connected(_on_viewport_size_changed):
+		get_viewport().size_changed.disconnect(_on_viewport_size_changed)
+
+
+func _on_viewport_size_changed() -> void:
+	if get_viewport() == null:
 		return
 	var size := get_viewport().get_visible_rect().size
-	if size.y > size.x * 1.08:
+	if framing_mode == &"group" and size.y > size.x * 1.08:
 		reset_view()
+		return
+	_update_safe_distance_limits()
+	distance = min_distance if framing_mode == &"overview" else clampf(distance, min_distance, max_distance)
+	_apply_transform()
 
 
 func configure_board(width: int, height: int) -> void:

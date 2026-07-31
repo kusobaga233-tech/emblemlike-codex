@@ -51,7 +51,7 @@
 
 **Files:**
 - Modify: `tools/capture_production_battle.gd`
-- Create: `tests/evidence/production-battle-v02.png`
+- Create: `tests/evidence/production-battle-v03.png`
 
 **Interfaces:**
 - Consumes: BattleScene's true default camera setup.

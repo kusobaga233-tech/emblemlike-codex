@@ -1,7 +1,7 @@
 extends SceneTree
 
 const BATTLE_SCENE := preload("res://src/scenes/battle/battle_scene.tscn")
-const OUTPUT_PATH := "res://tests/evidence/production-battle-v02.png"
+const OUTPUT_PATH := "res://tests/evidence/production-battle-v03.png"
 
 
 func _init() -> void:

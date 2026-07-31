@@ -1,6 +1,6 @@
 # Chapter One battle visual audit v03
 
-- Evidence: `res://tests/evidence/production-battle-v02.png`
+- Evidence: `res://tests/evidence/production-battle-v03.png`
 - Capture date: 2026-07-31
 - Resolution: 1280×720
 - Status: accepted camera/atmosphere progress evidence; not commercial-final approval

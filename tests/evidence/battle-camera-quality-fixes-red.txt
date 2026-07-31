@@ -1,0 +1,11 @@
+TDD RED — viewport resize lifecycle
+FAIL test_battle_scene.gd
+  Returning to landscape recomputes overview distance from landscape FOV: Expected a truthy value.
+
+TDD RED — atmosphere resource reuse
+FAIL test_environment_kit.gd
+  Board rebuild reuses cached atmosphere meshes: Expected a truthy value.
+  Board rebuild reuses cached atmosphere materials: Expected a truthy value.
+
+TDD RED — runner fixture cleanup
+The regression requires res://.godot/runner-self-tests to be absent after all pass/fail fixture subprocesses. The verified pre-fix root contained 1758 fixture directories.

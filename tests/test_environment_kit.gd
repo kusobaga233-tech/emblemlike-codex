@@ -105,6 +105,16 @@ func run() -> void:
 			for item: Node3D in group.get_children():
 				var inside_grid := item.position.x >= -0.5 and item.position.x <= 7.5 and item.position.z >= -0.5 and item.position.z <= 9.5
 				assert_true(not inside_grid, "%s stays outside playable tactical cells" % item.name)
+		var first_rim := decor.get_node("PlatformRim").get_child(0) as MeshInstance3D
+		var first_rim_mesh := first_rim.mesh
+		var first_rim_material := first_rim.material_override
+		var first_decor_count := _descendant_count(decor)
+		board.build(chapter_script.build())
+		decor = board.get_node("EnvironmentDecor")
+		var rebuilt_rim := decor.get_node("PlatformRim").get_child(0) as MeshInstance3D
+		assert_true(is_same(first_rim_mesh, rebuilt_rim.mesh), "Board rebuild reuses cached atmosphere meshes")
+		assert_true(is_same(first_rim_material, rebuilt_rim.material_override), "Board rebuild reuses cached atmosphere materials")
+		assert_equal(_descendant_count(decor), first_decor_count, "Board rebuild preserves stable atmosphere node count")
 	board.set("_environment_meshes", {})
 	var fallback := board.call("_make_tile", Vector2i(2, 3), &"water") as MeshInstance3D
 	assert_true(fallback.mesh is BoxMesh, "Missing imported mesh uses deterministic BoxMesh fallback")
@@ -129,6 +139,13 @@ func _count_type(root: Node, expected_type: Variant) -> int:
 	var result := 1 if is_instance_of(root, expected_type) else 0
 	for child: Node in root.get_children():
 		result += _count_type(child, expected_type)
+	return result
+
+
+func _descendant_count(root: Node) -> int:
+	var result := root.get_child_count()
+	for child: Node in root.get_children():
+		result += _descendant_count(child)
 	return result
 
 

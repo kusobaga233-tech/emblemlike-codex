@@ -293,6 +293,13 @@ func _test_tactical_camera_frames_local_group_without_losing_overview() -> void:
 	await tree.process_frame
 	await tree.process_frame
 	assert_true(camera.get("framing_mode") == &"overview", "Portrait resize falls back to interaction-safe overview")
+	var portrait_distance: float = camera.distance
+	viewport.size = Vector2i(1280, 720)
+	await tree.process_frame
+	await tree.process_frame
+	assert_true(camera.distance < portrait_distance, "Returning to landscape recomputes overview distance from landscape FOV")
+	assert_true(camera.distance >= camera.min_distance and camera.distance <= camera.max_distance, "Landscape resize reapplies legal zoom clamps")
+	_assert_board_corners_visible(camera, viewport.size, "landscape after portrait resize")
 	viewport.free()
 
 

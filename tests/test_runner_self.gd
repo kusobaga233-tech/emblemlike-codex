@@ -5,6 +5,7 @@ const TEST_CASE_SOURCE_PATH := "res://tests/test_case.gd"
 
 
 func run() -> void:
+	_remove_tree_absolute(ProjectSettings.globalize_path("res://.godot/runner-self-tests"))
 	_test_missing_tests_directory_fails()
 	_test_zero_eligible_tests_fails()
 	_test_malformed_test_fails_without_crashing_summary()
@@ -13,6 +14,8 @@ func run() -> void:
 	_test_parse_error_fails_without_false_pass()
 	_test_plain_text_script_error_phrase_still_passes()
 	_test_async_test_is_awaited()
+	var fixture_root := ProjectSettings.globalize_path("res://.godot/runner-self-tests")
+	assert_true(not DirAccess.dir_exists_absolute(fixture_root), "Runner self-test fixture root is removed when all fixtures finish")
 
 
 func _test_missing_tests_directory_fails() -> void:
@@ -167,6 +170,11 @@ func _run_fixture(fixture_name: String, fixture_files: Dictionary, user_args: Ar
 		output,
 		true,
 	)
+	_remove_tree_absolute(fixture_root)
+	var shared_root := ProjectSettings.globalize_path("res://.godot/runner-self-tests")
+	var shared_directory := DirAccess.open(shared_root)
+	if shared_directory != null and shared_directory.get_directories().is_empty() and shared_directory.get_files().is_empty():
+		DirAccess.remove_absolute(shared_root)
 	return {
 		"exit_code": exit_code,
 		"output": "\n".join(PackedStringArray(output)),
@@ -180,3 +188,16 @@ func _write_utf8(path: String, content: String) -> void:
 	assert_true(file != null, "Fixture file can be opened: %s" % path)
 	if file != null:
 		file.store_string(content)
+
+
+func _remove_tree_absolute(path: String) -> void:
+	if not DirAccess.dir_exists_absolute(path):
+		return
+	var directory := DirAccess.open(path)
+	if directory == null:
+		return
+	for file_name: String in directory.get_files():
+		DirAccess.remove_absolute(path.path_join(file_name))
+	for directory_name: String in directory.get_directories():
+		_remove_tree_absolute(path.path_join(directory_name))
+	DirAccess.remove_absolute(path)

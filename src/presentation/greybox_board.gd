@@ -19,6 +19,8 @@ var board_width: int = 0
 var board_height: int = 0
 var _environment_meshes: Dictionary = {}
 var _terrain_materials: Dictionary = {}
+var _decor_meshes: Dictionary = {}
+var _decor_materials: Dictionary = {}
 
 
 func build(chapter: Variant) -> void:
@@ -130,9 +132,7 @@ func _build_platform_rim(root: Node3D) -> void:
 	rim.name = "PlatformRim"
 	root.add_child(rim)
 	_assign_scene_owner(rim)
-	var rim_material := _material(Color("35445a"))
-	rim_material.metallic = 0.58
-	rim_material.roughness = 0.42
+	var rim_material := _decor_material(&"rim", Color("35445a"), 0.58, 0.42)
 	for x: int in board_width:
 		_add_box_decor(rim, "RimNorth_%02d" % x, Vector3(x, -0.12, -0.82), Vector3(0.92, 0.28, 0.32), rim_material)
 		_add_box_decor(rim, "RimSouth_%02d" % x, Vector3(x, -0.12, board_height - 0.18), Vector3(0.92, 0.28, 0.32), rim_material)
@@ -146,7 +146,11 @@ func _build_observatory_foundation(root: Node3D) -> void:
 	foundation.name = "ObservatoryFoundation"
 	root.add_child(foundation)
 	_assign_scene_owner(foundation)
-	var materials := [_material(Color("26354d")), _material(Color("1d2a40")), _material(Color("172238"))]
+	var materials := [
+		_decor_material(&"foundation_0", Color("26354d")),
+		_decor_material(&"foundation_1", Color("1d2a40")),
+		_decor_material(&"foundation_2", Color("172238")),
+	]
 	for index: int in 3:
 		var inset := float(index) * 0.7
 		_add_box_decor(
@@ -168,8 +172,7 @@ func _build_distant_structures(root: Node3D, ruin_mesh: Mesh) -> void:
 		Vector3(12.0, -1.3, 2.0), Vector3(11.3, -0.9, 9.0), Vector3(8.5, -1.2, 14.0),
 		Vector3(1.5, -1.0, 14.5), Vector3(-4.8, -1.2, 10.8),
 	]
-	var silhouette_material := _material(Color("202c45"))
-	silhouette_material.metallic = 0.35
+	var silhouette_material := _decor_material(&"silhouette", Color("202c45"), 0.35)
 	for index: int in placements.size():
 		if ruin_mesh != null and index % 2 == 0:
 			var arch := _add_decor_mesh(distant, ruin_mesh, "DistantArch_%02d" % index, placements[index])
@@ -184,16 +187,20 @@ func _build_crystal_beacons(root: Node3D) -> void:
 	beacons.name = "CrystalBeacons"
 	root.add_child(beacons)
 	_assign_scene_owner(beacons)
-	var beacon_material := _material(Color("334a78"))
-	beacon_material.emission_enabled = true
-	beacon_material.emission = Color("263d72")
-	beacon_material.emission_energy_multiplier = 0.16
+	var beacon_material := _decor_material(&"beacon", Color("334a78"))
+	if not beacon_material.emission_enabled:
+		beacon_material.emission_enabled = true
+		beacon_material.emission = Color("263d72")
+		beacon_material.emission_energy_multiplier = 0.16
 	var placements := [Vector3(-1.2, 0.5, 1.0), Vector3(-1.2, 0.5, 4.5), Vector3(-1.2, 0.5, 8.0), Vector3(8.2, 0.5, 0.5), Vector3(8.2, 0.5, 3.8), Vector3(8.2, 0.5, 7.0)]
 	for index: int in placements.size():
 		var beacon := MeshInstance3D.new()
 		beacon.name = "Beacon_%02d" % index
-		var mesh := PrismMesh.new()
-		mesh.size = Vector3(0.34, 1.35, 0.34)
+		var mesh := _decor_meshes.get(&"beacon_prism") as PrismMesh
+		if mesh == null:
+			mesh = PrismMesh.new()
+			mesh.size = Vector3(0.34, 1.35, 0.34)
+			_decor_meshes[&"beacon_prism"] = mesh
 		beacon.mesh = mesh
 		beacon.position = placements[index]
 		beacon.material_override = beacon_material
@@ -205,8 +212,12 @@ func _build_crystal_beacons(root: Node3D) -> void:
 func _add_box_decor(root: Node3D, node_name: String, at: Vector3, size: Vector3, material: Material) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
 	instance.name = node_name
-	var mesh := BoxMesh.new()
-	mesh.size = size
+	var cache_key := "box_%.3f_%.3f_%.3f" % [size.x, size.y, size.z]
+	var mesh := _decor_meshes.get(cache_key) as BoxMesh
+	if mesh == null:
+		mesh = BoxMesh.new()
+		mesh.size = size
+		_decor_meshes[cache_key] = mesh
 	instance.mesh = mesh
 	instance.position = at
 	instance.material_override = material
@@ -214,6 +225,16 @@ func _add_box_decor(root: Node3D, node_name: String, at: Vector3, size: Vector3,
 	root.add_child(instance)
 	_assign_scene_owner(instance)
 	return instance
+
+
+func _decor_material(key: StringName, color: Color, metallic: float = 0.0, roughness: float = 0.82) -> StandardMaterial3D:
+	if _decor_materials.has(key):
+		return _decor_materials[key] as StandardMaterial3D
+	var material := _material(color)
+	material.metallic = metallic
+	material.roughness = roughness
+	_decor_materials[key] = material
+	return material
 
 
 func _add_decor_mesh(root: Node3D, mesh: Mesh, node_name: String, at: Vector3) -> MeshInstance3D:
