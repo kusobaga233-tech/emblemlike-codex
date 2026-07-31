@@ -3,3 +3,4 @@
 *.uid
 *.translation
 *.import
+build/
