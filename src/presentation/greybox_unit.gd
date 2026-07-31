@@ -133,7 +133,8 @@ func play_event(event: Dictionary) -> void:
 				_animate_move(Vector3(destination.x, 0.7, destination.y))
 		&"attack_started":
 			if actor_id == unit_id:
-				_play_production_animation(&"attack_secondary" if bool(payload.get("secondary", false)) else &"attack_primary")
+				# Ranged/reach attacks use the secondary clip; adjacent attacks use primary.
+				_play_production_animation(&"attack_secondary" if int(payload.get("distance", 1)) > 1 else &"attack_primary")
 		&"attack_finished":
 			if actor_id == unit_id and visual_hp > 0:
 				_play_production_animation(&"idle")
@@ -241,7 +242,7 @@ func _configure_production_animations() -> void:
 		return
 	for library_name in production_animation_player.get_animation_library_list():
 		var library := production_animation_player.get_animation_library(library_name)
-		for looping_name in [&"idle", &"locomotion"]:
+		for looping_name in [&"idle"]:
 			if library.has_animation(looping_name):
 				library.get_animation(looping_name).loop_mode = Animation.LOOP_LINEAR
 	if not production_animation_player.animation_finished.is_connected(_on_production_animation_finished):
@@ -334,6 +335,7 @@ func _animate_move(destination: Vector3) -> void:
 		return
 	position_animation = tween
 	tween.tween_property(self, "position", destination, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_callback(func(): _play_production_animation(&"idle"))
 
 
 func _pulse_body(target_scale: Vector3) -> void:

@@ -113,8 +113,10 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	assert_equal(_material_color(enemy.get_node("Body")), Color("9f2942"), "Enemy body uses crimson palette")
 	assert_true(player.get_node("HpBar/Fill").material_override.albedo_texture == null, "HP bar uses no texture")
 	assert_true(player.get_node("SelectionOutline").material_override.albedo_texture == null, "Selection outline uses no texture")
-	player.play_event({"type": &"attack_started", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {}})
+	player.play_event({"type": &"attack_started", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {"distance": 1}})
 	assert_equal(player.production_animation_player.current_animation, "attack_primary", "Attack start triggers primary production clip")
+	player.play_event({"type": &"attack_started", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {"distance": 2}})
+	assert_equal(player.production_animation_player.current_animation, "attack_secondary", "Reach attack triggers secondary production clip")
 	player.play_event({"type": &"attack_finished", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {}})
 	assert_equal(player.production_animation_player.current_animation, "idle", "Attack finish reliably returns production visual to idle")
 
@@ -154,6 +156,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	if move_tween != null:
 		move_tween.custom_step(1.0)
 	assert_equal(player.position, Vector3(4.0, 0.7, 5.0), "Move event updates only the presentation position")
+	assert_equal(player.production_animation_player.current_animation, "idle", "Completed movement returns locomotion to idle")
 	player.play_event({
 		"type": &"unit_moved",
 		"actor_id": &"fenn-1",
