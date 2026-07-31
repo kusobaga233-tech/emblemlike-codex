@@ -5,11 +5,11 @@ signal cell_picked(position: Vector2i)
 signal cell_hovered(position: Vector2i)
 
 const TERRAIN_COLORS := {
-	&"plain": Color("8b8f86"),
-	&"bridge": Color("586579"),
-	&"forest": Color("377a4a"),
-	&"water": Color("286aa6"),
-	&"crystal": Color("7952b3"),
+	&"plain": Color("59616a"),
+	&"bridge": Color("7b6546"),
+	&"forest": Color("365947"),
+	&"water": Color("315f78"),
+	&"crystal": Color("674c7e"),
 }
 const MOVE_COLOR := Color(0.20, 0.70, 1.0, 0.48)
 const ATTACK_COLOR := Color(1.0, 0.22, 0.25, 0.48)
@@ -62,7 +62,8 @@ func _make_tile(grid_position: Vector2i, terrain_id: StringName) -> MeshInstance
 		mesh = BoxMesh.new()
 	var height := _terrain_height(terrain_id)
 	tile.mesh = mesh
-	tile.position = Vector3(grid_position.x, -0.08 if terrain_id == &"water" else 0.0, grid_position.y)
+	tile.position = Vector3(grid_position.x, _terrain_y(terrain_id), grid_position.y)
+	tile.material_override = _terrain_material(terrain_id)
 	tile.set_meta("grid_position", grid_position)
 	tile.set_meta("terrain_id", terrain_id)
 	var pick_area := Area3D.new()
@@ -193,6 +194,17 @@ func _material(color: Color, transparent: bool = false) -> StandardMaterial3D:
 	return material
 
 
+func _terrain_material(terrain_id: StringName) -> StandardMaterial3D:
+	var material := _material(TERRAIN_COLORS.get(terrain_id, TERRAIN_COLORS[&"plain"]))
+	material.metallic = 0.28 if terrain_id in [&"bridge", &"crystal"] else 0.08
+	material.roughness = 0.34 if terrain_id == &"water" else 0.68
+	if terrain_id == &"crystal":
+		material.emission_enabled = true
+		material.emission = Color("2c183c")
+		material.emission_energy_multiplier = 0.45
+	return material
+
+
 func _terrain_height(terrain_id: StringName) -> float:
 	match terrain_id:
 		&"water":
@@ -209,7 +221,7 @@ func _terrain_height(terrain_id: StringName) -> float:
 func _terrain_y(terrain_id: StringName) -> float:
 	match terrain_id:
 		&"water":
-			return -0.07
+			return -0.08
 		&"bridge":
 			return 0.04
 		&"forest":

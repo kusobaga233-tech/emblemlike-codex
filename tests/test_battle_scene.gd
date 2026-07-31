@@ -59,6 +59,12 @@ func _test_board_build_palette_rebuild_and_overlays() -> void:
 		assert_true(child.get_node_or_null("PickArea/CollisionShape3D") is CollisionShape3D, "Every terrain cell owns a physics pick shape")
 
 	assert_true(board.get_node("EnvironmentDecor").get_child_count() > 0, "Board builds collision-free observatory decor")
+	_assert_terrain_color(terrain_root, &"plain", Color("59616a"))
+	_assert_terrain_color(terrain_root, &"bridge", Color("7b6546"))
+	_assert_terrain_color(terrain_root, &"forest", Color("365947"))
+	_assert_terrain_color(terrain_root, &"water", Color("315f78"))
+	_assert_terrain_color(terrain_root, &"crystal", Color("674c7e"))
+	_assert_terrain_height_signal(terrain_root, &"water", -0.08)
 
 	var old_cell_weak: WeakRef = weakref(terrain_root.get_child(0))
 	board.build(chapter)
@@ -369,6 +375,14 @@ func _assert_terrain_color(terrain_root: Node, terrain_id: StringName, expected:
 		assert_equal(_material_color(child), expected, "%s terrain palette" % terrain_id)
 		return
 	assert_true(false, "%s terrain exists" % terrain_id)
+
+
+func _assert_terrain_height_signal(terrain_root: Node, terrain_id: StringName, expected_y: float) -> void:
+	for child: Node in terrain_root.get_children():
+		if child.get_meta("terrain_id", &"") == terrain_id:
+			assert_true(absf(child.position.y - expected_y) < 0.001, "%s terrain preserves its elevation signal" % terrain_id)
+			return
+	assert_true(false, "%s terrain exists for elevation check" % terrain_id)
 
 
 func _material_color(mesh_instance: MeshInstance3D) -> Color:

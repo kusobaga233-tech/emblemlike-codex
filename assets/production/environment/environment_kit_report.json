@@ -1,8 +1,17 @@
 {
   "asset": "chapter_one_observatory_kit",
   "grid_unit_metres": 1.0,
-  "triangle_budget": 12000,
-  "triangles": 1944,
+  "triangle_budget_per_module": {
+    "minimum": 2000,
+    "maximum": 12000
+  },
+  "triangles": 31032,
+  "module_triangles": {
+    "Floor_1x1": 6896,
+    "Bridge_1x1": 10344,
+    "Cover_Low_1x1": 6896,
+    "Ruin_Arch_2x1": 6896
+  },
   "modules": {
     "Floor_1x1": {
       "bounds_blender_xyz": [

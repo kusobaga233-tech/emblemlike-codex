@@ -4,6 +4,13 @@ Date: 2026-07-31
 Blender source build:
 & 'D:\blender editor\blender.exe' --background --python 'D:\godot-proj\star-ember-oath-blender\tools\build_environment_kit.py'
 Exit: 0
+
+Production-plan gap review GREEN, 2026-07-31:
+- Canonical tracked generator: res://tools/production_source/chapter_one_observatory/build_environment_kit.py
+- Canonical tracked Blender source: res://tools/production_source/chapter_one_observatory/chapter_one_observatory_kit.blend
+- Reproducible Blender run exit 0 and generated: Floor_1x1 6,896; Bridge_1x1 10,344; Cover_Low_1x1 6,896; Ruin_Arch_2x1 6,896 triangles.
+- Targeted workers: test_environment_kit.gd PASS (exit 0); test_battle_scene.gd PASS (exit 0).
+- Five deterministic terrain signals are asserted: plain #59616a, bridge #7b6546, forest #365947, water #315f78 at y=-0.08, crystal #674c7e.
 Result: chapter_one_observatory_kit.blend and GLB generated; 1,944 triangles against a 12,000-triangle budget. Floor bounds 0.96 x 0.96 m; bridge bounds 0.96 x 0.94 m. Materials: MAT_ObservatoryStone, MAT_AgedBrass, MAT_EmberGlass.
 
 Targeted Godot workers:

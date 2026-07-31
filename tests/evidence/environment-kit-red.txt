@@ -12,3 +12,11 @@ FAIL test_battle_scene.gd
   Every terrain cell uses an imported environment mesh: Expected a truthy value. (80 cells)
 
 The tests failed because the production GLB did not yet exist and the board still used BoxMesh cells. No Blender source, GLB, or production integration existed during this run.
+
+Production-plan gap review RED, 2026-07-31:
+FAIL test_environment_kit.gd
+  Versioned Blender generator/source did not exist under res://tools/production_source.
+  Report had no module_triangles map; all four expected values resolved to 0.
+  Imported module density was Floor 432, Bridge 648, Cover 432, Ruin 432, below the required 2,000 triangles per module.
+  All non-bridge cells lacked explicit terrain readability materials.
+Exit: 1. These failures were observed before the reviewed implementation changes.
