@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "product": "星烬誓约",
+  "artifact": "D:\\godot-proj\\star-ember-oath-godot\\build\\windows\\StarEmberOath.exe",
+  "bytes": 104952488,
+  "sha256": "9b40eccc10ad894d17d007a255bca722997ee35e39579d4725b389b72c3db128",
+  "godot": "4.6.3.stable.official.7d41c59c4",
+  "source_commit": "d3be356a21924ca14ea9dc357d5af6f6b6932904",
+  "preset": "Windows x64 Release",
+  "architecture": "x86_64",
+  "embedded_pck": true,
+  "smoke_test": {
+    "command": "StarEmberOath.exe --headless --quit-after 120",
+    "exit_code": 0,
+    "anchored_diagnostics": 0
+  },
+  "qualification": "Local Windows export smoke passed; clean-user-machine and target-hardware certification remain required."
+}
