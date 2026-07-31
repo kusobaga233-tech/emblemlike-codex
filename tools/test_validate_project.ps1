@@ -68,7 +68,27 @@ try {
     Invoke-ValidatorCase 'missing-benchmark' {
         param($root)
         Remove-Item -LiteralPath (Join-Path $root 'tests/evidence/production-battle-benchmark.json') -Force
-    } 'Development benchmark'
+    } '\[FAIL\] Development benchmark'
+
+    Invoke-ValidatorCase 'benchmark-missing-methodology' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report.PSObject.Properties.Remove('measurement_method')
+        $report.PSObject.Properties.Remove('runtime_configuration')
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
+
+    Invoke-ValidatorCase 'benchmark-invalid-measurement' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report | Add-Member -NotePropertyName measurement_valid -NotePropertyValue $false -Force
+        $report | Add-Member -NotePropertyName measurement_method -NotePropertyValue 'render_frame_post_draw_wall_clock' -Force
+        $report | Add-Member -NotePropertyName runtime_configuration -NotePropertyValue ([pscustomobject]@{ vsync_disabled = $true; max_fps = 0; low_processor_usage_mode = $false }) -Force
+        $report | Add-Member -NotePropertyName window_focused_at_start -NotePropertyValue $true -Force
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
 
     Invoke-ValidatorCase 'legacy-imagegen-policy' {
         param($root)

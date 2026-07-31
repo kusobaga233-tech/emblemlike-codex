@@ -156,7 +156,7 @@ if (Test-Path -LiteralPath $benchmarkPath) {
     try {
         $benchmark = Get-Content -Raw -Encoding UTF8 -LiteralPath $benchmarkPath | ConvertFrom-Json
         $benchmarkValid = (
-            $benchmark.schema_version -eq 1 -and
+            $benchmark.schema_version -eq 2 -and
             $benchmark.sample_frames -ge 300 -and
             $benchmark.resolution.Count -eq 2 -and
             $benchmark.resolution[0] -eq 1920 -and
@@ -165,10 +165,19 @@ if (Test-Path -LiteralPath $benchmarkPath) {
             $benchmark.p95_frame_ms -gt 0 -and
             $benchmark.peak_frame_ms -ge $benchmark.p95_frame_ms -and
             $benchmark.max_draw_calls -gt 0 -and
+            $benchmark.measurement_method -eq 'render_frame_post_draw_wall_clock' -and
+            $benchmark.measurement_elapsed_ms -gt 0 -and
+            $benchmark.measurement_valid -eq $true -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.measurement_validity_reason) -and
+            $null -ne $benchmark.window_focused_at_start -and
+            $null -ne $benchmark.window_focused_at_end -and
+            $benchmark.runtime_configuration.vsync_disabled -eq $true -and
+            $benchmark.runtime_configuration.max_fps -eq 0 -and
+            $benchmark.runtime_configuration.low_processor_usage_mode -eq $false -and
             -not [string]::IsNullOrWhiteSpace([string]$benchmark.renderer) -and
             [string]$benchmark.qualification -match 'target-hardware certification still required'
         )
-        Add-GateResult 'Development benchmark' $benchmarkValid $(if ($benchmarkValid) { "1920x1080/$($benchmark.sample_frames) frames; avg=$([math]::Round($benchmark.average_frame_ms, 3))ms p95=$([math]::Round($benchmark.p95_frame_ms, 3))ms; target certification explicitly pending" } else { 'missing metrics, invalid resolution/sample count, or qualification overclaims target certification' })
+        Add-GateResult 'Development benchmark' $benchmarkValid $(if ($benchmarkValid) { "1920x1080/$($benchmark.sample_frames) render-complete frames; avg=$([math]::Round($benchmark.average_frame_ms, 3))ms p95=$([math]::Round($benchmark.p95_frame_ms, 3))ms; target certification explicitly pending" } else { 'missing/invalid render-completion methodology, runtime throttle settings, metrics, resolution/sample count, or qualification' })
     } catch {
         Add-GateResult 'Development benchmark' $false "invalid report: $($_.Exception.Message)"
     }

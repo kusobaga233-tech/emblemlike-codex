@@ -1,20 +1,31 @@
 {
-	"average_fps": 1193.52631327679,
-	"average_frame_ms": 0.837853333333333,
-	"max_draw_calls": 479,
-	"max_objects": 516,
-	"max_primitives": 68194,
-	"p95_frame_ms": 1.169,
-	"peak_frame_ms": 1.782,
+	"average_fps": 1108.90971996333,
+	"average_frame_ms": 0.901786666666667,
+	"max_draw_calls": 726,
+	"max_objects": 1592,
+	"max_primitives": 223490,
+	"measurement_elapsed_ms": 270.536,
+	"measurement_method": "render_frame_post_draw_wall_clock",
+	"measurement_valid": true,
+	"measurement_validity_reason": "unthrottled runtime configuration confirmed; render-completion cadence plausible",
+	"p95_frame_ms": 1.075,
+	"peak_frame_ms": 1.326,
 	"qualification": "development baseline only; target-hardware certification still required",
 	"renderer": "NVIDIA GeForce RTX 5060",
 	"resolution": [
 		1920,
 		1080
 	],
+	"runtime_configuration": {
+		"low_processor_usage_mode": false,
+		"max_fps": 0,
+		"vsync_disabled": true
+	},
 	"sample_frames": 300,
-	"schema_version": 1,
-	"static_memory_bytes": 56514501,
-	"timestamp_unix": 1785494350.946,
-	"warmup_frames": 60
+	"schema_version": 2,
+	"static_memory_bytes": 78499714,
+	"timestamp_unix": 1785501300.329,
+	"warmup_frames": 60,
+	"window_focused_at_end": true,
+	"window_focused_at_start": true
 }
