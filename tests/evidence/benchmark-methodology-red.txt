@@ -1,0 +1,35 @@
+Benchmark methodology validator RED evidence
+Date: 2026-07-31
+
+Pre-fix command (PowerShell, repository root):
+& .\tools\test_validate_project.ps1
+
+Exit code: 1
+
+Observed result:
+PASS pristine-project
+PASS missing-file
+PASS missing-benchmark
+FAIL benchmark-missing-methodology
+FAIL benchmark-invalid-measurement
+PASS legacy-imagegen-policy
+PASS bad-utf8
+PASS empty-license
+PASS duplicate-id-path
+PASS traversal
+PASS approved-missing-path
+PASS fake-pass-test-failure
+PASS stale-suite-count
+PASS missing-godot-command
+Validator negative tests: 12 passed, 2 failed
+
+Expected failure 1: benchmark-missing-methodology
+The negative test expected a nonzero validator exit and /\[FAIL\] Development benchmark/.
+The old validator instead emitted:
+[PASS] Development benchmark - 1920x1080/300 frames; avg=167.194ms p95=265.171ms; target certification explicitly pending
+
+Expected failure 2: benchmark-invalid-measurement
+The negative test set measurement_valid=false and expected a nonzero validator exit and /\[FAIL\] Development benchmark/.
+The old validator instead emitted the same Development benchmark PASS because it did not inspect measurement validity or methodology fields.
+
+This RED run demonstrated that the pre-fix validator accepted a benchmark missing durable methodology metadata and did not reject an explicitly invalid measurement.
