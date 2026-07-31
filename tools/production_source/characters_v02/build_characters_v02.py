@@ -31,7 +31,11 @@ def clear_scene():
     bpy.ops.object.mode_set(mode="OBJECT") if bpy.context.object and bpy.context.object.mode != "OBJECT" else None
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
-    for collection in (bpy.data.meshes, bpy.data.materials, bpy.data.armatures, bpy.data.actions):
+    # Actions with fake users survive object deletion. Remove them unconditionally so
+    # per-character ACTIONS export cannot accumulate earlier characters' clips.
+    for action in list(bpy.data.actions):
+        bpy.data.actions.remove(action, do_unlink=True)
+    for collection in (bpy.data.meshes, bpy.data.materials, bpy.data.armatures):
         for block in list(collection):
             if block.users == 0:
                 collection.remove(block)
@@ -281,6 +285,7 @@ def export_weapon(name):
 
 
 def main():
+    bpy.context.preferences.filepaths.save_version = 0
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     WEAPON_DIR.mkdir(parents=True, exist_ok=True)
     report = {"generator": str(Path(__file__).relative_to(PROJECT_ROOT)).replace("\\", "/"), "status": "production_candidate_not_commercial_final", "characters": {}, "weapons": {}}

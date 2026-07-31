@@ -42,6 +42,7 @@ func _validate_character(path: String) -> void:
 	var names := _collect_animation_names(instance)
 	for animation_name in REQUIRED_ANIMATIONS:
 		assert_true(names.has(animation_name), "%s contains animation %s; found=%s" % [path, animation_name, names])
+	assert_equal(names.size(), REQUIRED_ANIMATIONS.size(), "%s imports exactly the required animation set; found=%s" % [path, names])
 	instance.free()
 
 
