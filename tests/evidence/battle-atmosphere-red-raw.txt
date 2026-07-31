@@ -1,0 +1,8 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+FAIL test_environment_kit.gd
+  Observatory platform has a substantial perimeter rim: Expected a truthy value.
+  Observatory has distant pylons and arch silhouettes: Expected a truthy value.
+  Observatory has perimeter crystal beacons: Expected a truthy value.
+  Observatory has layered foundation terraces beneath the grid: Expected a truthy value.
+EXIT_CODE:1

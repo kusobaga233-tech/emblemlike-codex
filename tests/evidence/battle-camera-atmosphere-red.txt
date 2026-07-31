@@ -1,4 +1,5 @@
 TDD RED — battle camera input and framing
+Raw output: tests/evidence/battle-camera-atmosphere-red-raw.txt
 Command: Godot --headless --path . --script res://tests/run_all.gd -- --test-runner-worker res://tests/test_battle_scene.gd
 FAIL test_battle_scene.gd
   Home key exposes full-board overview during normal play: Expected a truthy value.

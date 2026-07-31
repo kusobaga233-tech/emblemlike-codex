@@ -18,3 +18,4 @@
 [PASS] Godot parser/resource smoke - headless main-scene parse/resource load completed cleanly
 [PASS] Boot smoke 120 frames - 120-frame boot completed without anchored diagnostics
 TOTAL: 17 passed, 0 failed
+Raw full-suite output with exit code: tests/evidence/battle-camera-atmosphere-full-green-raw.txt

@@ -1,0 +1,19 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+PASS test_battle_scene.gd
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_chapter_one_playthrough.gd
+PASS test_character_assets_v02.gd
+PASS test_combat_rules.gd
+PASS test_e2e_scene_flow.gd
+PASS test_environment_kit.gd
+PASS test_grid_rules.gd
+PASS test_production_asset_import.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_save_service.gd
+PASS test_scene_flow.gd
+PASS test_turn_objective_ai.gd
+Ran 15 test file(s): 15 passed, 0 failed.
+EXIT_CODE:0
