@@ -14,7 +14,12 @@ const HP_EMPTY := Color("322f35")
 const DEFEAT_SCALE := Vector3(1.08, 0.08, 1.08)
 const PRODUCTION_VISUALS := {
 	&"aurelia": "res://assets/production/models/hero_ember_warden.glb",
+	&"brann": "res://assets/production/models/hero_ash_vanguard.glb",
+	&"elio": "res://assets/production/models/hero_starbound_mender.glb",
+	&"fenn": "res://assets/production/models/hero_cinder_seer.glb",
 	&"bridge-captain": "res://assets/production/models/boss_star_eater.glb",
+	&"hollow-blade": "res://assets/production/models/enemy_ember_husk.glb",
+	&"hollow-bow": "res://assets/production/models/enemy_void_lancer.glb",
 }
 
 var unit_id: StringName = &""

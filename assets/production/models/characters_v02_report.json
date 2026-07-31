@@ -1,0 +1,198 @@
+{
+  "generator": "tools/production_source/characters_v02/build_characters_v02.py",
+  "status": "production_candidate_not_commercial_final",
+  "characters": {
+    "hero_ash_vanguard": {
+      "path": "assets/production/models/hero_ash_vanguard.glb",
+      "triangles": 2654,
+      "materials": 4,
+      "animations": [
+        "idle",
+        "locomotion",
+        "attack_primary",
+        "attack_secondary",
+        "hit",
+        "defeat",
+        "select",
+        "victory"
+      ],
+      "bones": 13,
+      "weighted_bones": [
+        "forearm_l",
+        "forearm_r",
+        "hand_r_weapon",
+        "head",
+        "pelvis",
+        "shin_l",
+        "shin_r",
+        "spine",
+        "thigh_l",
+        "thigh_r",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "weapon": "ash_lance",
+      "blend_source": "tools/production_source/characters_v02/hero_ash_vanguard.blend"
+    },
+    "hero_starbound_mender": {
+      "path": "assets/production/models/hero_starbound_mender.glb",
+      "triangles": 2920,
+      "materials": 4,
+      "animations": [
+        "idle",
+        "locomotion",
+        "attack_primary",
+        "attack_secondary",
+        "hit",
+        "defeat",
+        "select",
+        "victory"
+      ],
+      "bones": 13,
+      "weighted_bones": [
+        "forearm_l",
+        "forearm_r",
+        "hand_r_weapon",
+        "head",
+        "pelvis",
+        "shin_l",
+        "shin_r",
+        "spine",
+        "thigh_l",
+        "thigh_r",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "weapon": "mender_staff",
+      "blend_source": "tools/production_source/characters_v02/hero_starbound_mender.blend"
+    },
+    "hero_cinder_seer": {
+      "path": "assets/production/models/hero_cinder_seer.glb",
+      "triangles": 2444,
+      "materials": 4,
+      "animations": [
+        "idle",
+        "locomotion",
+        "attack_primary",
+        "attack_secondary",
+        "hit",
+        "defeat",
+        "select",
+        "victory"
+      ],
+      "bones": 13,
+      "weighted_bones": [
+        "forearm_l",
+        "forearm_r",
+        "hand_r_weapon",
+        "head",
+        "pelvis",
+        "shin_l",
+        "shin_r",
+        "spine",
+        "thigh_l",
+        "thigh_r",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "weapon": "cinder_focus",
+      "blend_source": "tools/production_source/characters_v02/hero_cinder_seer.blend"
+    },
+    "enemy_ember_husk": {
+      "path": "assets/production/models/enemy_ember_husk.glb",
+      "triangles": 2550,
+      "materials": 4,
+      "animations": [
+        "idle",
+        "locomotion",
+        "attack_primary",
+        "attack_secondary",
+        "hit",
+        "defeat",
+        "select",
+        "victory"
+      ],
+      "bones": 13,
+      "weighted_bones": [
+        "forearm_l",
+        "forearm_r",
+        "hand_r_weapon",
+        "head",
+        "pelvis",
+        "shin_l",
+        "shin_r",
+        "spine",
+        "thigh_l",
+        "thigh_r",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "weapon": "oathblade",
+      "blend_source": "tools/production_source/characters_v02/enemy_ember_husk.blend"
+    },
+    "enemy_void_lancer": {
+      "path": "assets/production/models/enemy_void_lancer.glb",
+      "triangles": 2354,
+      "materials": 4,
+      "animations": [
+        "idle",
+        "locomotion",
+        "attack_primary",
+        "attack_secondary",
+        "hit",
+        "defeat",
+        "select",
+        "victory"
+      ],
+      "bones": 13,
+      "weighted_bones": [
+        "forearm_l",
+        "forearm_r",
+        "hand_r_weapon",
+        "head",
+        "pelvis",
+        "shin_l",
+        "shin_r",
+        "spine",
+        "thigh_l",
+        "thigh_r",
+        "upper_arm_l",
+        "upper_arm_r"
+      ],
+      "weapon": "ash_lance",
+      "blend_source": "tools/production_source/characters_v02/enemy_void_lancer.blend"
+    }
+  },
+  "weapons": {
+    "oathblade": {
+      "path": "assets/production/weapons/oathblade.glb",
+      "triangles": 426,
+      "materials": 4,
+      "blend_source": "tools/production_source/characters_v02/weapon_oathblade.blend"
+    },
+    "ash_lance": {
+      "path": "assets/production/weapons/ash_lance.glb",
+      "triangles": 322,
+      "materials": 4,
+      "blend_source": "tools/production_source/characters_v02/weapon_ash_lance.blend"
+    },
+    "cinder_focus": {
+      "path": "assets/production/weapons/cinder_focus.glb",
+      "triangles": 332,
+      "materials": 4,
+      "blend_source": "tools/production_source/characters_v02/weapon_cinder_focus.blend"
+    },
+    "mender_staff": {
+      "path": "assets/production/weapons/mender_staff.glb",
+      "triangles": 524,
+      "materials": 4,
+      "blend_source": "tools/production_source/characters_v02/weapon_mender_staff.blend"
+    },
+    "star_eater_core": {
+      "path": "assets/production/weapons/star_eater_core.glb",
+      "triangles": 320,
+      "materials": 4,
+      "blend_source": "tools/production_source/characters_v02/weapon_star_eater_core.blend"
+    }
+  }
+}
