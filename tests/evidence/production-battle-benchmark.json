@@ -1,0 +1,20 @@
+{
+	"average_fps": 1193.52631327679,
+	"average_frame_ms": 0.837853333333333,
+	"max_draw_calls": 479,
+	"max_objects": 516,
+	"max_primitives": 68194,
+	"p95_frame_ms": 1.169,
+	"peak_frame_ms": 1.782,
+	"qualification": "development baseline only; target-hardware certification still required",
+	"renderer": "NVIDIA GeForce RTX 5060",
+	"resolution": [
+		1920,
+		1080
+	],
+	"sample_frames": 300,
+	"schema_version": 1,
+	"static_memory_bytes": 56514501,
+	"timestamp_unix": 1785494350.946,
+	"warmup_frames": 60
+}

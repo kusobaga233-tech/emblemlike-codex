@@ -47,6 +47,11 @@ try {
 
     Invoke-ValidatorCase 'missing-file' { param($root) Remove-Item -LiteralPath (Join-Path $root 'docs/imagegen/prompt-registry.md') -Force } 'Prompt registry|Required files'
 
+    Invoke-ValidatorCase 'missing-benchmark' {
+        param($root)
+        Remove-Item -LiteralPath (Join-Path $root 'tests/evidence/production-battle-benchmark.json') -Force
+    } 'Development benchmark'
+
     Invoke-ValidatorCase 'legacy-imagegen-policy' {
         param($root)
         $path = Join-Path $root 'docs/imagegen/prompt-registry.md'

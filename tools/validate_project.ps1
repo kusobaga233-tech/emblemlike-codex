@@ -135,6 +135,7 @@ $requiredFiles = @(
     'docs/phase-gates/chapter-one-greybox.md',
     'docs/asset-registry.csv',
     'docs/imagegen/prompt-registry.md',
+    'tests/evidence/production-battle-benchmark.json',
     'tools/validate_project.ps1'
 )
 $missing = @($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $ProjectRoot $_)) })
@@ -149,6 +150,29 @@ foreach ($json in Get-ChildItem -LiteralPath $ProjectRoot -Recurse -Filter '*.js
     try { [void](Get-Content -Raw -Encoding UTF8 -LiteralPath $json.FullName | ConvertFrom-Json) } catch { $jsonIssues.Add("$($json.FullName): $($_.Exception.Message)") }
 }
 Add-GateResult 'JSON parse' ($jsonIssues.Count -eq 0) $(if ($jsonIssues.Count) { $jsonIssues -join '; ' } else { 'all JSON parsed' })
+
+$benchmarkPath = Join-Path $ProjectRoot 'tests/evidence/production-battle-benchmark.json'
+if (Test-Path -LiteralPath $benchmarkPath) {
+    try {
+        $benchmark = Get-Content -Raw -Encoding UTF8 -LiteralPath $benchmarkPath | ConvertFrom-Json
+        $benchmarkValid = (
+            $benchmark.schema_version -eq 1 -and
+            $benchmark.sample_frames -ge 300 -and
+            $benchmark.resolution.Count -eq 2 -and
+            $benchmark.resolution[0] -eq 1920 -and
+            $benchmark.resolution[1] -eq 1080 -and
+            $benchmark.average_frame_ms -gt 0 -and
+            $benchmark.p95_frame_ms -gt 0 -and
+            $benchmark.peak_frame_ms -ge $benchmark.p95_frame_ms -and
+            $benchmark.max_draw_calls -gt 0 -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.renderer) -and
+            [string]$benchmark.qualification -match 'target-hardware certification still required'
+        )
+        Add-GateResult 'Development benchmark' $benchmarkValid $(if ($benchmarkValid) { "1920x1080/$($benchmark.sample_frames) frames; avg=$([math]::Round($benchmark.average_frame_ms, 3))ms p95=$([math]::Round($benchmark.p95_frame_ms, 3))ms; target certification explicitly pending" } else { 'missing metrics, invalid resolution/sample count, or qualification overclaims target certification' })
+    } catch {
+        Add-GateResult 'Development benchmark' $false "invalid report: $($_.Exception.Message)"
+    }
+} else { Add-GateResult 'Development benchmark' $false 'report missing' }
 
 $assetPath = Join-Path $ProjectRoot 'docs/asset-registry.csv'
 if (Test-Path -LiteralPath $assetPath) {
