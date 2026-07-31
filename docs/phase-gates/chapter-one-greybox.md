@@ -23,7 +23,7 @@ PASS — the Phase 1 greybox gate is satisfied for the tested chapter-one build.
 | viewport framing | PASS | full suite plus E2E worker | `tests/evidence/task10-full-tests.txt` | Landscape, portrait, orbit, zoom, and board-corner framing assertions pass. |
 | clean engine logs | PASS | `Godot_v4.6.3-stable_win64.exe --headless --path <project> --quit-after 120` | `tests/evidence/task10-120-frames.txt` | 120-frame boot exits 0 without anchored `ERROR:`, `SCRIPT ERROR:`, or orphan diagnostics. |
 
-The complete validation Command is `powershell -NoProfile -ExecutionPolicy Bypass -File tools/validate_project.ps1`. Its GREEN summary is recorded in `tests/evidence/task10-green.txt`; the validator reruns the real 12/12 suite, parser/resource smoke, and 120-frame boot rather than accepting this Markdown PASS at face value.
+The complete validation Command is `powershell -NoProfile -ExecutionPolicy Bypass -File tools/validate_project.ps1`. Its GREEN summary is recorded in `tests/evidence/task10-green.txt`; the validator reruns the real 13/13 suite, including production asset import, parser/resource smoke, and 120-frame boot rather than accepting this Markdown PASS at face value.
 
 ## Limitations and next-stage blockers
 

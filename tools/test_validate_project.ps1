@@ -63,7 +63,7 @@ try {
         param($root)
         $path = Join-Path $root 'docs/asset-registry.csv'
         $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
-        $text = $text -replace 'Pending original generation via myimage-gen / Right Code Draw,"Planned concept only; no generated or selected file exists",res://assets/production/concepts/heroes/hero-ember-warden.png', ',"Planned concept only; no generated or selected file exists",res://assets/production/concepts/heroes/hero-ember-warden.png'
+        $text = $text -replace 'Original generated through Right Code Draw; batch manifest and visual inspection recorded,"Reference generated; not yet selected or copied into the Godot project",res://assets/production/concepts/heroes/hero-ember-warden.png', ',"Reference generated; not yet selected or copied into the Godot project",res://assets/production/concepts/heroes/hero-ember-warden.png'
         Write-Utf8NoBom $path $text
     } 'empty license'
 
@@ -98,7 +98,7 @@ func _init() -> void:
 	quit(1)
 '@
         Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
-    } 'Full test suite 12/12'
+    } 'Full test suite 13/13'
 
     Invoke-ValidatorCase 'missing-godot-command' { param($root) } 'Godot executable|Godot executable or project.godot missing' (Join-Path $tempRoot 'does-not-exist.exe')
 } finally {
