@@ -13,18 +13,23 @@ const TERRAIN_COLORS := {
 }
 const MOVE_COLOR := Color(0.20, 0.70, 1.0, 0.48)
 const ATTACK_COLOR := Color(1.0, 0.22, 0.25, 0.48)
+const ENVIRONMENT_KIT_PATH := "res://assets/production/environment/chapter_one_observatory_kit.glb"
 
 var board_width: int = 0
 var board_height: int = 0
+var _environment_meshes: Dictionary = {}
 
 
 func build(chapter: Variant) -> void:
 	var terrain_root := _ensure_root("Terrain")
 	var move_root := _ensure_root("MoveOverlay")
 	var attack_root := _ensure_root("AttackOverlay")
+	var decor_root := _ensure_root("EnvironmentDecor")
 	_clear_children(terrain_root)
 	_clear_children(move_root)
 	_clear_children(attack_root)
+	_clear_children(decor_root)
+	_load_environment_meshes()
 	board_width = 0 if chapter == null else maxi(0, int(chapter.width))
 	board_height = 0 if chapter == null else maxi(0, int(chapter.height))
 	if chapter == null:
@@ -34,6 +39,7 @@ func build(chapter: Variant) -> void:
 		var terrain_id := StringName(chapter.terrain[index])
 		terrain_root.add_child(_make_tile(position, terrain_id))
 		_assign_scene_owner(terrain_root.get_child(terrain_root.get_child_count() - 1))
+	_build_environment_decor(decor_root, chapter)
 
 
 func show_move_cells(cells: Array) -> void:
@@ -51,12 +57,12 @@ func pick_cell(position: Vector2i) -> void:
 func _make_tile(grid_position: Vector2i, terrain_id: StringName) -> MeshInstance3D:
 	var tile := MeshInstance3D.new()
 	tile.name = "Cell_%d_%d" % [grid_position.x, grid_position.y]
-	var mesh := BoxMesh.new()
+	var mesh: Mesh = _environment_meshes.get("Bridge_1x1" if terrain_id == &"bridge" else "Floor_1x1") as Mesh
+	if mesh == null:
+		mesh = BoxMesh.new()
 	var height := _terrain_height(terrain_id)
-	mesh.size = Vector3(0.94, height, 0.94)
 	tile.mesh = mesh
-	tile.position = Vector3(grid_position.x, _terrain_y(terrain_id), grid_position.y)
-	tile.material_override = _material(TERRAIN_COLORS.get(terrain_id, TERRAIN_COLORS[&"plain"]))
+	tile.position = Vector3(grid_position.x, -0.08 if terrain_id == &"water" else 0.0, grid_position.y)
 	tile.set_meta("grid_position", grid_position)
 	tile.set_meta("terrain_id", terrain_id)
 	var pick_area := Area3D.new()
@@ -74,6 +80,52 @@ func _make_tile(grid_position: Vector2i, terrain_id: StringName) -> MeshInstance
 	collision.shape = shape
 	pick_area.add_child(collision)
 	return tile
+
+
+func _load_environment_meshes() -> void:
+	if not _environment_meshes.is_empty():
+		return
+	var packed := load(ENVIRONMENT_KIT_PATH) as PackedScene
+	if packed == null:
+		return
+	var instance := packed.instantiate()
+	_collect_environment_meshes(instance)
+	instance.free()
+
+
+func _collect_environment_meshes(node: Node) -> void:
+	if node is MeshInstance3D:
+		_environment_meshes[String(node.name)] = (node as MeshInstance3D).mesh
+	for child: Node in node.get_children():
+		_collect_environment_meshes(child)
+
+
+func _build_environment_decor(root: Node3D, chapter: Variant) -> void:
+	var cover_mesh := _environment_meshes.get("Cover_Low_1x1") as Mesh
+	var ruin_mesh := _environment_meshes.get("Ruin_Arch_2x1") as Mesh
+	if cover_mesh != null:
+		for index: int in mini(chapter.terrain.size(), board_width * board_height):
+			if StringName(chapter.terrain[index]) not in [&"forest", &"crystal"]:
+				continue
+			var grid_position := Vector2i(index % board_width, index / board_width)
+			if (grid_position.x + grid_position.y) % 4 != 0:
+				continue
+			_add_decor_mesh(root, cover_mesh, "Cover_%d_%d" % [grid_position.x, grid_position.y], Vector3(grid_position.x, 0.12, grid_position.y))
+	if ruin_mesh != null and board_width >= 2 and board_height >= 2:
+		_add_decor_mesh(root, ruin_mesh, "Ruin_North", Vector3(0.1, 0.0, -0.55))
+		var south_ruin := _add_decor_mesh(root, ruin_mesh, "Ruin_South", Vector3(board_width - 1.1, 0.0, board_height - 0.45))
+		south_ruin.rotation.y = PI
+
+
+func _add_decor_mesh(root: Node3D, mesh: Mesh, node_name: String, at: Vector3) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	instance.name = node_name
+	instance.mesh = mesh
+	instance.position = at
+	instance.set_meta("render_only", true)
+	root.add_child(instance)
+	_assign_scene_owner(instance)
+	return instance
 
 
 func _on_cell_input_event(

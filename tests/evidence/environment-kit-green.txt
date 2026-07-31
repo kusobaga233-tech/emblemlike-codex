@@ -1,0 +1,32 @@
+Chapter One observatory environment kit GREEN evidence
+Date: 2026-07-31
+
+Blender source build:
+& 'D:\blender editor\blender.exe' --background --python 'D:\godot-proj\star-ember-oath-blender\tools\build_environment_kit.py'
+Exit: 0
+Result: chapter_one_observatory_kit.blend and GLB generated; 1,944 triangles against a 12,000-triangle budget. Floor bounds 0.96 x 0.96 m; bridge bounds 0.96 x 0.94 m. Materials: MAT_ObservatoryStone, MAT_AgedBrass, MAT_EmberGlass.
+
+Targeted Godot workers:
+test_environment_kit.gd: PASS (exit 0)
+test_battle_scene.gd: PASS (exit 0)
+
+Full verification command:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' --quit-after 120
+
+Result:
+PASS test_battle_scene.gd
+PASS test_battle_session.gd
+PASS test_chapter_one_content.gd
+PASS test_chapter_one_playthrough.gd
+PASS test_combat_rules.gd
+PASS test_e2e_scene_flow.gd
+PASS test_environment_kit.gd
+PASS test_grid_rules.gd
+PASS test_production_asset_import.gd
+PASS test_project_smoke.gd
+PASS test_runner_self.gd
+PASS test_save_service.gd
+PASS test_scene_flow.gd
+PASS test_turn_objective_ai.gd
+Ran 14 test file(s): 14 passed, 0 failed.
+Exit: 0

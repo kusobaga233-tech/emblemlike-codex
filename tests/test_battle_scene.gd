@@ -55,13 +55,10 @@ func _test_board_build_palette_rebuild_and_overlays() -> void:
 	assert_equal(terrain_root.get_child_count(), 80, "Chapter one builds exactly eighty cells")
 	for child: Node in terrain_root.get_children():
 		assert_true(child is MeshInstance3D, "Every terrain cell is a MeshInstance3D")
-		assert_true((child as MeshInstance3D).mesh is BoxMesh, "Every terrain cell uses BoxMesh")
+		assert_true(not ((child as MeshInstance3D).mesh is BoxMesh), "Every terrain cell uses an imported environment mesh")
 		assert_true(child.get_node_or_null("PickArea/CollisionShape3D") is CollisionShape3D, "Every terrain cell owns a physics pick shape")
 
-	_assert_terrain_color(terrain_root, &"bridge", Color("586579"))
-	_assert_terrain_color(terrain_root, &"forest", Color("377a4a"))
-	_assert_terrain_color(terrain_root, &"water", Color("286aa6"))
-	_assert_terrain_color(terrain_root, &"crystal", Color("7952b3"))
+	assert_true(board.get_node("EnvironmentDecor").get_child_count() > 0, "Board builds collision-free observatory decor")
 
 	var old_cell_weak: WeakRef = weakref(terrain_root.get_child(0))
 	board.build(chapter)

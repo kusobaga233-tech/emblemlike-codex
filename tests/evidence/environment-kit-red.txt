@@ -1,0 +1,14 @@
+Chapter One observatory environment kit RED evidence
+Date: 2026-07-31
+
+Commands:
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' --quit-after 120 -- --test-runner-worker 'res://tests/test_environment_kit.gd'
+& 'D:\godot-proj\Godot_v4.6.3-stable_win64.exe' --headless --path 'D:\godot-proj\star-ember-oath-godot' --script 'res://tests/run_all.gd' --quit-after 120 -- --test-runner-worker 'res://tests/test_battle_scene.gd'
+
+Observed expected failures:
+FAIL test_environment_kit.gd
+  Observatory kit GLB exists: Expected a truthy value.
+FAIL test_battle_scene.gd
+  Every terrain cell uses an imported environment mesh: Expected a truthy value. (80 cells)
+
+The tests failed because the production GLB did not yet exist and the board still used BoxMesh cells. No Blender source, GLB, or production integration existed during this run.
