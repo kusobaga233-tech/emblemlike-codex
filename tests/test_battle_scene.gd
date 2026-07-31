@@ -281,6 +281,11 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	assert_true(scene.get_node("Units/captain-1/ProductionVisual") != null, "Bridge captain uses the imported boss production visual")
 	assert_equal(_count_type(scene, Camera3D), 1, "Battle scene has exactly one Camera3D")
 	assert_equal(_count_type(scene, DirectionalLight3D), 1, "Battle scene has exactly one DirectionalLight3D")
+	var world_environment := scene.get_node_or_null("WorldEnvironment") as WorldEnvironment
+	assert_true(world_environment != null, "Battle scene has a production WorldEnvironment")
+	if world_environment != null:
+		assert_true(world_environment.environment != null, "Production WorldEnvironment owns an Environment resource")
+		assert_true(world_environment.environment.ambient_light_energy > 0.0, "Production environment supplies ambient fill light")
 	assert_true(scene.get_node("TacticalCamera").current, "Battle camera is active")
 	_assert_descendant_owners(scene, scene)
 
