@@ -8,12 +8,13 @@ func show_forecast(forecast: Variant) -> void:
 		visible = false
 		return
 	visible = true
-	$Layout/Damage.text = "Damage: %d" % forecast.damage
-	$Layout/HitRate.text = "Hit: %d%%" % forecast.hit_rate
-	$Layout/CriticalRate.text = "Critical: %d%%" % forecast.critical_rate
-	$Layout/StrikeCount.text = "Strikes: %d" % forecast.strike_count
-	$Layout/Counter.text = "Counter: %s" % ("Yes" if forecast.can_counter else "No")
-	$Layout/RemainingHp.text = "Remaining HP: %d" % forecast.defender_remaining_hp
+	$Layout/Title.text = "战斗预测"
+	$Layout/Damage.text = "预计伤害：%d" % forecast.damage
+	$Layout/HitRate.text = "命中率：%d%%" % forecast.hit_rate
+	$Layout/CriticalRate.text = "暴击率：%d%%" % forecast.critical_rate
+	$Layout/StrikeCount.text = "攻击次数：%d" % forecast.strike_count
+	$Layout/Counter.text = "敌方反击：%s" % ("可以" if forecast.can_counter else "无法")
+	$Layout/RemainingHp.text = "敌方剩余生命：%d" % forecast.defender_remaining_hp
 
 
 func _clear() -> void:

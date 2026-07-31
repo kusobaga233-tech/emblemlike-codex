@@ -145,12 +145,12 @@ func _test_hud_forecast_and_result_flow() -> void:
 	forecast.can_counter = true
 	forecast.defender_remaining_hp = 7
 	panel.show_forecast(forecast)
-	assert_equal(panel.get_node("Layout/Damage").text, "Damage: 9", "Forecast shows damage")
-	assert_equal(panel.get_node("Layout/HitRate").text, "Hit: 83%", "Forecast shows hit rate")
-	assert_equal(panel.get_node("Layout/CriticalRate").text, "Critical: 12%", "Forecast shows critical rate")
-	assert_equal(panel.get_node("Layout/StrikeCount").text, "Strikes: 2", "Forecast shows strike count")
-	assert_equal(panel.get_node("Layout/Counter").text, "Counter: Yes", "Forecast shows counter status")
-	assert_equal(panel.get_node("Layout/RemainingHp").text, "Remaining HP: 7", "Forecast shows projected HP")
+	assert_equal(panel.get_node("Layout/Damage").text, "预计伤害：9", "Forecast shows localized damage")
+	assert_equal(panel.get_node("Layout/HitRate").text, "命中率：83%", "Forecast shows localized hit rate")
+	assert_equal(panel.get_node("Layout/CriticalRate").text, "暴击率：12%", "Forecast shows localized critical rate")
+	assert_equal(panel.get_node("Layout/StrikeCount").text, "攻击次数：2", "Forecast shows localized strike count")
+	assert_equal(panel.get_node("Layout/Counter").text, "敌方反击：可以", "Forecast shows localized counter status")
+	assert_equal(panel.get_node("Layout/RemainingHp").text, "敌方剩余生命：7", "Forecast shows localized projected HP")
 	panel.show_forecast(null)
 	assert_true(not panel.visible, "Empty forecast safely hides the panel")
 	panel.show_forecast({"damage": 99})
