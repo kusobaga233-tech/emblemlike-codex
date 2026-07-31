@@ -4,7 +4,8 @@
 - Generator: Right Code Draw helper (`rightcode_draw.py`), model `gpt-image-2`
 - Requested output: `1024x768`, quality `medium`
 - Batch directory: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-characters-v02`
-- Evidence: `concept_manifest_raw.json`, `concept_manifest_verified.json`, `prompts.md`, `concept_contact_sheet.png`
+- Evidence: `concept_manifest_raw.json`, `concept_manifest_verified.json`, `prompts.md`, `concept_contact_sheet.png`, batch-local `visual_review.md`
+- Evidence validator: `tools/validate_imagegen_batch.ps1` checks required provenance fields, entry counts, hashes, byte counts, and aspect-verification flags.
 - Verification: six readable PNG files; all actual dimensions are `1448x1086`, consistently 4:3; zero retries.
 
 ## Visual inspection
