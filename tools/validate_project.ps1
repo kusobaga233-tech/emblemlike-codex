@@ -24,6 +24,18 @@ function Add-GateResult {
     if (-not $Passed) { $script:failures.Add("${Name}: ${Detail}") }
 }
 
+function Test-FiniteNumber {
+    param($Value, [double]$Maximum = 1000000000.0)
+    if ($null -eq $Value) { return $false }
+    try { $number = [double]$Value } catch { return $false }
+    return -not [double]::IsNaN($number) -and -not [double]::IsInfinity($number) -and [math]::Abs($number) -le $Maximum
+}
+
+function Test-ApproximatelyEqual {
+    param([double]$Actual, [double]$Expected, [double]$RelativeTolerance = 0.01)
+    return [math]::Abs($Actual - $Expected) -le [math]::Max(0.001, [math]::Abs($Expected) * $RelativeTolerance)
+}
+
 function Invoke-CapturedProcess {
     param([string]$FilePath, [string[]]$Arguments, [int]$TimeoutSeconds = 180)
     $process = [System.Diagnostics.Process]::new()
@@ -155,33 +167,61 @@ $benchmarkPath = Join-Path $ProjectRoot 'tests/evidence/production-battle-benchm
 if (Test-Path -LiteralPath $benchmarkPath) {
     try {
         $benchmark = Get-Content -Raw -Encoding UTF8 -LiteralPath $benchmarkPath | ConvertFrom-Json
+        $numericFields = @('average_frame_ms', 'average_fps', 'p95_frame_ms', 'peak_frame_ms', 'measurement_elapsed_ms', 'relative_difference', 'performance_threshold_ms')
+        $finiteMetrics = @($numericFields | Where-Object { -not (Test-FiniteNumber $benchmark.$_ 1000000.0) }).Count -eq 0
+        $runMetricsValid = $benchmark.runs.Count -eq $benchmark.run_count
+        if ($runMetricsValid) {
+            foreach ($run in $benchmark.runs) {
+                $runMetricsValid = $runMetricsValid -and (Test-FiniteNumber $run.elapsed_ms 1000000.0) -and (Test-FiniteNumber $run.average_frame_ms 1000000.0) -and (Test-FiniteNumber $run.p95_frame_ms 1000000.0) -and (Test-FiniteNumber $run.peak_frame_ms 1000000.0) -and $run.average_frame_ms -gt 0 -and $run.average_frame_ms -le $run.p95_frame_ms -and $run.p95_frame_ms -le $run.peak_frame_ms -and (Test-ApproximatelyEqual $run.average_frame_ms ($run.elapsed_ms / $benchmark.sample_frames)) -and $run.focus_loss_frames -eq 0 -and $run.window_focused_at_start -eq $true -and $run.window_focused_at_end -eq $true
+            }
+        }
+        $expectedAverage = $benchmark.measurement_elapsed_ms / ($benchmark.sample_frames * $benchmark.run_count)
+        $expectedPerformance = $benchmark.average_frame_ms -le $benchmark.performance_threshold_ms
         $benchmarkValid = (
-            $benchmark.schema_version -eq 2 -and
+            $benchmark.schema_version -eq 3 -and
             $benchmark.sample_frames -ge 300 -and
+            $benchmark.run_count -ge 2 -and
             $benchmark.resolution.Count -eq 2 -and
             $benchmark.resolution[0] -eq 1920 -and
             $benchmark.resolution[1] -eq 1080 -and
+            $finiteMetrics -and
+            $runMetricsValid -and
             $benchmark.average_frame_ms -gt 0 -and
-            $benchmark.p95_frame_ms -gt 0 -and
-            $benchmark.peak_frame_ms -ge $benchmark.p95_frame_ms -and
+            $benchmark.average_frame_ms -le $benchmark.p95_frame_ms -and
+            $benchmark.p95_frame_ms -le $benchmark.peak_frame_ms -and
+            (Test-ApproximatelyEqual $benchmark.average_frame_ms $expectedAverage) -and
+            (Test-ApproximatelyEqual $benchmark.average_fps (1000.0 / $benchmark.average_frame_ms)) -and
             $benchmark.max_draw_calls -gt 0 -and
             $benchmark.measurement_method -eq 'render_frame_post_draw_wall_clock' -and
             $benchmark.measurement_elapsed_ms -gt 0 -and
             $benchmark.measurement_valid -eq $true -and
             -not [string]::IsNullOrWhiteSpace([string]$benchmark.measurement_validity_reason) -and
-            $null -ne $benchmark.window_focused_at_start -and
-            $null -ne $benchmark.window_focused_at_end -and
+            $benchmark.window_focused_at_start -eq $true -and
+            $benchmark.window_focused_at_end -eq $true -and
+            $benchmark.focus_loss_frames -eq 0 -and
             $benchmark.runtime_configuration.vsync_disabled -eq $true -and
             $benchmark.runtime_configuration.max_fps -eq 0 -and
             $benchmark.runtime_configuration.low_processor_usage_mode -eq $false -and
+            $benchmark.performance_threshold_ms -gt 0 -and
+            $benchmark.performance_pass -eq $expectedPerformance -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.run_id) -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.godot_version) -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.godot_build) -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.os) -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.graphics_api) -and
+            [string]$benchmark.source_commit -match '^[0-9a-f]{40}$' -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.launch_mode) -and
+            -not [string]::IsNullOrWhiteSpace([string]$benchmark.launch_command) -and
             -not [string]::IsNullOrWhiteSpace([string]$benchmark.renderer) -and
             [string]$benchmark.qualification -match 'target-hardware certification still required'
         )
         Add-GateResult 'Development benchmark' $benchmarkValid $(if ($benchmarkValid) { "1920x1080/$($benchmark.sample_frames) render-complete frames; avg=$([math]::Round($benchmark.average_frame_ms, 3))ms p95=$([math]::Round($benchmark.p95_frame_ms, 3))ms; target certification explicitly pending" } else { 'missing/invalid render-completion methodology, runtime throttle settings, metrics, resolution/sample count, or qualification' })
+        Add-GateResult 'Development performance' ($benchmarkValid -and $benchmark.performance_pass) $(if ($benchmarkValid -and $benchmark.performance_pass) { "avg=$([math]::Round($benchmark.average_frame_ms, 3))ms <= $($benchmark.performance_threshold_ms)ms development threshold" } elseif ($benchmarkValid) { "valid measurement but avg=$([math]::Round($benchmark.average_frame_ms, 3))ms exceeds $($benchmark.performance_threshold_ms)ms development threshold" } else { 'benchmark methodology invalid; performance not evaluated' })
     } catch {
         Add-GateResult 'Development benchmark' $false "invalid report: $($_.Exception.Message)"
+		Add-GateResult 'Development performance' $false 'benchmark methodology invalid; performance not evaluated'
     }
-} else { Add-GateResult 'Development benchmark' $false 'report missing' }
+} else { Add-GateResult 'Development benchmark' $false 'report missing'; Add-GateResult 'Development performance' $false 'report missing' }
 
 $assetPath = Join-Path $ProjectRoot 'docs/asset-registry.csv'
 if (Test-Path -LiteralPath $assetPath) {

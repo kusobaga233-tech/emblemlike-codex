@@ -1,0 +1,16 @@
+Benchmark quality-review adversarial RED evidence
+Date: 2026-07-31
+
+Pre-fix command (PowerShell, repository root):
+& .\tools\test_validate_project.ps1
+
+Exit code: 1
+
+Observed focused result:
+FAIL benchmark-inconsistent-metrics
+FAIL benchmark-focus-loss
+FAIL benchmark-missing-reproducibility
+FAIL benchmark-slow-valid-not-conflated
+Validator negative tests: 14 passed, 4 failed
+
+The pre-fix validator emitted [PASS] Development benchmark for each adversarial report. It did not enforce timing arithmetic, per-frame focus integrity, reproducibility metadata, or separation between method validity and the performance threshold.

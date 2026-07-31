@@ -90,6 +90,56 @@ try {
         Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
     } '\[FAIL\] Development benchmark'
 
+    Invoke-ValidatorCase 'benchmark-inconsistent-metrics' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report.average_frame_ms = 1.0
+        $report.average_fps = 1.0
+        $report.measurement_elapsed_ms = 1.0
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
+
+    Invoke-ValidatorCase 'benchmark-focus-loss' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report | Add-Member -NotePropertyName focus_loss_frames -NotePropertyValue 1 -Force
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
+
+    Invoke-ValidatorCase 'benchmark-missing-reproducibility' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        foreach ($name in @('run_id', 'godot_version', 'os', 'graphics_api', 'source_commit', 'launch_mode', 'launch_command', 'run_count', 'runs', 'relative_difference')) {
+            $report.PSObject.Properties.Remove($name)
+        }
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '\[FAIL\] Development benchmark'
+
+    Invoke-ValidatorCase 'benchmark-slow-valid-not-conflated' {
+        param($root)
+        $path = Join-Path $root 'tests/evidence/production-battle-benchmark.json'
+        $report = Get-Content -Raw -Encoding UTF8 -LiteralPath $path | ConvertFrom-Json
+        $report.average_frame_ms = 60.0
+        $report.average_fps = 16.6666666667
+        $report.measurement_elapsed_ms = 36000.0
+        $report.p95_frame_ms = 65.0
+        $report.peak_frame_ms = 70.0
+        $report.measurement_valid = $true
+        $report | Add-Member -NotePropertyName performance_threshold_ms -NotePropertyValue 50.0 -Force
+        $report | Add-Member -NotePropertyName performance_pass -NotePropertyValue $false -Force
+        $report | Add-Member -NotePropertyName relative_difference -NotePropertyValue 0.0 -Force
+        foreach ($run in $report.runs) {
+            $run.elapsed_ms = 18000.0
+            $run.average_frame_ms = 60.0
+            $run.p95_frame_ms = 65.0
+            $run.peak_frame_ms = 70.0
+        }
+        Write-Utf8NoBom $path ($report | ConvertTo-Json -Depth 10)
+    } '(?s)\[PASS\] Development benchmark.*\[FAIL\] Development performance'
+
     Invoke-ValidatorCase 'legacy-imagegen-policy' {
         param($root)
         $path = Join-Path $root 'docs/imagegen/prompt-registry.md'
