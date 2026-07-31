@@ -18,6 +18,7 @@ const ENVIRONMENT_KIT_PATH := "res://assets/production/environment/chapter_one_o
 var board_width: int = 0
 var board_height: int = 0
 var _environment_meshes: Dictionary = {}
+var _terrain_materials: Dictionary = {}
 
 
 func build(chapter: Variant) -> void:
@@ -59,7 +60,9 @@ func _make_tile(grid_position: Vector2i, terrain_id: StringName) -> MeshInstance
 	tile.name = "Cell_%d_%d" % [grid_position.x, grid_position.y]
 	var mesh: Mesh = _environment_meshes.get("Bridge_1x1" if terrain_id == &"bridge" else "Floor_1x1") as Mesh
 	if mesh == null:
-		mesh = BoxMesh.new()
+		var fallback_mesh := BoxMesh.new()
+		fallback_mesh.size = Vector3(0.94, _terrain_height(terrain_id), 0.94)
+		mesh = fallback_mesh
 	var height := _terrain_height(terrain_id)
 	tile.mesh = mesh
 	tile.position = Vector3(grid_position.x, _terrain_y(terrain_id), grid_position.y)
@@ -195,6 +198,8 @@ func _material(color: Color, transparent: bool = false) -> StandardMaterial3D:
 
 
 func _terrain_material(terrain_id: StringName) -> StandardMaterial3D:
+	if _terrain_materials.has(terrain_id):
+		return _terrain_materials[terrain_id] as StandardMaterial3D
 	var material := _material(TERRAIN_COLORS.get(terrain_id, TERRAIN_COLORS[&"plain"]))
 	material.metallic = 0.28 if terrain_id in [&"bridge", &"crystal"] else 0.08
 	material.roughness = 0.34 if terrain_id == &"water" else 0.68
@@ -202,6 +207,7 @@ func _terrain_material(terrain_id: StringName) -> StandardMaterial3D:
 		material.emission_enabled = true
 		material.emission = Color("2c183c")
 		material.emission_energy_multiplier = 0.45
+	_terrain_materials[terrain_id] = material
 	return material
 
 

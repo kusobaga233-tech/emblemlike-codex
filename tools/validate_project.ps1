@@ -205,9 +205,11 @@ if ($null -ne $git) {
 } else { Add-GateResult 'git diff --check' $false 'git executable not found' }
 
 if ((Test-Path -LiteralPath $GodotPath) -and (Test-Path -LiteralPath (Join-Path $ProjectRoot 'project.godot'))) {
+    $expectedTestCount = @(Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'tests') -File -Filter 'test_*.gd' | Where-Object { $_.Name -ne 'test_case.gd' }).Count
+    $expectedSuiteText = "Ran $expectedTestCount test file(s): $expectedTestCount passed, 0 failed."
     $full = Invoke-CapturedProcess -FilePath $GodotPath -Arguments @('--headless', '--path', $ProjectRoot, '--script', 'res://tests/run_all.gd', '--quit-after', '120') -TimeoutSeconds 300
-    $fullPass = -not $full.TimedOut -and $full.ExitCode -eq 0 -and $full.Output -match 'Ran 13 test file\(s\): 13 passed, 0 failed\.' -and -not (Test-AnchoredDiagnostics $full.Output)
-    Add-GateResult 'Full test suite 13/13' $fullPass $(if ($fullPass) { 'Ran 13 test file(s): 13 passed, 0 failed.' } elseif ($full.TimedOut) { 'timed out' } else { "exit=$($full.ExitCode); expected explicit 13/13; output=$($full.Output.Trim())" })
+    $fullPass = -not $full.TimedOut -and $full.ExitCode -eq 0 -and $full.Output -match [regex]::Escape($expectedSuiteText) -and -not (Test-AnchoredDiagnostics $full.Output)
+    Add-GateResult "Full test suite $expectedTestCount/$expectedTestCount" $fullPass $(if ($fullPass) { $expectedSuiteText } elseif ($full.TimedOut) { 'timed out' } else { "exit=$($full.ExitCode); expected explicit $expectedTestCount/$expectedTestCount; output=$($full.Output.Trim())" })
 
     $keyWorkers = @(
         'test_chapter_one_playthrough.gd',
@@ -233,7 +235,7 @@ if ((Test-Path -LiteralPath $GodotPath) -and (Test-Path -LiteralPath (Join-Path 
         Add-GateResult 'Boot smoke 120 frames' $bootPass $(if ($bootPass) { '120-frame boot completed without anchored diagnostics' } elseif ($boot.TimedOut) { 'timed out' } else { "exit=$($boot.ExitCode); output=$($boot.Output.Trim())" })
     }
 } else {
-    Add-GateResult 'Full test suite 13/13' $false 'Godot executable or project.godot missing'
+    Add-GateResult 'Full test suite' $false 'Godot executable or project.godot missing'
     Add-GateResult 'Fresh worker test_chapter_one_playthrough.gd' $false 'Godot executable or project.godot missing'
     Add-GateResult 'Fresh worker test_save_service.gd' $false 'Godot executable or project.godot missing'
     Add-GateResult 'Fresh worker test_e2e_scene_flow.gd' $false 'Godot executable or project.godot missing'

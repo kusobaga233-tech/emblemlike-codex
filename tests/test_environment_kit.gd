@@ -12,10 +12,16 @@ func run() -> void:
 	assert_true(ResourceLoader.exists(KIT_PATH), "Observatory kit GLB exists")
 	assert_true(FileAccess.file_exists(SOURCE_SCRIPT_PATH), "Versioned Blender generator exists in the Godot repository")
 	assert_true(FileAccess.file_exists(SOURCE_BLEND_PATH), "Versioned Blender source file exists in the Godot repository")
-	var report: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(REPORT_PATH))
+	var parsed_report: Variant = JSON.parse_string(FileAccess.get_file_as_string(REPORT_PATH))
+	assert_true(parsed_report is Dictionary, "Environment report parses as a JSON object")
+	var report: Dictionary = parsed_report if parsed_report is Dictionary else {}
 	assert_true(report.has("module_triangles"), "Environment report includes per-module triangle counts")
+	assert_true(report.get("module_triangles") is Dictionary, "Per-module triangle counts are a JSON object")
+	assert_true(report.get("modules") is Dictionary, "Per-module bounds are a JSON object")
+	var reported_triangles: Dictionary = report.get("module_triangles", {}) if report.get("module_triangles") is Dictionary else {}
+	var reported_modules: Dictionary = report.get("modules", {}) if report.get("modules") is Dictionary else {}
 	for module_name: String in ["Floor_1x1", "Bridge_1x1", "Cover_Low_1x1", "Ruin_Arch_2x1"]:
-		var triangles := int(report.get("module_triangles", {}).get(module_name, 0))
+		var triangles := int(reported_triangles.get(module_name, 0))
 		assert_true(triangles >= 2000 and triangles <= 12000, "%s stays inside the 2k-12k production range; found=%d" % [module_name, triangles])
 	if not ResourceLoader.exists(KIT_PATH):
 		return
@@ -32,6 +38,15 @@ func run() -> void:
 			assert_true(module.mesh.surface_get_material(0) != null, "%s has an imported production material" % module_name)
 			var imported_triangles := _mesh_triangle_count(module.mesh)
 			assert_true(imported_triangles >= 2000 and imported_triangles <= 12000, "%s imported mesh has 2k-12k production density; found=%d" % [module_name, imported_triangles])
+			assert_equal(imported_triangles, int(reported_triangles.get(module_name, -1)), "%s report triangle count matches the imported GLB" % module_name)
+			var module_report: Variant = reported_modules.get(module_name)
+			assert_true(module_report is Dictionary, "%s bounds report is an object" % module_name)
+			if module_report is Dictionary:
+				var blender_bounds: Variant = module_report.get("bounds_blender_xyz")
+				assert_true(blender_bounds is Array and blender_bounds.size() == 3, "%s has three Blender bounds axes" % module_name)
+				if blender_bounds is Array and blender_bounds.size() == 3:
+					var expected_godot := Vector3(float(blender_bounds[0]), float(blender_bounds[2]), float(blender_bounds[1]))
+					_assert_vector3_near(module.mesh.get_aabb().size, expected_godot, 0.002, "%s report bounds match imported GLB with axis mapping" % module_name)
 	var floor := _find_named_mesh(kit, "Floor_1x1")
 	if floor != null:
 		var size := floor.mesh.get_aabb().size
@@ -63,10 +78,26 @@ func run() -> void:
 		for color: Color in terrain_colors.values():
 			unique_colors[color.to_html()] = true
 		assert_equal(unique_colors.size(), 5, "Plain, bridge, forest, water, and crystal are visibly distinct")
+		var first_plain_material: Material
+		for child: Node in terrain.get_children():
+			if child.get_meta("terrain_id") != &"plain":
+				continue
+			if first_plain_material == null:
+				first_plain_material = (child as MeshInstance3D).material_override
+			else:
+				assert_true(is_same(first_plain_material, (child as MeshInstance3D).material_override), "Terrain cells share cached immutable materials")
+				break
 	var decor := board.get_node_or_null("EnvironmentDecor")
 	assert_true(decor != null and decor.get_child_count() > 0, "Board creates modular observatory decor")
 	if decor != null:
 		assert_equal(_count_type(decor, CollisionObject3D), 0, "Decor is collision-free and cannot alter deterministic movement")
+	board.set("_environment_meshes", {})
+	var fallback := board.call("_make_tile", Vector2i(2, 3), &"water") as MeshInstance3D
+	assert_true(fallback.mesh is BoxMesh, "Missing imported mesh uses deterministic BoxMesh fallback")
+	if fallback.mesh is BoxMesh:
+		_assert_vector3_near((fallback.mesh as BoxMesh).size, Vector3(0.94, 0.06, 0.94), 0.0001, "Fallback water mesh restores grid-safe dimensions")
+	assert_true(absf(fallback.position.y + 0.08) < 0.001, "Fallback water mesh preserves terrain elevation")
+	fallback.free()
 	board.free()
 
 
@@ -98,3 +129,12 @@ func _mesh_triangle_count(mesh: Mesh) -> int:
 		else:
 			triangles += indices.size() / 3
 	return triangles
+
+
+func _assert_vector3_near(actual: Vector3, expected: Vector3, tolerance: float, message: String) -> void:
+	assert_true(
+		absf(actual.x - expected.x) <= tolerance
+		and absf(actual.y - expected.y) <= tolerance
+		and absf(actual.z - expected.z) <= tolerance,
+		"%s: expected=%s actual=%s" % [message, expected, actual],
+	)

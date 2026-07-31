@@ -42,8 +42,23 @@ function Invoke-ValidatorCase {
     }
 }
 
+function Invoke-ValidatorSuccessCase {
+    param([string]$Name)
+    $output = & (Join-Path $sourceRoot $validatorName) -ProjectRoot $sourceRoot -GodotPath $GodotPath -SkipBoot 2>&1 | Out-String
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0 -or $output -notmatch 'Full test suite 14/14') {
+        $script:failures.Add("$Name expected exit 0 and current full-suite gate; exit=$exitCode; output=$output")
+        Write-Output "FAIL $Name"
+    } else {
+        $script:passed++
+        Write-Output "PASS $Name"
+    }
+}
+
 try {
     [void](New-Item -ItemType Directory -Path $tempRoot -Force)
+
+    Invoke-ValidatorSuccessCase 'pristine-project'
 
     Invoke-ValidatorCase 'missing-file' { param($root) Remove-Item -LiteralPath (Join-Path $root 'docs/imagegen/prompt-registry.md') -Force } 'Prompt registry|Required files'
 
@@ -103,7 +118,18 @@ func _init() -> void:
 	quit(1)
 '@
         Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
-    } 'Full test suite 13/13'
+    } 'Full test suite 14/14'
+
+    Invoke-ValidatorCase 'stale-suite-count' {
+        param($root)
+        $runner = @'
+extends SceneTree
+func _init() -> void:
+	print("Ran 13 test file(s): 13 passed, 0 failed.")
+	quit(0)
+'@
+        Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
+    } 'Full test suite 14/14'
 
     Invoke-ValidatorCase 'missing-godot-command' { param($root) } 'Godot executable|Godot executable or project.godot missing' (Join-Path $tempRoot 'does-not-exist.exe')
 } finally {
