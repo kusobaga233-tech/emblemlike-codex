@@ -289,6 +289,8 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	assert_true(scene.get_node("TacticalCamera").current, "Battle camera is active")
 	assert_true(scene.get_node_or_null("BattleHud/Backdrop") is Panel, "Battle HUD uses a production panel backdrop")
 	assert_true(scene.get_node("BattleHud/Layout/Commands/Move").custom_minimum_size.y >= 44.0, "Battle commands meet the minimum pointer target height")
+	assert_equal(scene.get_node("BattleHud/Layout/Commands/Move").text, "移动", "Move command is localized")
+	assert_equal(scene.get_node("BattleHud/Layout/Commands/Attack").text, "攻击", "Attack command is localized")
 	_assert_descendant_owners(scene, scene)
 
 	var fenn: Node3D = scene.get_unit_node(&"fenn-1")

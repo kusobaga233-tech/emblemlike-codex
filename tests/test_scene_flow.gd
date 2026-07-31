@@ -94,7 +94,7 @@ func _test_hud_forecast_and_result_flow() -> void:
 	assert_equal(hud.get_viewport().gui_get_focus_owner(), hud.get_node("Layout/Commands/Move"), "HUD move owns default focus")
 	assert_true(not hud.get_node("Layout/Objective").text.is_empty(), "HUD displays objective text")
 	assert_true(hud.get_node("Layout/Turn").text.contains("1"), "HUD displays turn")
-	assert_true(hud.get_node("Layout/Phase").text.contains("player"), "HUD displays phase")
+	assert_true(hud.get_node("Layout/Phase").text.contains("我方行动"), "HUD displays localized phase")
 	assert_true(hud.get_node("Layout/Resonance").text.contains("0"), "HUD displays resonance")
 	assert_true(hud.get_node("Layout/Commands/Move") is Button, "HUD has move command")
 	var commands: Array = []

@@ -95,7 +95,7 @@ theme_override_constants/separation = 6
 [node name="Move" type="Button" parent="Layout/Commands"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Move"
+text = "移动"
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("Style_button")
 theme_override_styles/hover = SubResource("Style_button_hover")
@@ -103,7 +103,7 @@ theme_override_styles/focus = SubResource("Style_button_focus")
 [node name="Attack" type="Button" parent="Layout/Commands"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Attack"
+text = "攻击"
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("Style_button")
 theme_override_styles/hover = SubResource("Style_button_hover")
@@ -111,7 +111,7 @@ theme_override_styles/focus = SubResource("Style_button_focus")
 [node name="Wait" type="Button" parent="Layout/Commands"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Wait"
+text = "待机"
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("Style_button")
 theme_override_styles/hover = SubResource("Style_button_hover")
@@ -119,7 +119,7 @@ theme_override_styles/focus = SubResource("Style_button_focus")
 [node name="EndPhase" type="Button" parent="Layout/Commands"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "End Phase"
+text = "结束回合"
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("Style_button")
 theme_override_styles/hover = SubResource("Style_button_hover")

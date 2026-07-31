@@ -62,18 +62,27 @@ func _refresh() -> void:
 	if not is_node_ready() or _session == null:
 		return
 	var chapter: Variant = _session.chapter
-	$Layout/Objective.text = "Objective: %s" % _objective_text(chapter)
-	$Layout/Turn.text = "Turn: %d" % _session.turn_state.round
-	$Layout/Phase.text = "Phase: %s" % _session.turn_state.phase
-	$Layout/Resonance.text = "Resonance: %d" % _resonance_value()
+	$Layout/Objective.text = "胜利条件：%s" % _objective_text(chapter)
+	$Layout/Turn.text = "回合：%d" % _session.turn_state.round
+	$Layout/Phase.text = "阶段：%s" % _phase_text(_session.turn_state.phase)
+	$Layout/Resonance.text = "星誓共鸣：%d%%" % _resonance_value()
 	var selected: Variant = _find_unit(_session.selected_unit_id)
-	$Layout/SelectedUnit.text = "Selected: None" if selected == null else "Selected: %s  HP %d/%d" % [selected.definition.display_name, selected.current_hp, selected.definition.max_hp]
+	$Layout/SelectedUnit.text = "当前单位：未选择" if selected == null else "当前单位：%s  生命 %d/%d" % [selected.definition.display_name, selected.current_hp, selected.definition.max_hp]
 
 
 func _objective_text(chapter: Variant) -> String:
 	if chapter == null or chapter.objectives.is_empty():
-		return "Defeat all enemies"
-	return String(chapter.objectives[0].get("description", chapter.objectives[0].get("type", "Defeat all enemies")))
+		return "击败所有敌人"
+	var objective: Dictionary = chapter.objectives[0]
+	if StringName(objective.get("type", &"")) == &"unit_defeated":
+		var target: Variant = _find_unit(StringName(objective.get("target_id", &"")))
+		if target != null:
+			return "击败%s" % target.definition.display_name
+	return String(objective.get("description", "完成本章目标"))
+
+
+func _phase_text(phase: StringName) -> String:
+	return "我方行动" if phase == &"player" else "敌方行动"
 
 
 func _resonance_value() -> int:
