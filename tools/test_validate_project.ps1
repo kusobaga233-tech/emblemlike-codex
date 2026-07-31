@@ -11,6 +11,9 @@ $validatorName = 'tools/validate_project.ps1'
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("star-ember-validator-tests-{0}" -f [guid]::NewGuid())
 $failures = [System.Collections.Generic.List[string]]::new()
 $passed = 0
+$eligibleTestCount = @(Get-ChildItem -LiteralPath (Join-Path $sourceRoot 'tests') -File -Filter 'test_*.gd' | Where-Object { $_.Name -ne 'test_case.gd' }).Count
+$expectedGate = "Full test suite $eligibleTestCount/$eligibleTestCount"
+$staleTestCount = [Math]::Max(0, $eligibleTestCount - 1)
 
 function Write-Utf8NoBom {
     param([string]$Path, [string]$Text)
@@ -46,7 +49,7 @@ function Invoke-ValidatorSuccessCase {
     param([string]$Name)
     $output = & (Join-Path $sourceRoot $validatorName) -ProjectRoot $sourceRoot -GodotPath $GodotPath -SkipBoot 2>&1 | Out-String
     $exitCode = $LASTEXITCODE
-    if ($exitCode -ne 0 -or $output -notmatch 'Full test suite 14/14') {
+    if ($exitCode -ne 0 -or $output -notmatch [regex]::Escape($expectedGate)) {
         $script:failures.Add("$Name expected exit 0 and current full-suite gate; exit=$exitCode; output=$output")
         Write-Output "FAIL $Name"
     } else {
@@ -111,25 +114,27 @@ try {
 
     Invoke-ValidatorCase 'fake-pass-test-failure' {
         param($root)
-        $runner = @'
+        $runner = @"
 extends SceneTree
 func _init() -> void:
-	print("Ran 12 test file(s): 12 passed, 0 failed.")
+	print("Ran $staleTestCount test file(s): $staleTestCount passed, 0 failed.")
 	quit(1)
-'@
+
+"@
         Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
-    } 'Full test suite 14/14'
+    } $expectedGate
 
     Invoke-ValidatorCase 'stale-suite-count' {
         param($root)
-        $runner = @'
+        $runner = @"
 extends SceneTree
 func _init() -> void:
-	print("Ran 13 test file(s): 13 passed, 0 failed.")
+	print("Ran $staleTestCount test file(s): $staleTestCount passed, 0 failed.")
 	quit(0)
-'@
+
+"@
         Write-Utf8NoBom (Join-Path $root 'tests/run_all.gd') $runner
-    } 'Full test suite 14/14'
+    } $expectedGate
 
     Invoke-ValidatorCase 'missing-godot-command' { param($root) } 'Godot executable|Godot executable or project.godot missing' (Join-Path $tempRoot 'does-not-exist.exe')
 } finally {
