@@ -12,6 +12,10 @@ const ENEMY_OUTLINE := Color("e27b75")
 const HP_GREEN := Color("42b96b")
 const HP_EMPTY := Color("322f35")
 const DEFEAT_SCALE := Vector3(1.08, 0.08, 1.08)
+const PRODUCTION_VISUALS := {
+	&"aurelia": "res://assets/production/models/hero_ember_warden.glb",
+	&"bridge-captain": "res://assets/production/models/boss_star_eater.glb",
+}
 
 var unit_id: StringName = &""
 var team: StringName = &""
@@ -41,6 +45,7 @@ func configure(unit_state: Variant) -> void:
 	visual_hp = clampi(int(unit_state.current_hp), 0, max_hp)
 	position = Vector3(unit_state.grid_position.x, 0.7, unit_state.grid_position.y)
 	_build_body()
+	_build_production_visual(unit_state.definition.id)
 	_build_selection_outline()
 	_build_hp_bar()
 	_build_pick_area()
@@ -148,6 +153,25 @@ func _build_body() -> void:
 		body.mesh = cylinder
 		body.material_override = _material(ENEMY_CRIMSON)
 	add_child(body)
+
+
+func _build_production_visual(definition_id: StringName) -> void:
+	var path := String(PRODUCTION_VISUALS.get(definition_id, ""))
+	if path.is_empty():
+		return
+	var packed := load(path) as PackedScene
+	if packed == null:
+		return
+	var visual := packed.instantiate() as Node3D
+	if visual == null:
+		return
+	visual.name = "ProductionVisual"
+	visual.position = Vector3(0.0, -0.7, 0.0)
+	visual.scale = Vector3.ONE * 0.78
+	add_child(visual)
+	var body := get_node_or_null("Body") as MeshInstance3D
+	if body != null:
+		body.visible = false
 
 
 func _build_selection_outline() -> void:

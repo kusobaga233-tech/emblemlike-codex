@@ -277,6 +277,8 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 
 	assert_equal(scene.get_node("GreyboxBoard/Terrain").get_child_count(), 80, "Battle scene owns eighty board cells")
 	assert_equal(scene.get_node("Units").get_child_count(), 7, "Battle scene owns seven unit nodes")
+	assert_true(scene.get_node("Units/aurelia-1/ProductionVisual") != null, "Aurelia uses the imported hero production visual")
+	assert_true(scene.get_node("Units/captain-1/ProductionVisual") != null, "Bridge captain uses the imported boss production visual")
 	assert_equal(_count_type(scene, Camera3D), 1, "Battle scene has exactly one Camera3D")
 	assert_equal(_count_type(scene, DirectionalLight3D), 1, "Battle scene has exactly one DirectionalLight3D")
 	assert_true(scene.get_node("TacticalCamera").current, "Battle camera is active")
