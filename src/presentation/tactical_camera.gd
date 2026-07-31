@@ -9,6 +9,8 @@ extends Camera3D
 @export var zoom_step: float = 1.5
 
 const FRAMING_MARGIN := 1.08
+const GROUP_MIN_DISTANCE := 4.8
+const GROUP_SCREEN_BIAS_X := -1.15
 
 var board_width: int = 1
 var board_height: int = 1
@@ -16,8 +18,18 @@ var focus_point: Vector3 = Vector3.ZERO
 var distance: float = 16.0
 var yaw_degrees: float = 0.0
 var pitch_degrees: float = 40.0
+var framing_mode: StringName = &"overview"
+var _framing_radius: float = 0.5
 var focus_target: Node3D
 var _middle_orbiting: bool = false
+
+
+func _process(_delta: float) -> void:
+	if framing_mode != &"group" or get_viewport() == null:
+		return
+	var size := get_viewport().get_visible_rect().size
+	if size.y > size.x * 1.08:
+		reset_view()
 
 
 func configure_board(width: int, height: int) -> void:
@@ -37,6 +49,28 @@ func focus(target: Vector3) -> void:
 	_apply_transform()
 
 
+func frame_group(points: Array) -> void:
+	if points.is_empty():
+		reset_view()
+		return
+	var bounds := AABB(points[0], Vector3.ZERO)
+	for point: Vector3 in points:
+		bounds = bounds.expand(point)
+	var center := bounds.get_center()
+	_framing_radius = maxf(1.55, maxf(bounds.size.x, bounds.size.z) * 0.72 + 0.8)
+	framing_mode = &"group"
+	focus_point = Vector3(
+		clampf(center.x + GROUP_SCREEN_BIAS_X, 0.0, float(board_width - 1)),
+		0.0,
+		clampf(center.z - 0.15, 0.0, float(board_height - 1)),
+	)
+	yaw_degrees = 12.0
+	pitch_degrees = 43.0
+	_update_safe_distance_limits()
+	distance = min_distance
+	_apply_transform()
+
+
 func orbit(delta: Vector2) -> void:
 	yaw_degrees = wrapf(yaw_degrees + delta.x * orbit_sensitivity, -180.0, 180.0)
 	pitch_degrees = clampf(
@@ -53,6 +87,7 @@ func zoom(amount: float) -> void:
 
 
 func reset_view() -> void:
+	framing_mode = &"overview"
 	focus_point = Vector3(
 		float(board_width - 1) * 0.5,
 		0.0,
@@ -97,11 +132,11 @@ func _apply_transform() -> void:
 
 
 func _update_safe_distance_limits() -> void:
-	var radius := _board_radius_from_focus()
+	var radius := _framing_radius if framing_mode == &"group" else _board_radius_from_focus()
 	var half_angle := _limiting_half_fov_radians()
 	var projected_distance := radius / maxf(0.01, sin(half_angle))
 	var near_safe_distance := radius + near + 0.05
-	min_distance = maxf(projected_distance * FRAMING_MARGIN, near_safe_distance)
+	min_distance = maxf(GROUP_MIN_DISTANCE if framing_mode == &"group" else 0.0, maxf(projected_distance * FRAMING_MARGIN, near_safe_distance))
 	max_distance = maxf(24.0, min_distance * 1.85)
 
 

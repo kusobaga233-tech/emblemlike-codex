@@ -91,6 +91,20 @@ func run() -> void:
 	assert_true(decor != null and decor.get_child_count() > 0, "Board creates modular observatory decor")
 	if decor != null:
 		assert_equal(_count_type(decor, CollisionObject3D), 0, "Decor is collision-free and cannot alter deterministic movement")
+		var rim := decor.get_node_or_null("PlatformRim")
+		var distant := decor.get_node_or_null("DistantStructures")
+		var beacons := decor.get_node_or_null("CrystalBeacons")
+		var foundation := decor.get_node_or_null("ObservatoryFoundation")
+		assert_true(rim != null and rim.get_child_count() >= 18, "Observatory platform has a substantial perimeter rim")
+		assert_true(distant != null and distant.get_child_count() >= 8, "Observatory has distant pylons and arch silhouettes")
+		assert_true(beacons != null and beacons.get_child_count() >= 6, "Observatory has perimeter crystal beacons")
+		assert_true(foundation != null and foundation.get_child_count() >= 3, "Observatory has layered foundation terraces beneath the grid")
+		for group: Node in [rim, distant, beacons]:
+			if group == null:
+				continue
+			for item: Node3D in group.get_children():
+				var inside_grid := item.position.x >= -0.5 and item.position.x <= 7.5 and item.position.z >= -0.5 and item.position.z <= 9.5
+				assert_true(not inside_grid, "%s stays outside playable tactical cells" % item.name)
 	board.set("_environment_meshes", {})
 	var fallback := board.call("_make_tile", Vector2i(2, 3), &"water") as MeshInstance3D
 	assert_true(fallback.mesh is BoxMesh, "Missing imported mesh uses deterministic BoxMesh fallback")

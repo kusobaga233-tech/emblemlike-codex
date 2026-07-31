@@ -39,6 +39,7 @@ func run() -> void:
 	_test_board_build_palette_rebuild_and_overlays()
 	_test_unit_primitives_selection_hp_and_event_playback()
 	_test_tactical_camera_reset_focus_orbit_and_zoom_clamps()
+	await _test_tactical_camera_frames_local_group_without_losing_overview()
 	_test_tactical_camera_projects_every_board_corner_at_clamp_extremes()
 	await _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup()
 
@@ -241,6 +242,39 @@ func _test_tactical_camera_reset_focus_orbit_and_zoom_clamps() -> void:
 	assert_equal(camera.pitch_degrees, 40.0, "Reset restores tactical pitch")
 	assert_equal(camera.focus_point, Vector3(3.5, 0.0, 4.5), "Reset restores board center")
 	camera.free()
+
+
+func _test_tactical_camera_frames_local_group_without_losing_overview() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(1280, 720)
+	tree.root.add_child(viewport)
+	var camera: Camera3D = _camera_script.new()
+	viewport.add_child(camera)
+	camera.current = true
+	camera.configure_board(8, 10)
+	var overview_distance: float = camera.distance
+	camera.frame_group([
+		Vector3(1.0, 0.7, 7.0),
+		Vector3(1.0, 0.7, 8.0),
+		Vector3(2.0, 0.7, 8.0),
+		Vector3(3.0, 0.7, 8.0),
+	])
+	assert_true(camera.distance < overview_distance * 0.72, "Local formation framing is materially closer than full-board overview")
+	assert_true(camera.get("framing_mode") == &"group", "Group framing exposes its active mode")
+	for point: Vector3 in [Vector3(1.0, 0.7, 7.0), Vector3(1.0, 0.7, 8.0), Vector3(2.0, 0.7, 8.0), Vector3(3.0, 0.7, 8.0)]:
+		var screen := camera.unproject_position(point)
+		assert_true(screen.x >= 420.0 and screen.x <= 1220.0, "Default allies remain clear of the 388 px HUD and viewport edge")
+		assert_true(screen.y >= 90.0 and screen.y <= 650.0, "Default allies remain vertically visible")
+	camera.reset_view()
+	assert_true(camera.get("framing_mode") == &"overview", "Reset restores full-board overview mode")
+	_assert_board_corners_visible(camera, viewport.size, "reset overview after group framing")
+	camera.frame_group([Vector3(1.0, 0.7, 7.0), Vector3(3.0, 0.7, 8.0)])
+	viewport.size = Vector2i(720, 1280)
+	await tree.process_frame
+	await tree.process_frame
+	assert_true(camera.get("framing_mode") == &"overview", "Portrait resize falls back to interaction-safe overview")
+	viewport.free()
 
 
 func _test_tactical_camera_projects_every_board_corner_at_clamp_extremes() -> void:

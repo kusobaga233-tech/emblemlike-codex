@@ -44,6 +44,11 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		int(presentation_chapter.width),
 		int(presentation_chapter.height),
 	)
+	var allied_positions: Array[Vector3] = []
+	for unit_state: Variant in session.units:
+		if unit_state.definition.team == &"player":
+			allied_positions.append(get_unit_node(unit_state.instance_id).position)
+	get_node("TacticalCamera").frame_group(allied_positions)
 	var event_callable := Callable(self, "_on_events_flushed")
 	if not session.events_flushed.is_connected(event_callable):
 		session.events_flushed.connect(event_callable)
