@@ -148,7 +148,7 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 		&"resonance_pulse":
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.95, 0.72, 0.95), 0.32, 0.75, existing), position))
 			var partner_position := _secondary_position(event, position)
-			if partner_position != position:
+			if quality_tier == &"default" and partner_position != position:
 				effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, partner_position, Color(0.95, 0.72, 0.95), 0.32, 0.55, existing), partner_position))
 		&"resonance_fade":
 			var fade_target := _secondary_position(event, position)
