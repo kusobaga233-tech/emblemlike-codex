@@ -29,6 +29,8 @@ func run() -> void:
 	director.clear_active_presentations()
 	assert_equal(director.active_presentation_count(), 0, "Cleanup clears active presentations")
 	director.free()
+	_test_reentrant_cleanup(script)
+	_test_bounded_diagnostics(script)
 
 	var packed := load(SCENE_PATH) as PackedScene
 	assert_true(packed != null, "Battle scene loads")
@@ -51,3 +53,48 @@ func run() -> void:
 	scene.queue_free()
 	await tree.process_frame
 	assert_equal(finished_ids.size(), 1, "Scene unload clears active director presentations")
+
+func _test_reentrant_cleanup(script: Script) -> void:
+	var director: Node = script.new()
+	var initial: Array[Dictionary] = [{"type": &"attack_started"}, {"type": &"hit_confirmed"}, {"type": &"attack_missed"}]
+	director.play_events(initial)
+	var finished: Array[StringName] = []
+	var reentered: Array[bool] = [false]
+	director.presentation_finished.connect(func(id: StringName) -> void:
+		finished.append(id)
+		if not reentered[0]:
+			reentered[0] = true
+			var nested: Array[Dictionary] = [{"type": &"damage_applied"}]
+			director.play_events(nested)
+			director.clear_active_presentations()
+	)
+	director.clear_active_presentations()
+	assert_equal(finished.size(), 4, "Reentrant cleanup finishes snapshot and nested presentation exactly once")
+	assert_equal(director.active_presentation_count(), 0, "Reentrant cleanup leaves deterministic empty state")
+	var fill: Array[Dictionary] = []
+	for index: int in 64:
+		fill.append({"type": &"attack_started", "payload": {"index": index}})
+	director.play_events(fill)
+	var eviction_reentered: Array[bool] = [false]
+	director.presentation_finished.connect(func(_id: StringName) -> void:
+		if not eviction_reentered[0]:
+			eviction_reentered[0] = true
+			director.clear_active_presentations()
+			var replacement: Array[Dictionary] = [{"type": &"unit_healed"}]
+			director.play_events(replacement)
+	)
+	var overflow: Array[Dictionary] = [{"type": &"battle_status_changed"}]
+	director.play_events(overflow)
+	assert_equal(director.active_presentation_count(), 1, "Reentrant eviction leaves the listener replacement deterministically active")
+	director.free()
+
+func _test_bounded_diagnostics(script: Script) -> void:
+	var director: Node = script.new()
+	var unknowns: Array[Dictionary] = []
+	for index: int in 256:
+		unknowns.append({"type": StringName("unknown_%d" % index)})
+	director.play_events(unknowns)
+	assert_true(director.get("_diagnostics").size() <= 65, "Unknown diagnostic keys remain bounded")
+	assert_equal(director.diagnostic_count(&"unknown_0"), 1, "Early unknown type retains its diagnostic count")
+	assert_equal(director.diagnostic_count(&"__other__"), 192, "Excess unknown types aggregate under a stable key")
+	director.free()
