@@ -12,9 +12,20 @@ static func _material(color: Color) -> StandardMaterial3D:
 
 static func _finish(node: Node3D, parent: Node, duration: float) -> Node3D:
 	parent.add_child(node)
-	if duration > 0.0 and parent.is_inside_tree() and parent.get_tree() != null:
-		parent.get_tree().create_timer(duration).timeout.connect(node.queue_free)
+	node.set_meta("vfx_duration", duration)
+	node.set_meta("vfx_elapsed", 0.0)
 	return node
+
+static func reset(node: Node3D) -> void:
+	node.position = Vector3.ZERO
+	node.basis = Basis.IDENTITY
+	node.visible = false
+	node.set_meta("vfx_elapsed", 0.0)
+
+static func activate(node: Node3D, position: Vector3) -> void:
+	node.position = position
+	node.visible = true
+	node.set_meta("vfx_elapsed", 0.0)
 
 static func spawn_ring(parent: Node3D, position: Vector3, color: Color, duration: float, radius: float) -> Node3D:
 	var root := Node3D.new()

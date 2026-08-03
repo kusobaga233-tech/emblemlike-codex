@@ -41,6 +41,27 @@ func run() -> void:
 	assert_equal(director.get("quality_tier"), &"default", "Unsupported quality falls back to default")
 	director.clear_active_presentations()
 	assert_equal(director.active_presentation_count(), 0, "Cleanup clears active presentations")
+	var pooled_director: Node = script.new()
+	var pooled_event: Array[Dictionary] = [{"type": &"hit_confirmed", "critical": true}]
+	pooled_director.play_events(pooled_event)
+	var first_effect: Node = pooled_director.get("_active")[0].get("effects")[0]
+	pooled_director.clear_active_presentations()
+	pooled_director.play_events(pooled_event)
+	var reused_effect: Node = pooled_director.get("_active")[0].get("effects")[0]
+	assert_true(first_effect == reused_effect, "Released effect node is reused by primitive kind")
+	pooled_director.clear_active_presentations()
+	pooled_director.play_events([{"type": &"hit_confirmed", "critical": false}] as Array[Dictionary])
+	var reconfigured_effect: Node3D = pooled_director.get("_active")[0].get("effects")[0]
+	assert_equal(reconfigured_effect.get_meta("critical"), false, "Reused burst is reconfigured for the new event")
+	pooled_director.clear_active_presentations()
+	var pressure: Array[Dictionary] = []
+	for index: int in 256:
+		pressure.append({"type": &"attack_started", "payload": {"index": index}})
+	pooled_director.play_events(pressure)
+	var host: Node3D = pooled_director.get("_effect_host")
+	assert_true(host.get_child_count() <= int(script.get_script_constant_map().get("MAX_POOLED_EFFECTS", 128)), "Effect allocation never exceeds the pool cap under pressure")
+	pooled_director.clear_active_presentations()
+	pooled_director.free()
 	director.free()
 	_test_reentrant_cleanup(script)
 	_test_bounded_diagnostics(script)
