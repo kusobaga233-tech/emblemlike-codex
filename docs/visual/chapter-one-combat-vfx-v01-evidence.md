@@ -42,7 +42,7 @@ Command:
 D:\godot-proj\Godot_v4.6.3-stable_win64.exe --path D:\godot-proj\star-ember-oath-godot --script tools/capture_combat_vfx.gd
 ```
 
-Source commit: `eee1445cb7a535ba1e95aa34d27b230ddb3afc76` (`use tolerant mesh radius assertions`). Capture ran once on 2026-08-03 at approximately 13:14:50–13:14:53 +08:00 with Godot Vulkan startup and produced fresh 1920x1080 original-resolution PNGs:
+Source commit: `eee1445cb7a535ba1e95aa34d27b230ddb3afc76` (`use tolerant mesh radius assertions`). Capture ran once on 2026-08-03 at approximately 13:14:50–13:14:54 +08:00 with Godot Vulkan startup and produced fresh 1920x1080 original-resolution PNGs (the six file write times span 13:14:52.643–13:14:54.064 +08:00):
 
 - [`attack.png`](evidence/chapter-one-combat-vfx-v01/attack.png) — PASS: orange attack trail is clearly legible across the board. Size 491,182 bytes; SHA-256 `54e1464633c1226a1a1405a875ce7e9621a2478bcf33887d35c33a03bf1b2af3`.
 - [`heal.png`](evidence/chapter-one-combat-vfx-v01/heal.png) — PASS: cyan healing ring is clearly legible around the healed unit. Size 479,244 bytes; SHA-256 `8159563d353f73f003137b82200756d7e949b40566d226c90089b10d8aa51841`.
