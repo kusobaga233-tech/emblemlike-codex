@@ -31,6 +31,19 @@ func run() -> void:
 		assert_equal(particle_node.amount, 17, "Particle reconfiguration updates count")
 		assert_equal(particle_node.lifetime, 0.9, "Particle reconfiguration updates duration")
 		assert_equal((particle_node.process_material as ParticleProcessMaterial).color, Color.BLUE, "Particle reconfiguration updates color")
+		assert_true(particle_node.draw_pass_1 is QuadMesh, "Particles use a QuadMesh draw pass")
+		assert_equal((particle_node.draw_pass_1 as QuadMesh).size, Vector2(0.12, 0.12), "Particles draw mesh size is exact")
+		assert_equal(((particle_node.draw_pass_1 as QuadMesh).material as StandardMaterial3D).albedo_color, Color.BLUE, "Particles draw material color is exact")
+		var trail: Node3D = effects.spawn_trail(host, Vector3.ZERO, Vector3.ONE, Color.RED, 0.2, false)
+		var reused_trail: Node3D = effects.spawn_trail(host, Vector3.ZERO, Vector3(2.0, 0.0, 0.0), Color.BLUE, 0.4, true, trail)
+		assert_true(reused_trail == trail, "Trail reconfiguration preserves object identity")
+		assert_equal((reused_trail.get_node("Mesh") as MeshInstance3D).mesh.size, Vector2(2.0, 0.08), "Trail geometry updates for target and secondary")
+		assert_equal(((reused_trail.get_node("Mesh") as MeshInstance3D).material_override as StandardMaterial3D).albedo_color, Color.BLUE, "Trail material color updates")
+		assert_equal(((reused_ring.get_node("Mesh") as MeshInstance3D).material_override as StandardMaterial3D).albedo_color, Color(0.2, 0.7, 0.4), "Ring material color updates")
+		var detached_host := Node3D.new()
+		var detached_effect: Node3D = effects.spawn_ring(detached_host, Vector3.ZERO, Color.WHITE, 0.0, 0.5)
+		assert_true(is_instance_valid(detached_effect), "Primitive creation is safe for an out-of-tree host")
+		detached_host.free()
 		host.queue_free()
 
 	var script := load(DIRECTOR_PATH) as Script
@@ -70,6 +83,20 @@ func run() -> void:
 	var reconfigured_effect: Node3D = pooled_director.get("_active")[0].get("effects")[0]
 	assert_equal(reconfigured_effect.get_meta("critical"), false, "Reused burst is reconfigured for the new event")
 	pooled_director.clear_active_presentations()
+	var quality_director: Node = script.new()
+	var impact_event: Array[Dictionary] = [{"type": &"hit_confirmed"}]
+	quality_director.set_quality_tier(&"default")
+	quality_director.play_events(impact_event)
+	var default_effects: Array = quality_director.get("_active")[0].get("effects")
+	assert_equal(default_effects.size(), 2, "Default quality spawns primary and secondary primitives")
+	assert_equal(default_effects.map(func(effect: Node3D) -> StringName: return effect.get_meta("effect_category")), [&"burst", &"particles"], "Default quality composition is exact")
+	quality_director.clear_active_presentations()
+	quality_director.set_quality_tier(&"low")
+	quality_director.play_events(impact_event)
+	var low_effects: Array = quality_director.get("_active")[0].get("effects")
+	assert_equal(low_effects.size(), 1, "Low quality spawns only the primary primitive")
+	assert_equal(low_effects[0].get_meta("effect_category"), &"burst", "Low quality composition is exact")
+	quality_director.free()
 	var pressure: Array[Dictionary] = []
 	for index: int in 256:
 		pressure.append({"type": &"attack_started", "payload": {"index": index}})
@@ -77,6 +104,16 @@ func run() -> void:
 	var host: Node3D = pooled_director.get("_effect_host")
 	assert_true(host.get_child_count() <= int(script.get_script_constant_map().get("MAX_POOLED_EFFECTS", 128)), "Effect allocation never exceeds the pool cap under pressure")
 	pooled_director.clear_active_presentations()
+	assert_true(int(pooled_director.get("_pooled_effect_count")) > 0, "Cleanup retains reusable pooled nodes")
+	var pooled_node: Node3D
+	for bucket: Array in pooled_director.get("_effect_pool").values():
+		if not bucket.is_empty():
+			pooled_node = bucket[0]
+			break
+	assert_true(pooled_node != null, "Pool bookkeeping references a retained node")
+	assert_true(not pooled_node.visible, "Released pooled node is hidden")
+	assert_equal(float(pooled_node.get_meta("vfx_elapsed")), 0.0, "Released pooled node elapsed state resets")
+	assert_true(int(pooled_director.get("_pooled_effect_count")) <= 128, "Pool bookkeeping remains capped")
 	pooled_director.free()
 	director.free()
 	_test_reentrant_cleanup(script)
@@ -97,6 +134,7 @@ func run() -> void:
 	session.events_flushed.emit(batch)
 	var integrated := scene.get_node("CombatVfxDirector")
 	assert_equal(integrated.active_presentation_count(), 1, "BattleScene routes each batch once")
+	assert_equal(integrated.owner, scene, "BattleScene assigns owner to dynamically added VFX director")
 	assert_equal(integrated.diagnostic_count(&"future_unknown"), 1, "BattleScene routes unknown diagnostics")
 	var finished_ids: Array[StringName] = []
 	integrated.presentation_finished.connect(func(id: StringName) -> void: finished_ids.append(id))

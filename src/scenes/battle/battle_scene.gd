@@ -36,6 +36,7 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		director = COMBAT_VFX_DIRECTOR_SCRIPT.new()
 		director.name = "CombatVfxDirector"
 		add_child(director)
+		director.owner = self
 	director.clear_active_presentations()
 	chapter = initial_chapter
 	session = injected_session
