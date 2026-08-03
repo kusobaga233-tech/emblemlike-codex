@@ -16,7 +16,7 @@ func run() -> void:
 			assert_equal(fixtures[3][1].get("target_id"), &"captain-1", "Boss-hit fixture targets the canonical boss instance")
 			assert_equal(fixtures[4][1].get("target_id"), &"captain-1", "Defeat fixture targets the canonical boss instance")
 			assert_equal(fixtures[5][1].get("payload", {}).get("status"), &"victory", "Victory fixture uses the canonical battle-status payload")
-	await _test_capture_fixtures_execute(capture_script)
+		await _test_capture_fixtures_execute(capture_script)
 	var first := await _replay()
 	var second := await _replay()
 	assert_equal(first, second, "Deterministic mixed-event metrics are reproducible")
@@ -46,6 +46,9 @@ func run() -> void:
 
 func _test_capture_fixtures_execute(capture_script: Script) -> void:
 	var packed := load("res://src/scenes/battle/battle_scene.tscn") as PackedScene
+	assert_true(packed != null, "Capture fixture regression scene loads")
+	if packed == null:
+		return
 	var scene := packed.instantiate()
 	var chapter: Variant = load("res://src/content/chapter_one.gd").build()
 	var session: Variant = load("res://src/tactics/battle_session.gd").new(chapter, 1701)
@@ -56,6 +59,11 @@ func _test_capture_fixtures_execute(capture_script: Script) -> void:
 	var director := scene.get_node("CombatVfxDirector")
 	var camera := scene.get_node("TacticalCamera") as Camera3D
 	var fixtures: Array = capture_script.get_script_constant_map()["CAPTURE_FIXTURES"]
+	assert_equal(fixtures.size(), 6, "Executable capture fixture table remains complete")
+	if fixtures.size() < 6:
+		scene.queue_free()
+		await tree.process_frame
+		return
 	for index in [3, 4, 5]:
 		var fixture: Array = fixtures[index]
 		director.clear_active_presentations()
@@ -68,15 +76,16 @@ func _test_capture_fixtures_execute(capture_script: Script) -> void:
 		for _frame in int(capture_script.get_script_constant_map()["PRESENTATION_SETTLE_FRAMES"]):
 			await tree.process_frame
 		assert_equal(director.active_presentation_count(), 1, "%s fixture retains an active presentation after settling" % fixture[0])
-		var record: Dictionary = director.get("_active")[0]
-		var expected_key: StringName = [&"boss_weak_point", &"defeat_dissolve", &"battle_status_ring"][index - 3]
-		var expected_categories: Array = [[&"ring", &"trail"], [&"burst", &"particles"], [&"ring"]][index - 3]
-		assert_equal(record.get("effect_key"), expected_key, "%s fixture routes to %s" % [fixture[0], expected_key])
-		assert_true(not record.get("effects", []).is_empty(), "%s fixture creates effect roots" % fixture[0])
-		assert_equal(record.get("effects", []).map(func(effect: Node3D) -> StringName: return effect.get_meta("effect_category")), expected_categories, "%s fixture keeps its exact effect composition" % fixture[0])
-		for effect: Node3D in record.get("effects", []):
-			assert_true(is_instance_valid(effect) and effect.visible, "%s fixture effect root is visible" % fixture[0])
-		assert_equal(director.metrics().get("peak_active"), 1, "%s fixture records one active presentation" % fixture[0])
+		if director.active_presentation_count() == 1:
+			var record: Dictionary = director.get("_active")[0]
+			var expected_key: StringName = [&"boss_weak_point", &"defeat_dissolve", &"battle_status_ring"][index - 3]
+			var expected_categories: Array = [[&"ring", &"trail"], [&"burst", &"particles"], [&"ring"]][index - 3]
+			assert_equal(record.get("effect_key"), expected_key, "%s fixture routes to %s" % [fixture[0], expected_key])
+			assert_true(not record.get("effects", []).is_empty(), "%s fixture creates effect roots" % fixture[0])
+			assert_equal(record.get("effects", []).map(func(effect: Node3D) -> StringName: return effect.get_meta("effect_category")), expected_categories, "%s fixture keeps its exact effect composition" % fixture[0])
+			for effect: Node3D in record.get("effects", []):
+				assert_true(is_instance_valid(effect) and effect.visible, "%s fixture effect root is visible" % fixture[0])
+			assert_equal(director.metrics().get("peak_active"), 1, "%s fixture records one active presentation" % fixture[0])
 		director.clear_active_presentations()
 	scene.queue_free()
 	await tree.process_frame
