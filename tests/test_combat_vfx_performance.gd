@@ -8,6 +8,14 @@ func run() -> void:
 	if capture_script != null:
 		assert_equal(capture_script.get_script_constant_map()["CAPTURE_NAMES"], ["attack", "heal", "resonance", "boss-hit", "defeat", "victory"], "Capture harness routes all six fixed evidence paths")
 		assert_equal(capture_script.get_script_constant_map()["FAILURE_EXIT_CODE"], 1, "Capture harness exposes nonzero failure exit")
+		assert_true(int(capture_script.get_script_constant_map().get("PRESENTATION_SETTLE_FRAMES", 0)) >= 2, "Capture harness waits for presentation and GPU visibility before reading pixels")
+		var fixtures: Array = capture_script.get_script_constant_map().get("CAPTURE_FIXTURES", [])
+		assert_equal(fixtures.size(), 6, "Capture fixtures are inspectable and complete")
+		if fixtures.size() == 6:
+			assert_equal(fixtures[3][1].get("actor_id"), &"fenn-1", "Boss-hit fixture uses the visible Chapter One attacker")
+			assert_equal(fixtures[3][1].get("target_id"), &"captain-1", "Boss-hit fixture targets the canonical boss instance")
+			assert_equal(fixtures[4][1].get("target_id"), &"captain-1", "Defeat fixture targets the canonical boss instance")
+			assert_equal(fixtures[5][1].get("payload", {}).get("status"), &"victory", "Victory fixture uses the canonical battle-status payload")
 	var first := await _replay()
 	var second := await _replay()
 	assert_equal(first, second, "Deterministic mixed-event metrics are reproducible")
