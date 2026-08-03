@@ -97,6 +97,30 @@ func get_unit_node(instance_id: StringName) -> Node3D:
 	return get_node_or_null("Units/%s" % String(instance_id)) as Node3D
 
 
+func set_combat_vfx_quality_tier(tier: StringName) -> void:
+	get_node("CombatVfxDirector").set_quality_tier(tier)
+
+
+func combat_vfx_metrics() -> Dictionary:
+	return get_node("CombatVfxDirector").metrics()
+
+
+func reset_combat_vfx_metrics() -> void:
+	get_node("CombatVfxDirector").reset_metrics()
+
+
+func capture_combat_vfx_frame(event: Dictionary, output_path: String) -> Error:
+	get_node("CombatVfxDirector").play_events([event] as Array[Dictionary])
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var image := get_viewport().get_texture().get_image()
+	if image == null or image.is_empty():
+		return ERR_CANT_CREATE
+	var absolute_path := ProjectSettings.globalize_path(output_path)
+	DirAccess.make_dir_recursive_absolute(absolute_path.get_base_dir())
+	return image.save_png(absolute_path)
+
+
 func handle_board_pick(kind: StringName, value: Variant) -> bool:
 	if session == null or session.battle_status != &"ongoing" or _phase_advancing:
 		return false

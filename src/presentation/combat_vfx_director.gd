@@ -19,6 +19,13 @@ var _effect_host: Node3D
 var _effect_pool: Dictionary = {}
 var _pooled_effect_count := 0
 var board_center: Vector3 = Vector3.ZERO
+var _metrics: Dictionary = {
+	"peak_active": 0,
+	"peak_particles": 0,
+	"unknown_events": 0,
+	"released_effects": 0,
+	"camera_requests": 0,
+}
 
 func _ready() -> void:
 	_ensure_effect_host()
@@ -43,6 +50,7 @@ func play_events(events: Array[Dictionary]) -> void:
 	for event: Dictionary in events:
 		var effect_key := _presentation_key_for_event(event)
 		if effect_key == &"":
+			_metrics["unknown_events"] = int(_metrics["unknown_events"]) + 1
 			var event_type := StringName(event.get("type", &""))
 			var diagnostic_key := event_type
 			if not _diagnostics.has(event_type) and _diagnostics.size() >= MAX_DIAGNOSTIC_TYPES:
@@ -62,6 +70,14 @@ func play_events(events: Array[Dictionary]) -> void:
 			if StringName(record.get("id", &"")) == presentation_id:
 				presentation_started.emit(event, presentation_id)
 				break
+	_update_peak_metrics()
+
+func metrics() -> Dictionary:
+	_update_peak_metrics()
+	return _metrics.duplicate(true)
+
+func reset_metrics() -> void:
+	_metrics = {"peak_active": 0, "peak_particles": 0, "unknown_events": 0, "released_effects": 0, "camera_requests": 0}
 
 func set_quality_tier(tier: StringName) -> void:
 	quality_tier = tier if tier in [&"default", &"low"] else &"default"
@@ -145,6 +161,7 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 	if StringName(event.get("type", &"")) == &"damage_applied" and quality_tier != &"low":
 		var payload: Dictionary = event.get("payload", {})
 		camera_impact_requested.emit(position, clampf(float(payload.get("amount", 1)) * 0.01, 0.0, 0.08), 0.12)
+		_metrics["camera_requests"] = int(_metrics["camera_requests"]) + 1
 	return effects
 
 func _event_position(event: Dictionary) -> Vector3:
@@ -223,6 +240,7 @@ func _evict_one_pooled_effect() -> void:
 func _release_effects(record: Dictionary) -> void:
 	for effect: Node3D in record.get("effects", []):
 		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
+			_metrics["released_effects"] = int(_metrics["released_effects"]) + 1
 			var kind := StringName(effect.get_meta("effect_category", &"ring"))
 			if _pooled_effect_count < MAX_POOLED_EFFECTS:
 				CombatVfxEffects.reset(effect)
@@ -232,6 +250,18 @@ func _release_effects(record: Dictionary) -> void:
 				_pooled_effect_count += 1
 			else:
 				effect.queue_free()
+	_update_peak_metrics()
+
+func _update_peak_metrics() -> void:
+	_metrics["peak_active"] = maxi(int(_metrics["peak_active"]), _active.size())
+	var particle_count := 0
+	for record: Dictionary in _active:
+		for effect: Node3D in record.get("effects", []):
+			if is_instance_valid(effect) and effect.get_meta("effect_category", &"") == &"particles":
+				var particles := effect.get_node_or_null("Particles") as GPUParticles3D
+				if particles != null:
+					particle_count += particles.amount
+	_metrics["peak_particles"] = maxi(int(_metrics["peak_particles"]), particle_count)
 
 func _effect_key_for_event(event: Dictionary) -> StringName:
 	match StringName(event.get("type", &"")):
