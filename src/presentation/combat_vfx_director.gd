@@ -30,7 +30,10 @@ func play_events(events: Array[Dictionary]) -> void:
 			presentation_finished.emit(StringName(evicted.get("id", &"")))
 		else:
 			_active.append({"id": presentation_id, "event": event, "effect_key": effect_key})
-		presentation_started.emit(event, presentation_id)
+		for record: Dictionary in _active:
+			if StringName(record.get("id", &"")) == presentation_id:
+				presentation_started.emit(event, presentation_id)
+				break
 
 func set_quality_tier(tier: StringName) -> void:
 	quality_tier = tier if tier in [&"default", &"low"] else &"default"

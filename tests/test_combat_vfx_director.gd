@@ -72,6 +72,8 @@ func _test_reentrant_cleanup(script: Script) -> void:
 	assert_equal(finished.size(), 4, "Reentrant cleanup finishes snapshot and nested presentation exactly once")
 	assert_equal(director.active_presentation_count(), 0, "Reentrant cleanup leaves deterministic empty state")
 	var fill: Array[Dictionary] = []
+	var started_ids: Array[StringName] = []
+	director.presentation_started.connect(func(_event: Dictionary, id: StringName) -> void: started_ids.append(id))
 	for index: int in 64:
 		fill.append({"type": &"attack_started", "payload": {"index": index}})
 	director.play_events(fill)
@@ -86,6 +88,9 @@ func _test_reentrant_cleanup(script: Script) -> void:
 	var overflow: Array[Dictionary] = [{"type": &"battle_status_changed"}]
 	director.play_events(overflow)
 	assert_equal(director.active_presentation_count(), 1, "Reentrant eviction leaves the listener replacement deterministically active")
+	assert_equal(started_ids.size(), 65, "Evicted record is not reported started after reentrant clear")
+	assert_equal(finished[4], started_ids[0], "Capacity eviction finishes the oldest started presentation")
+	assert_equal(director.get("_active")[0].get("id"), started_ids[-1], "Final active record matches the last started presentation")
 	director.free()
 
 func _test_bounded_diagnostics(script: Script) -> void:
