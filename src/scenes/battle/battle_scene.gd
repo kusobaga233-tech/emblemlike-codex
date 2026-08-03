@@ -4,6 +4,7 @@ extends Node3D
 const BATTLE_SESSION_SCRIPT := preload("res://src/tactics/battle_session.gd")
 const CHAPTER_ONE_SCRIPT := preload("res://src/content/chapter_one.gd")
 const GREYBOX_UNIT_SCRIPT := preload("res://src/presentation/greybox_unit.gd")
+const COMBAT_VFX_DIRECTOR_SCRIPT := preload("res://src/presentation/combat_vfx_director.gd")
 
 var chapter: Variant
 var session: Variant
@@ -24,6 +25,12 @@ func _ready() -> void:
 
 func setup_battle(initial_chapter: Variant, injected_session: Variant = null) -> void:
 	_disconnect_session()
+	var director := get_node_or_null("CombatVfxDirector")
+	if director == null:
+		director = COMBAT_VFX_DIRECTOR_SCRIPT.new()
+		director.name = "CombatVfxDirector"
+		add_child(director)
+	director.clear_active_presentations()
 	chapter = initial_chapter
 	session = injected_session
 	if session == null:
@@ -154,6 +161,7 @@ func cancel_interaction() -> void:
 
 func _on_events_flushed(events: Array[Dictionary]) -> void:
 	get_node("BattleAudio").play_events(events)
+	get_node("CombatVfxDirector").play_events(events)
 	for event: Dictionary in events:
 		for unit: Node in get_node("Units").get_children():
 			unit.play_event(event)
