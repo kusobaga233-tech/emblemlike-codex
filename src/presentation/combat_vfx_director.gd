@@ -5,7 +5,7 @@ signal presentation_started(event: Dictionary, presentation_id: StringName)
 signal presentation_finished(presentation_id: StringName)
 
 const MAX_ACTIVE_PRESENTATIONS := 64
-var quality_tier: StringName = &"high"
+var quality_tier: StringName = &"default"
 var _active: Array[Dictionary] = []
 var _diagnostics: Dictionary = {}
 var _sequence: int = 0
@@ -26,7 +26,7 @@ func play_events(events: Array[Dictionary]) -> void:
 		presentation_started.emit(event, presentation_id)
 
 func set_quality_tier(tier: StringName) -> void:
-	quality_tier = tier
+	quality_tier = tier if tier in [&"default", &"low"] else &"default"
 
 func clear_active_presentations() -> void:
 	for record: Dictionary in _active:

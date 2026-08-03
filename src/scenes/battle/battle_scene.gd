@@ -17,6 +17,12 @@ var pointer_input_count: int = 0
 
 signal result_requested(path: String, summary: Dictionary)
 
+func _exit_tree() -> void:
+	_disconnect_session()
+	var director := get_node_or_null("CombatVfxDirector")
+	if director != null:
+		director.clear_active_presentations()
+
 
 func _ready() -> void:
 	if not _configured:
