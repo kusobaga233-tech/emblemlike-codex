@@ -22,6 +22,9 @@ var framing_mode: StringName = &"overview"
 var _framing_radius: float = 0.5
 var focus_target: Node3D
 var _middle_orbiting: bool = false
+var last_impact_origin: Vector3 = Vector3.ZERO
+var last_impact_strength: float = 0.0
+var last_impact_duration: float = 0.0
 
 
 func _ready() -> void:
@@ -98,6 +101,11 @@ func orbit(delta: Vector2) -> void:
 func zoom(amount: float) -> void:
 	distance = clampf(distance + amount * zoom_step, min_distance, max_distance)
 	_apply_transform()
+
+func request_impact(origin: Vector3, strength: float, duration: float) -> void:
+	last_impact_origin = origin
+	last_impact_strength = clampf(strength, 0.0, 0.08)
+	last_impact_duration = clampf(duration, 0.0, 0.18)
 
 
 func reset_view() -> void:

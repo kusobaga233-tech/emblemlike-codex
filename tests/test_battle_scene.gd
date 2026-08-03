@@ -241,6 +241,12 @@ func _test_tactical_camera_reset_focus_orbit_and_zoom_clamps() -> void:
 	camera.reset_view()
 	assert_equal(camera.pitch_degrees, 40.0, "Reset restores tactical pitch")
 	assert_equal(camera.focus_point, Vector3(3.5, 0.0, 4.5), "Reset restores board center")
+	var framing_snapshot := [camera.framing_mode, camera.focus_point, camera.distance, camera.yaw_degrees, camera.pitch_degrees]
+	camera.request_impact(Vector3(2.0, 0.7, 3.0), 9.0, 4.0)
+	assert_equal(camera.last_impact_origin, Vector3(2.0, 0.7, 3.0), "Camera impact retains its spatial origin")
+	assert_equal(camera.last_impact_strength, 0.08, "Camera impact strength is bounded")
+	assert_equal(camera.last_impact_duration, 0.18, "Camera impact duration is bounded")
+	assert_equal([camera.framing_mode, camera.focus_point, camera.distance, camera.yaw_degrees, camera.pitch_degrees], framing_snapshot, "Camera impact preserves tactical framing")
 	camera.free()
 
 
@@ -404,7 +410,13 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 		"target_id": &"fenn-1",
 		"payload": {"amount": 4, "remaining_hp": 20},
 	}]
+	var camera := scene.get_node("TacticalCamera")
+	var camera_framing := [camera.framing_mode, camera.focus_point, camera.distance, camera.yaw_degrees, camera.pitch_degrees]
 	session.events_flushed.emit(damage_events)
+	var damage_record: Dictionary = scene.get_node("CombatVfxDirector").get("_active")[-1]
+	assert_equal((damage_record.effects[0] as Node3D).global_position, fenn.global_position, "Damage VFX routes to the target unit")
+	assert_equal(camera.last_impact_origin, fenn.global_position, "Damage routes bounded impact data through the scene")
+	assert_equal([camera.framing_mode, camera.focus_point, camera.distance, camera.yaw_degrees, camera.pitch_degrees], camera_framing, "Damage impact leaves tactical framing unchanged")
 	_step_animation_channels(fenn, [&"body_animation"])
 	assert_equal(fenn.visual_hp, 20, "Scene consumes flushed damage events")
 

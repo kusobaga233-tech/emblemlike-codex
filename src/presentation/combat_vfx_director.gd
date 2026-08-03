@@ -5,6 +5,7 @@ const CombatVfxEffects := preload("res://src/presentation/combat_vfx_effects.gd"
 
 signal presentation_started(event: Dictionary, presentation_id: StringName)
 signal presentation_finished(presentation_id: StringName)
+signal camera_impact_requested(origin: Vector3, strength: float, duration: float)
 
 const MAX_ACTIVE_PRESENTATIONS := 64
 const MAX_DIAGNOSTIC_TYPES := 64
@@ -100,17 +101,21 @@ func _make_record(presentation_id: StringName, event: Dictionary, effect_key: St
 func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 	var effects: Array[Node3D] = []
 	var host := _ensure_effect_host()
-	var position := Vector3.ZERO
+	var position := _event_position(event)
 	var color := Color(0.92, 0.32, 0.12)
 	match effect_key:
 		&"attack_trail", &"resonance_arc":
-			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, Vector3(0.8, 0.0, 0.0), color, 0.35, false, existing), position))
+			var end_position := _secondary_position(event, position)
+			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, end_position, color, 0.35, false, existing), position))
 			if quality_tier == &"default":
-				effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, Vector3(0.7, 0.12, 0.0), color.darkened(0.2), 0.3, true, existing), position))
+				effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position + Vector3(0.0, 0.12, 0.0), end_position + Vector3(0.0, 0.12, 0.0), color.darkened(0.2), 0.3, true, existing), position))
 		&"hit_impact", &"attack_miss", &"damage_flash":
+			if effect_key == &"attack_miss": position += Vector3(0.35, 0.15, -0.25)
 			effects.append(_acquire(&"burst", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_burst(host, position, color, 0.3, bool(event.get("critical", false)), existing), position))
 			if quality_tier == &"default":
 				effects.append(_acquire(&"particles", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_particles(host, position, color, 0.3, 10, existing), position))
+			if effect_key == &"damage_flash" and _is_boss_target(event):
+				effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position + Vector3(0.0, 0.75, 0.0), Color(0.85, 0.55, 0.95), 0.38, 0.45, existing), position))
 		&"heal_ring":
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.2, 0.85, 0.55), 0.45, 0.7, existing), position))
 			if quality_tier == &"default":
@@ -121,7 +126,53 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 				effects.append(_acquire(&"particles", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_particles(host, position, Color(0.5, 0.18, 0.62), 0.5, 16, existing), position))
 		_:
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55, existing), position))
+	if StringName(event.get("type", &"")) == &"damage_applied" and quality_tier != &"low":
+		var payload: Dictionary = event.get("payload", {})
+		camera_impact_requested.emit(position, clampf(float(payload.get("amount", 1)) * 0.01, 0.0, 0.08), 0.12)
 	return effects
+
+func _event_position(event: Dictionary) -> Vector3:
+	var target_id := StringName(event.get("target_id", &""))
+	var actor_id := StringName(event.get("actor_id", &""))
+	var target := _resolve_unit(target_id)
+	var actor := _resolve_unit(actor_id)
+	var event_type := StringName(event.get("type", &""))
+	if event_type == &"attack_started" and actor != null and target != null:
+		return actor.global_position
+	if target != null and event_type in [&"hit_confirmed", &"damage_applied", &"unit_healed", &"unit_defeated"]:
+		return target.global_position
+	if actor != null:
+		return actor.global_position
+	var payload: Dictionary = event.get("payload", {})
+	if payload.get("position") is Vector3:
+		return payload.position
+	return Vector3.ZERO
+
+func _resolve_unit(instance_id: StringName) -> Node3D:
+	if instance_id == &"": return null
+	var scene := get_parent()
+	if scene != null and scene.has_method("get_unit_node"):
+		return scene.get_unit_node(instance_id)
+	return null
+
+func _secondary_position(event: Dictionary, fallback: Vector3) -> Vector3:
+	var payload: Dictionary = event.get("payload", {})
+	var partner := _resolve_unit(StringName(payload.get("partner_id", &"")))
+	if partner != null:
+		return partner.global_position
+	var target := _resolve_unit(StringName(event.get("target_id", &"")))
+	return target.global_position if target != null else fallback + Vector3(0.8, 0.0, 0.0)
+
+func _is_boss_target(event: Dictionary) -> bool:
+	var target := _resolve_unit(StringName(event.get("target_id", &"")))
+	if target == null:
+		return false
+	var state: Variant = target.get("unit_state")
+	if state == null:
+		state = target.get("state")
+	if state != null and state.get("definition") != null:
+		return StringName(state.definition.id) in [&"bridge-captain", &"star-eater"]
+	return StringName(target.name).contains("captain") or StringName(target.name).contains("boss")
 
 func _acquire(kind: StringName, factory: Callable, position: Vector3) -> Node3D:
 	var bucket: Array = _effect_pool.get(kind, [])

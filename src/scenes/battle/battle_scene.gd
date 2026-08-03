@@ -37,6 +37,9 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		director.name = "CombatVfxDirector"
 		add_child(director)
 		director.owner = self
+	var impact_callable := Callable(self, "_on_camera_impact_requested")
+	if not director.camera_impact_requested.is_connected(impact_callable):
+		director.camera_impact_requested.connect(impact_callable)
 	director.clear_active_presentations()
 	chapter = initial_chapter
 	session = injected_session
@@ -181,6 +184,11 @@ func _on_events_flushed(events: Array[Dictionary]) -> void:
 			var moved := get_unit_node(actor_id)
 			if moved != null and get_node("TacticalCamera").focus_target == moved:
 				get_node("TacticalCamera").focus(moved.position)
+
+func _on_camera_impact_requested(origin: Vector3, strength: float, duration: float) -> void:
+	var camera := get_node_or_null("TacticalCamera")
+	if camera != null and camera.has_method("request_impact") and get_node("CombatVfxDirector").quality_tier != &"low":
+		camera.request_impact(origin, strength, duration)
 
 
 func _disconnect_session() -> void:
