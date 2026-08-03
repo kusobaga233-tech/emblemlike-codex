@@ -3,6 +3,10 @@ extends TestCase
 const DIRECTOR := preload("res://src/presentation/combat_vfx_director.gd")
 
 func run() -> void:
+	var capture_script := load("res://tools/capture_combat_vfx.gd") as Script
+	assert_true(capture_script != null, "Runnable capture harness parses")
+	if capture_script != null:
+		assert_equal(capture_script.get_script_constant_map()["CAPTURE_NAMES"], ["attack", "heal", "resonance", "boss-hit", "defeat", "victory"], "Capture harness routes all six fixed evidence paths")
 	var first := await _replay()
 	var second := await _replay()
 	assert_equal(first, second, "Deterministic mixed-event metrics are reproducible")
@@ -16,6 +20,15 @@ func run() -> void:
 	assert_equal(low.get("_active")[0].effects.size(), 1, "Low hit keeps only primary primitive")
 	assert_equal(low.get("_active")[1].effects.size(), 1, "Low heal keeps primary ring")
 	assert_equal(low.get("_active")[2].effects.size(), 1, "Low defeat keeps primary burst")
+	low.clear_active_presentations()
+	low.play_events([{"type": &"resonance_finished"}] as Array[Dictionary])
+	assert_equal(low.get("_active")[0].effects[0].get_meta("effect_category"), &"ring", "Low resonance fade retains a ring and suppresses trail")
+	var boss_effects: Array[Node3D] = low._spawn_effects(&"boss_weak_point", {})
+	assert_equal(boss_effects.map(func(effect: Node3D) -> StringName: return effect.get_meta("effect_category")), [&"ring"], "Low boss hit keeps pulse and suppresses weak-point trail")
+	low.reset_metrics()
+	low.get("_metrics")["unknown_events"] = 2147483647
+	low.play_events([{"type": &"not_known"}] as Array[Dictionary])
+	assert_equal(low.metrics()["unknown_events"], 2147483647, "Metric counters saturate at the documented maximum")
 	low.clear_active_presentations()
 	low.free()
 

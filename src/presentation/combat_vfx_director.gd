@@ -10,6 +10,7 @@ signal camera_impact_requested(origin: Vector3, strength: float, duration: float
 const MAX_ACTIVE_PRESENTATIONS := 64
 const MAX_DIAGNOSTIC_TYPES := 64
 const MAX_POOLED_EFFECTS := 128
+const MAX_METRIC_COUNT := 2147483647
 const EXCESS_DIAGNOSTIC_KEY := &"__other__"
 var quality_tier: StringName = &"default"
 var _active: Array[Dictionary] = []
@@ -50,7 +51,7 @@ func play_events(events: Array[Dictionary]) -> void:
 	for event: Dictionary in events:
 		var effect_key := _presentation_key_for_event(event)
 		if effect_key == &"":
-			_metrics["unknown_events"] = int(_metrics["unknown_events"]) + 1
+			_increment_metric("unknown_events")
 			var event_type := StringName(event.get("type", &""))
 			var diagnostic_key := event_type
 			if not _diagnostics.has(event_type) and _diagnostics.size() >= MAX_DIAGNOSTIC_TYPES:
@@ -151,17 +152,21 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 				effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, partner_position, Color(0.95, 0.72, 0.95), 0.32, 0.55, existing), partner_position))
 		&"resonance_fade":
 			var fade_target := _secondary_position(event, position)
-			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, fade_target, Color(0.58, 0.32, 0.72), 0.42, true, existing), position))
+			if quality_tier == &"default":
+				effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, fade_target, Color(0.58, 0.32, 0.72), 0.42, true, existing), position))
+			else:
+				effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, fade_target, Color(0.58, 0.32, 0.72), 0.28, 0.45, existing), fade_target))
 		&"boss_weak_point":
 			position += Vector3(0.0, 0.75, 0.0)
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.85, 0.55, 0.95), 0.38, 0.45, existing), position))
-			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position + Vector3(-0.3, 0.2, 0.0), position + Vector3(0.3, -0.2, 0.0), Color(0.65, 0.22, 0.82), 0.38, true, existing), position))
+			if quality_tier == &"default":
+				effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position + Vector3(-0.3, 0.2, 0.0), position + Vector3(0.3, -0.2, 0.0), Color(0.65, 0.22, 0.82), 0.38, true, existing), position))
 		_:
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55, existing), position))
 	if StringName(event.get("type", &"")) == &"damage_applied" and quality_tier != &"low":
 		var payload: Dictionary = event.get("payload", {})
 		camera_impact_requested.emit(position, clampf(float(payload.get("amount", 1)) * 0.01, 0.0, 0.08), 0.12)
-		_metrics["camera_requests"] = int(_metrics["camera_requests"]) + 1
+		_increment_metric("camera_requests")
 	return effects
 
 func _event_position(event: Dictionary) -> Vector3:
@@ -240,7 +245,7 @@ func _evict_one_pooled_effect() -> void:
 func _release_effects(record: Dictionary) -> void:
 	for effect: Node3D in record.get("effects", []):
 		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
-			_metrics["released_effects"] = int(_metrics["released_effects"]) + 1
+			_increment_metric("released_effects")
 			var kind := StringName(effect.get_meta("effect_category", &"ring"))
 			if _pooled_effect_count < MAX_POOLED_EFFECTS:
 				CombatVfxEffects.reset(effect)
@@ -262,6 +267,9 @@ func _update_peak_metrics() -> void:
 				if particles != null:
 					particle_count += particles.amount
 	_metrics["peak_particles"] = maxi(int(_metrics["peak_particles"]), particle_count)
+
+func _increment_metric(key: String) -> void:
+	_metrics[key] = mini(int(_metrics.get(key, 0)) + 1, MAX_METRIC_COUNT)
 
 func _effect_key_for_event(event: Dictionary) -> StringName:
 	match StringName(event.get("type", &"")):
