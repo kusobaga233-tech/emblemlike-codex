@@ -7,11 +7,13 @@ func run() -> void:
 	assert_true(capture_script != null, "Runnable capture harness parses")
 	if capture_script != null:
 		assert_equal(capture_script.get_script_constant_map()["CAPTURE_NAMES"], ["attack", "heal", "resonance", "boss-hit", "defeat", "victory"], "Capture harness routes all six fixed evidence paths")
+		assert_equal(capture_script.get_script_constant_map()["FAILURE_EXIT_CODE"], 1, "Capture harness exposes nonzero failure exit")
 	var first := await _replay()
 	var second := await _replay()
 	assert_equal(first, second, "Deterministic mixed-event metrics are reproducible")
 	assert_equal(first["active"], 0, "All presentations retire after cleanup")
 	assert_true(first["pool_children"] <= 128, "Effect host remains within pool node cap")
+	assert_true(first["peak_host_children"] <= 128, "Effect host remains within node cap while effects are active")
 	assert_true(first["metrics"]["peak_active"] <= 64, "Active presentation cap is respected")
 	assert_true(first["metrics"]["peak_particles"] <= 640, "Particle peak is bounded by active cap")
 	var low := DIRECTOR.new()
@@ -37,10 +39,12 @@ func _replay() -> Dictionary:
 	var director := DIRECTOR.new()
 	director.reset_metrics()
 	var batch: Array[Dictionary] = []
+	var peak_host_children := 0
 	for index: int in 100:
 		batch = [{"type": &"attack_started", "payload": {"index": index}}, {"type": &"hit_confirmed"}, {"type": &"unit_healed"}, {"type": &"damage_applied", "payload": {"amount": index % 9 + 1}}] as Array[Dictionary]
 		director.play_events(batch)
+		peak_host_children = maxi(peak_host_children, (director.get("_effect_host") as Node3D).get_child_count())
 		director.clear_active_presentations()
-	var result := {"active": director.active_presentation_count(), "pool_children": (director.get("_effect_host") as Node3D).get_child_count(), "metrics": director.metrics()}
+	var result := {"active": director.active_presentation_count(), "pool_children": (director.get("_effect_host") as Node3D).get_child_count(), "peak_host_children": peak_host_children, "metrics": director.metrics()}
 	director.free()
 	return result
