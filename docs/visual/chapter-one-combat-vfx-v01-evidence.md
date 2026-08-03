@@ -16,13 +16,13 @@ Exit code: **0**. Summary: 17/17 full tests passed; parser/resource smoke passed
 Additional exact checks:
 
 ```text
-Godot_v4.6.3-stable_win64.exe --path . --headless --script tests\run_all.gd       exit 0
+Godot_v4.6.3-stable_win64.exe --path . --headless --script tests\run_all.gd --quit-after 120  exit 0
 Godot_v4.6.3-stable_win64.exe --path . --headless --check-only                    exit 0
 Godot_v4.6.3-stable_win64.exe --path . --headless --quit-after 120                exit 0
 Godot_v4.6.3-stable_win64.exe --path . --headless --export-release "Windows x64 Release" build\windows\StarEmberOath.exe  exit 0
 ```
 
-The exported executable smoke command `build\windows\StarEmberOath.exe --headless --quit-after 120` completed without anchored diagnostics (the PowerShell wrapper did not expose a populated `$LASTEXITCODE`; the Godot export itself and validator smoke are both exit 0). Export artifact measured 108,618,992 bytes, SHA-256 `bb5cd5ee11702ac40498123c5c369a50353f1e2766348b56e612319f922e6575`.
+The exported executable smoke command `build\windows\StarEmberOath.exe --headless --quit-after 120` completed without anchored diagnostics. Export snapshot (2026-08-03 12:14:33–12:14:37 +08:00) returned export exit 1 but produced 108,618,976 bytes, SHA-256 `c3a89828511ee2eaa663f0dd3798ceca40fa8ad86e02c4195a71c069e6b66931`; this is not a clean export pass. The standalone `tests\run_all.gd --quit-after 120` command returned exit 0. `build/` is ignored/untracked, so this binary hash is not a portable artifact unless retained externally.
 
 The committed [`tests/evidence/windows-build-manifest.json`](../../tests/evidence/windows-build-manifest.json) records an older export (`source_commit` `8bfff3c`, 106,801,416 bytes, SHA-256 `059c5970aeaf29a9e0614ca422c3b31ced88717c208053cffe39e7a0ff2e09dc`). It is retained as historical evidence; the freshly generated hash above is not written to unrelated manifest files in this docs-only pass.
 
@@ -45,12 +45,12 @@ D:\godot-proj\Godot_v4.6.3-stable_win64.exe --path D:\godot-proj\star-ember-oath
 
 Capture completed with Godot Vulkan startup and produced:
 
-- [`attack.png`](../../build/evidence/combat-vfx-v01/attack.png) — PASS: orange attack trail is legible; silhouettes remain visible.
-- [`heal.png`](../../build/evidence/combat-vfx-v01/heal.png) — PASS: cyan healing ring is legible; no material crop.
-- [`resonance.png`](../../build/evidence/combat-vfx-v01/resonance.png) — PASS: pale resonance ring is legible, though it overlaps the caster silhouette.
-- [`boss-hit.png`](../../build/evidence/combat-vfx-v01/boss-hit.png) — **REJECT for visual approval**: no boss-hit primitive is visible in this captured frame.
-- [`defeat.png`](../../build/evidence/combat-vfx-v01/defeat.png) — **REJECT for visual approval**: no defeat primitive is visible in this captured frame.
-- [`victory.png`](../../build/evidence/combat-vfx-v01/victory.png) — **REJECT for visual approval**: no victory primitive is visible in this captured frame.
+- [`attack.png`](evidence/chapter-one-combat-vfx-v01/attack.png) — PASS: orange attack trail is legible; silhouettes remain visible. Size 491,282 bytes; SHA-256 `2c002d386dce8b8b156bf54f85a4c3a412fd87e5e8cab96d05b279033dce4988`.
+- [`heal.png`](evidence/chapter-one-combat-vfx-v01/heal.png) — PASS: cyan healing ring is legible; no material crop. Size 479,313 bytes; SHA-256 `8346e600e16a6374971c4e7819a4bd77c0b3fd4246f8acc43a628b67c962c406`.
+- [`resonance.png`](evidence/chapter-one-combat-vfx-v01/resonance.png) — PASS: pale resonance ring is legible, though it overlaps the caster silhouette. Size 471,744 bytes; SHA-256 `10d7e0245081977ae6c60f432b08e0355758d869c44c14871c44820919283ce4`.
+- [`boss-hit.png`](evidence/chapter-one-combat-vfx-v01/boss-hit.png) — **REJECT for visual approval**: no boss-hit primitive is visible in this captured frame. Size 481,946 bytes; SHA-256 `6ff59930430cf6b5d4161b9e7daadc71d725e5fafc500d6e29caf956354ffc53`.
+- [`defeat.png`](evidence/chapter-one-combat-vfx-v01/defeat.png) — **REJECT for visual approval**: no defeat primitive is visible in this captured frame. Size 483,297 bytes; SHA-256 `f63d02dd175c1ae3bb9faa3aeea32bdaa562ba8e92dfdf85abf671468d84acba`.
+- [`victory.png`](evidence/chapter-one-combat-vfx-v01/victory.png) — **REJECT for visual approval**: no victory primitive is visible in this captured frame. Size 482,984 bytes; SHA-256 `e3573d80b042d29abd096e577b7e693062d8abda6140d40e9bc8559153efbd17`.
 
 All six PNGs were opened with the workspace image viewer at high detail. The three rejected frames are preserved as failure evidence; no blanket visual approval is claimed. The capture harness is non-headless and did initialize Vulkan successfully.
 
