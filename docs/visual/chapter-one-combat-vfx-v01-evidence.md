@@ -19,10 +19,9 @@ Additional exact checks:
 Godot_v4.6.3-stable_win64.exe --path . --headless --script tests\run_all.gd --quit-after 120  exit 0
 Godot_v4.6.3-stable_win64.exe --path . --headless --check-only                    exit 0
 Godot_v4.6.3-stable_win64.exe --path . --headless --quit-after 120                exit 0
-Godot_v4.6.3-stable_win64.exe --path . --headless --export-release "Windows x64 Release" build\windows\StarEmberOath.exe  exit 0
 ```
 
-The exported executable smoke command `build\windows\StarEmberOath.exe --headless --quit-after 120` completed without anchored diagnostics. Export snapshot (2026-08-03 12:14:33–12:14:37 +08:00) returned export exit 1 but produced 108,618,976 bytes, SHA-256 `c3a89828511ee2eaa663f0dd3798ceca40fa8ad86e02c4195a71c069e6b66931`; this is not a clean export pass. The standalone `tests\run_all.gd --quit-after 120` command returned exit 0. `build/` is ignored/untracked, so this binary hash is not a portable artifact unless retained externally.
+The current export snapshot is authoritative for this evidence pass. Command: `Godot_v4.6.3-stable_win64.exe --path . --headless --export-release "Windows x64 Release" build\windows\StarEmberOath.exe`. It ran from 2026-08-03 12:14:33 +08:00 to 12:14:37 +08:00 and returned exit 1, but produced 108,618,976 bytes, SHA-256 `c3a89828511ee2eaa663f0dd3798ceca40fa8ad86e02c4195a71c069e6b66931`; this is not a clean export pass. The resulting executable smoke command `build\windows\StarEmberOath.exe --headless --quit-after 120` completed without anchored diagnostics. The standalone `tests\run_all.gd --quit-after 120` command returned exit 0. `build/` is ignored/untracked, so this binary hash is not a portable artifact unless retained externally.
 
 The committed [`tests/evidence/windows-build-manifest.json`](../../tests/evidence/windows-build-manifest.json) records an older export (`source_commit` `8bfff3c`, 106,801,416 bytes, SHA-256 `059c5970aeaf29a9e0614ca422c3b31ced88717c208053cffe39e7a0ff2e09dc`). It is retained as historical evidence; the freshly generated hash above is not written to unrelated manifest files in this docs-only pass.
 
