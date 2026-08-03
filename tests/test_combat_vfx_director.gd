@@ -4,6 +4,19 @@ const DIRECTOR_PATH := "res://src/presentation/combat_vfx_director.gd"
 const SCENE_PATH := "res://src/scenes/battle/battle_scene.tscn"
 
 func run() -> void:
+	var effects := load("res://src/presentation/combat_vfx_effects.gd") as Script
+	assert_true(effects != null, "Combat VFX primitive script loads")
+	if effects != null:
+		var host := Node3D.new()
+		var tree := Engine.get_main_loop() as SceneTree
+		tree.root.add_child(host)
+		var ring: Node3D = effects.spawn_ring(host, Vector3.ZERO, Color(0.8, 0.2, 0.1), 0.1, 1.0)
+		assert_equal(ring.get_meta("effect_category"), &"ring", "Ring builder creates ring category")
+		assert_true(ring.get_node_or_null("Mesh") is MeshInstance3D, "Ring builder creates mesh primitive")
+		var burst: Node3D = effects.spawn_burst(host, Vector3.ZERO, Color(0.8, 0.2, 0.1), 0.1, true)
+		assert_equal(burst.get_meta("effect_category"), &"burst", "Burst builder creates burst category")
+		host.queue_free()
+
 	var script := load(DIRECTOR_PATH) as Script
 	assert_true(script != null, "CombatVfxDirector script loads")
 	if script == null:

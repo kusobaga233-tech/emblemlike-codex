@@ -1,6 +1,8 @@
 class_name CombatVfxDirector
 extends Node
 
+const CombatVfxEffects := preload("res://src/presentation/combat_vfx_effects.gd")
+
 signal presentation_started(event: Dictionary, presentation_id: StringName)
 signal presentation_finished(presentation_id: StringName)
 
@@ -11,6 +13,22 @@ var quality_tier: StringName = &"default"
 var _active: Array[Dictionary] = []
 var _diagnostics: Dictionary = {}
 var _sequence: int = 0
+var _effect_host: Node3D
+
+func _ready() -> void:
+	_ensure_effect_host()
+
+func _process(_delta: float) -> void:
+	if _active.is_empty():
+		return
+	var finished: Array[Dictionary] = []
+	for record: Dictionary in _active:
+		var effects: Array = record.get("effects", [])
+		if not effects.is_empty() and effects.all(func(effect: Node3D) -> bool: return not is_instance_valid(effect) or effect.is_queued_for_deletion()):
+			finished.append(record)
+	for record: Dictionary in finished:
+		_active.erase(record)
+		presentation_finished.emit(StringName(record.get("id", &"")))
 
 func play_events(events: Array[Dictionary]) -> void:
 	for event: Dictionary in events:
@@ -26,10 +44,11 @@ func play_events(events: Array[Dictionary]) -> void:
 		var presentation_id := StringName("%s_%d" % [effect_key, _sequence])
 		if _active.size() >= MAX_ACTIVE_PRESENTATIONS:
 			var evicted: Dictionary = _active.pop_front()
-			_active.append({"id": presentation_id, "event": event, "effect_key": effect_key})
+			_release_effects(evicted)
+			_active.append(_make_record(presentation_id, event, effect_key))
 			presentation_finished.emit(StringName(evicted.get("id", &"")))
 		else:
-			_active.append({"id": presentation_id, "event": event, "effect_key": effect_key})
+			_active.append(_make_record(presentation_id, event, effect_key))
 		for record: Dictionary in _active:
 			if StringName(record.get("id", &"")) == presentation_id:
 				presentation_started.emit(event, presentation_id)
@@ -42,6 +61,7 @@ func clear_active_presentations() -> void:
 	var finishing := _active.duplicate()
 	_active.clear()
 	for record: Dictionary in finishing:
+		_release_effects(record)
 		presentation_finished.emit(StringName(record.get("id", &"")))
 
 func active_presentation_count() -> int:
@@ -49,6 +69,57 @@ func active_presentation_count() -> int:
 
 func diagnostic_count(event_type: StringName) -> int:
 	return int(_diagnostics.get(event_type, 0))
+
+func active_effect_count() -> int:
+	var count := 0
+	for record: Dictionary in _active:
+		for effect: Node3D in record.get("effects", []):
+			if is_instance_valid(effect) and not effect.is_queued_for_deletion():
+				count += 1
+	return count
+
+func _ensure_effect_host() -> Node3D:
+	if is_instance_valid(_effect_host):
+		return _effect_host
+	_effect_host = Node3D.new()
+	_effect_host.name = "ActiveCombatVfx"
+	add_child(_effect_host)
+	_effect_host.owner = get_parent() if get_parent() != null else owner
+	return _effect_host
+
+func _make_record(presentation_id: StringName, event: Dictionary, effect_key: StringName) -> Dictionary:
+	return {"id": presentation_id, "event": event, "effect_key": effect_key, "effects": _spawn_effects(effect_key, event)}
+
+func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
+	var effects: Array[Node3D] = []
+	var host := _ensure_effect_host()
+	var position := Vector3.ZERO
+	var color := Color(0.92, 0.32, 0.12)
+	match effect_key:
+		&"attack_trail", &"resonance_arc":
+			effects.append(CombatVfxEffects.spawn_trail(host, position, Vector3(0.8, 0.0, 0.0), color, 0.35, false))
+			if quality_tier == &"default":
+				effects.append(CombatVfxEffects.spawn_trail(host, position, Vector3(0.7, 0.12, 0.0), color.darkened(0.2), 0.3, true))
+		&"hit_impact", &"attack_miss", &"damage_flash":
+			effects.append(CombatVfxEffects.spawn_burst(host, position, color, 0.3, bool(event.get("critical", false))))
+			if quality_tier == &"default":
+				effects.append(CombatVfxEffects.spawn_particles(host, position, color, 0.3, 10))
+		&"heal_ring":
+			effects.append(CombatVfxEffects.spawn_ring(host, position, Color(0.2, 0.85, 0.55), 0.45, 0.7))
+			if quality_tier == &"default":
+				effects.append(CombatVfxEffects.spawn_particles(host, position, Color(0.2, 0.85, 0.55), 0.4, 8))
+		&"defeat_dissolve":
+			effects.append(CombatVfxEffects.spawn_burst(host, position, Color(0.5, 0.18, 0.62), 0.5, true))
+			if quality_tier == &"default":
+				effects.append(CombatVfxEffects.spawn_particles(host, position, Color(0.5, 0.18, 0.62), 0.5, 16))
+		_:
+			effects.append(CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55))
+	return effects
+
+func _release_effects(record: Dictionary) -> void:
+	for effect: Node3D in record.get("effects", []):
+		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
+			effect.queue_free()
 
 func _effect_key_for_event(event: Dictionary) -> StringName:
 	match StringName(event.get("type", &"")):
