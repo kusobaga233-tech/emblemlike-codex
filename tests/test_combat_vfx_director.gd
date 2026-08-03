@@ -15,6 +15,22 @@ func run() -> void:
 		assert_true(ring.get_node_or_null("Mesh") is MeshInstance3D, "Ring builder creates mesh primitive")
 		var burst: Node3D = effects.spawn_burst(host, Vector3.ZERO, Color(0.8, 0.2, 0.1), 0.1, true)
 		assert_equal(burst.get_meta("effect_category"), &"burst", "Burst builder creates burst category")
+		var reused_burst: Node3D = effects.spawn_burst(host, Vector3.ONE, Color(0.1, 0.4, 0.9), 0.6, false, burst)
+		assert_true(reused_burst == burst, "Burst reconfiguration preserves object identity")
+		assert_equal(reused_burst.get_meta("critical"), false, "Burst reconfiguration updates critical state")
+		assert_equal((reused_burst.get_node("Mesh") as MeshInstance3D).mesh.size, Vector2(0.3, 0.3), "Burst reconfiguration updates geometry")
+		var burst_material := (reused_burst.get_node("Mesh") as MeshInstance3D).material_override as StandardMaterial3D
+		assert_equal(burst_material.albedo_color, Color(0.1, 0.4, 0.9), "Burst reconfiguration updates material color")
+		var reused_ring: Node3D = effects.spawn_ring(host, Vector3.ONE, Color(0.2, 0.7, 0.4), 0.8, 2.25, ring)
+		assert_true(reused_ring == ring, "Ring reconfiguration preserves object identity")
+		assert_equal(((reused_ring.get_node("Mesh") as MeshInstance3D).mesh as CylinderMesh).top_radius, 2.25, "Ring reconfiguration updates radius")
+		var particles: Node3D = effects.spawn_particles(host, Vector3.ZERO, Color.RED, 0.2, 3)
+		var reused_particles: Node3D = effects.spawn_particles(host, Vector3.ONE, Color.BLUE, 0.9, 17, particles)
+		assert_true(reused_particles == particles, "Particle reconfiguration preserves object identity")
+		var particle_node := reused_particles.get_node("Particles") as GPUParticles3D
+		assert_equal(particle_node.amount, 17, "Particle reconfiguration updates count")
+		assert_equal(particle_node.lifetime, 0.9, "Particle reconfiguration updates duration")
+		assert_equal((particle_node.process_material as ParticleProcessMaterial).color, Color.BLUE, "Particle reconfiguration updates color")
 		host.queue_free()
 
 	var script := load(DIRECTOR_PATH) as Script

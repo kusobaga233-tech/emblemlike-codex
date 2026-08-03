@@ -104,23 +104,23 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 	var color := Color(0.92, 0.32, 0.12)
 	match effect_key:
 		&"attack_trail", &"resonance_arc":
-			effects.append(_acquire(&"trail", func() -> Node3D: return CombatVfxEffects.spawn_trail(host, position, Vector3(0.8, 0.0, 0.0), color, 0.35, false), position))
+			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, Vector3(0.8, 0.0, 0.0), color, 0.35, false, existing), position))
 			if quality_tier == &"default":
-				effects.append(_acquire(&"trail", func() -> Node3D: return CombatVfxEffects.spawn_trail(host, position, Vector3(0.7, 0.12, 0.0), color.darkened(0.2), 0.3, true), position))
+				effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, Vector3(0.7, 0.12, 0.0), color.darkened(0.2), 0.3, true, existing), position))
 		&"hit_impact", &"attack_miss", &"damage_flash":
-			effects.append(_acquire(&"burst", func() -> Node3D: return CombatVfxEffects.spawn_burst(host, position, color, 0.3, bool(event.get("critical", false))), position))
+			effects.append(_acquire(&"burst", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_burst(host, position, color, 0.3, bool(event.get("critical", false)), existing), position))
 			if quality_tier == &"default":
-				effects.append(_acquire(&"particles", func() -> Node3D: return CombatVfxEffects.spawn_particles(host, position, color, 0.3, 10), position))
+				effects.append(_acquire(&"particles", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_particles(host, position, color, 0.3, 10, existing), position))
 		&"heal_ring":
-			effects.append(_acquire(&"ring", func() -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.2, 0.85, 0.55), 0.45, 0.7), position))
+			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.2, 0.85, 0.55), 0.45, 0.7, existing), position))
 			if quality_tier == &"default":
-				effects.append(_acquire(&"particles", func() -> Node3D: return CombatVfxEffects.spawn_particles(host, position, Color(0.2, 0.85, 0.55), 0.4, 8), position))
+				effects.append(_acquire(&"particles", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_particles(host, position, Color(0.2, 0.85, 0.55), 0.4, 8, existing), position))
 		&"defeat_dissolve":
-			effects.append(_acquire(&"burst", func() -> Node3D: return CombatVfxEffects.spawn_burst(host, position, Color(0.5, 0.18, 0.62), 0.5, true), position))
+			effects.append(_acquire(&"burst", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_burst(host, position, Color(0.5, 0.18, 0.62), 0.5, true, existing), position))
 			if quality_tier == &"default":
-				effects.append(_acquire(&"particles", func() -> Node3D: return CombatVfxEffects.spawn_particles(host, position, Color(0.5, 0.18, 0.62), 0.5, 16), position))
+				effects.append(_acquire(&"particles", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_particles(host, position, Color(0.5, 0.18, 0.62), 0.5, 16, existing), position))
 		_:
-			effects.append(_acquire(&"ring", func() -> Node3D: return CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55), position))
+			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55, existing), position))
 	return effects
 
 func _acquire(kind: StringName, factory: Callable, position: Vector3) -> Node3D:
@@ -129,14 +129,13 @@ func _acquire(kind: StringName, factory: Callable, position: Vector3) -> Node3D:
 		var node: Node3D = bucket.pop_back()
 		_effect_pool[kind] = bucket
 		_pooled_effect_count -= 1
-		CombatVfxEffects.activate(node, position)
-		return node
+		return factory.call(node)
 	while _ensure_effect_host().get_child_count() >= MAX_POOLED_EFFECTS and _pooled_effect_count > 0:
 		_evict_one_pooled_effect()
 	return factory.call()
 
 func _trim_pool_to_cap() -> void:
-	while _ensure_effect_host().get_child_count() > MAX_POOLED_EFFECTS:
+	while _ensure_effect_host().get_child_count() > MAX_POOLED_EFFECTS and _pooled_effect_count > 0:
 		_evict_one_pooled_effect()
 
 func _evict_one_pooled_effect() -> void:
@@ -145,6 +144,8 @@ func _evict_one_pooled_effect() -> void:
 		if bucket.is_empty():
 			continue
 		var node: Node3D = bucket.pop_back()
+		if node.get_parent() != null:
+			node.get_parent().remove_child(node)
 		node.queue_free()
 		_effect_pool[kind] = bucket
 		_pooled_effect_count = maxi(_pooled_effect_count - 1, 0)
