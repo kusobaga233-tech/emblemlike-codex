@@ -61,6 +61,11 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		int(presentation_chapter.width),
 		int(presentation_chapter.height),
 	)
+	director.set_board_center(Vector3(
+		float(presentation_chapter.width - 1) * 0.5,
+		0.0,
+		float(presentation_chapter.height - 1) * 0.5,
+	))
 	var allied_positions: Array[Vector3] = []
 	for unit_state: Variant in session.units:
 		if unit_state.definition.team == &"player":

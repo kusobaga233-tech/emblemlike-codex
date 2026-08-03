@@ -136,11 +136,41 @@ func run() -> void:
 	assert_equal(integrated.active_presentation_count(), 1, "BattleScene routes each batch once")
 	assert_equal(integrated.owner, scene, "BattleScene assigns owner to dynamically added VFX director")
 	assert_equal(integrated.diagnostic_count(&"future_unknown"), 1, "BattleScene routes unknown diagnostics")
+	var fenn: Node3D = scene.get_unit_node(&"fenn-1")
+	var blade: Node3D = scene.get_unit_node(&"blade-1")
+	var impacts: Array = []
+	integrated.camera_impact_requested.connect(func(origin: Vector3, strength: float, duration: float) -> void: impacts.append([origin, strength, duration]))
+	session.events_flushed.emit([{"type": &"damage_applied", "actor_id": &"blade-1", "target_id": &"fenn-1", "payload": {"amount": 20}}] as Array[Dictionary])
+	assert_equal((integrated.get("_active")[-1].effects[0] as Node3D).global_position, fenn.global_position, "Director routes damage to target position")
+	assert_true(impacts.size() == 1 and impacts[0][1] <= 0.08 and impacts[0][2] <= 0.18, "Damage emits bounded camera impact request")
+	session.events_flushed.emit([{"type": &"battle_status_changed", "payload": {"status": &"victory"}}] as Array[Dictionary])
+	assert_equal((integrated.get("_active")[-1].effects[0] as Node3D).global_position, Vector3(3.5, 0.0, 4.5), "Battle status falls back to board center")
+	integrated.set_quality_tier(&"low")
+	impacts.clear()
+	session.events_flushed.emit([{"type": &"damage_applied", "actor_id": &"blade-1", "target_id": &"fenn-1", "payload": {"amount": 4}}] as Array[Dictionary])
+	assert_equal(impacts.size(), 0, "Low quality suppresses camera impact requests")
+	integrated.set_quality_tier(&"default")
+	session.events_flushed.emit([{"type": &"hit_confirmed", "actor_id": &"fenn-1", "target_id": &"captain-1", "payload": {"critical": true}}] as Array[Dictionary])
+	var boss_record: Dictionary = integrated.get("_active")[-1]
+	assert_equal(boss_record.effect_key, &"boss_weak_point", "Boss hit uses a distinct weak-point presentation key")
+	assert_equal(boss_record.effects.map(func(effect: Node3D) -> StringName: return effect.get_meta("effect_category")), [&"ring", &"trail"], "Boss weak point uses pulse and crack categories")
+	assert_equal((boss_record.effects[0] as Node3D).global_position, scene.get_unit_node(&"captain-1").global_position + Vector3(0.0, 0.75, 0.0), "Boss weak point is offset above the target root")
+	session.events_flushed.emit([{"type": &"resonance_changed", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {"partner_id": &"aurelia-1", "from": 25, "to": 75}}] as Array[Dictionary])
+	var pulse_record: Dictionary = integrated.get("_active")[-1]
+	assert_equal(pulse_record.effect_key, &"resonance_pulse", "Resonance change uses explicit pulse behavior")
+	assert_equal(pulse_record.effects.size(), 2, "Resonance pulse routes actor and partner endpoints")
+	session.events_flushed.emit([{"type": &"resonance_finished", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {"partner_id": &"aurelia-1"}}] as Array[Dictionary])
+	var fade_record: Dictionary = integrated.get("_active")[-1]
+	assert_equal(fade_record.effect_key, &"resonance_fade", "Resonance finish uses explicit fade behavior")
+	assert_equal(fade_record.effects[0].get_meta("effect_category"), &"trail", "Resonance fade contracts along the partner route")
+	session.events_flushed.emit([{"type": &"unit_healed", "actor_id": &"missing", "target_id": &"missing", "payload": {"position": Vector3(2.0, 0.0, 2.0)}}] as Array[Dictionary])
+	assert_equal((integrated.get("_active")[-1].effects[0] as Node3D).global_position, Vector3(2.0, 0.0, 2.0), "Missing nodes safely use payload position fallback")
+	assert_true(is_instance_valid(blade), "Actor and target nodes remain safe during routing")
 	var finished_ids: Array[StringName] = []
 	integrated.presentation_finished.connect(func(id: StringName) -> void: finished_ids.append(id))
 	scene.queue_free()
 	await tree.process_frame
-	assert_equal(finished_ids.size(), 1, "Scene unload clears active director presentations")
+	assert_true(finished_ids.size() >= 1, "Scene unload clears active director presentations")
 
 func _test_reentrant_cleanup(script: Script) -> void:
 	var director: Node = script.new()

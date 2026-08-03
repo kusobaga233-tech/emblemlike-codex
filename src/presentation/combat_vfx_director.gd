@@ -18,6 +18,7 @@ var _sequence: int = 0
 var _effect_host: Node3D
 var _effect_pool: Dictionary = {}
 var _pooled_effect_count := 0
+var board_center: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
 	_ensure_effect_host()
@@ -40,7 +41,7 @@ func _process(_delta: float) -> void:
 func play_events(events: Array[Dictionary]) -> void:
 	_trim_pool_to_cap()
 	for event: Dictionary in events:
-		var effect_key := _effect_key_for_event(event)
+		var effect_key := _presentation_key_for_event(event)
 		if effect_key == &"":
 			var event_type := StringName(event.get("type", &""))
 			var diagnostic_key := event_type
@@ -64,6 +65,9 @@ func play_events(events: Array[Dictionary]) -> void:
 
 func set_quality_tier(tier: StringName) -> void:
 	quality_tier = tier if tier in [&"default", &"low"] else &"default"
+
+func set_board_center(value: Vector3) -> void:
+	board_center = value
 
 func clear_active_presentations() -> void:
 	var finishing := _active.duplicate()
@@ -124,6 +128,18 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 			effects.append(_acquire(&"burst", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_burst(host, position, Color(0.5, 0.18, 0.62), 0.5, true, existing), position))
 			if quality_tier == &"default":
 				effects.append(_acquire(&"particles", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_particles(host, position, Color(0.5, 0.18, 0.62), 0.5, 16, existing), position))
+		&"resonance_pulse":
+			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.95, 0.72, 0.95), 0.32, 0.75, existing), position))
+			var partner_position := _secondary_position(event, position)
+			if partner_position != position:
+				effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, partner_position, Color(0.95, 0.72, 0.95), 0.32, 0.55, existing), partner_position))
+		&"resonance_fade":
+			var fade_target := _secondary_position(event, position)
+			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position, fade_target, Color(0.58, 0.32, 0.72), 0.42, true, existing), position))
+		&"boss_weak_point":
+			position += Vector3(0.0, 0.75, 0.0)
+			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.85, 0.55, 0.95), 0.38, 0.45, existing), position))
+			effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position + Vector3(-0.3, 0.2, 0.0), position + Vector3(0.3, -0.2, 0.0), Color(0.65, 0.22, 0.82), 0.38, true, existing), position))
 		_:
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55, existing), position))
 	if StringName(event.get("type", &"")) == &"damage_applied" and quality_tier != &"low":
@@ -139,8 +155,10 @@ func _event_position(event: Dictionary) -> Vector3:
 	var event_type := StringName(event.get("type", &""))
 	if event_type == &"attack_started" and actor != null and target != null:
 		return actor.global_position
-	if target != null and event_type in [&"hit_confirmed", &"damage_applied", &"unit_healed", &"unit_defeated"]:
+	if target != null and event_type in [&"hit_confirmed", &"attack_missed", &"damage_applied", &"unit_healed", &"unit_defeated"]:
 		return target.global_position
+	if event_type == &"battle_status_changed":
+		return board_center
 	if actor != null:
 		return actor.global_position
 	var payload: Dictionary = event.get("payload", {})
@@ -228,3 +246,9 @@ func _effect_key_for_event(event: Dictionary) -> StringName:
 		&"unit_defeated": return &"defeat_dissolve"
 		&"battle_status_changed": return &"battle_status_ring"
 		_: return &""
+
+func _presentation_key_for_event(event: Dictionary) -> StringName:
+	var base_key := _effect_key_for_event(event)
+	if base_key in [&"hit_impact", &"damage_flash"] and _is_boss_target(event):
+		return &"boss_weak_point"
+	return base_key
