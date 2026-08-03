@@ -28,26 +28,27 @@ func _capture_all() -> void:
 	if directory_error != OK and directory_error != ERR_ALREADY_EXISTS:
 		quit(FAILURE_EXIT_CODE)
 		return
-	var scene := SCENE.instantiate()
-	if scene == null:
-		quit(FAILURE_EXIT_CODE)
-		return
-	root.add_child(scene)
-	var chapter := CHAPTER.build()
-	var session := SESSION.new(chapter, 1701)
-	if not scene.has_method("setup_battle") or session == null:
-		scene.queue_free()
-		quit(FAILURE_EXIT_CODE)
-		return
-	scene.setup_battle(chapter, session)
-	await process_frame
-	if scene.get_node_or_null("CombatVfxDirector") == null:
-		scene.queue_free()
-		quit(FAILURE_EXIT_CODE)
-		return
 	for fixture in CAPTURE_FIXTURES:
-		var director := scene.get_node("CombatVfxDirector")
-		director.clear_active_presentations()
+		# Use a fresh scene per fixture. This guarantees no pooled roots, tweens, camera
+		# state, or previous presentation can contaminate the pixels being captured.
+		var scene := SCENE.instantiate()
+		if scene == null:
+			quit(FAILURE_EXIT_CODE)
+			return
+		root.add_child(scene)
+		var chapter := CHAPTER.build()
+		var session := SESSION.new(chapter, 1701)
+		if not scene.has_method("setup_battle") or session == null:
+			scene.queue_free()
+			quit(FAILURE_EXIT_CODE)
+			return
+		scene.setup_battle(chapter, session)
+		await process_frame
+		var director := scene.get_node_or_null("CombatVfxDirector")
+		if director == null:
+			scene.queue_free()
+			quit(FAILURE_EXIT_CODE)
+			return
 		var camera := scene.get_node("TacticalCamera") as Camera3D
 		if fixture[0] in ["boss-hit", "defeat"]:
 			camera.focus(scene.get_unit_node(&"captain-1").global_position)
@@ -56,6 +57,7 @@ func _capture_all() -> void:
 		director.play_events([fixture[1]] as Array[Dictionary])
 		for _frame in PRESENTATION_SETTLE_FRAMES:
 			await process_frame
+		await RenderingServer.frame_post_draw
 		var texture := get_root().get_texture()
 		if texture == null:
 			scene.queue_free()
@@ -71,5 +73,6 @@ func _capture_all() -> void:
 			scene.queue_free()
 			quit(FAILURE_EXIT_CODE)
 			return
-	scene.queue_free()
+		scene.queue_free()
+		await process_frame
 	quit(0)

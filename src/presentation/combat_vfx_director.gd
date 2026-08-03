@@ -161,6 +161,10 @@ func _spawn_effects(effect_key: StringName, event: Dictionary) -> Array[Node3D]:
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, Color(0.85, 0.55, 0.95), 0.38, 0.45, existing), position))
 			if quality_tier == &"default":
 				effects.append(_acquire(&"trail", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_trail(host, position + Vector3(-0.3, 0.2, 0.0), position + Vector3(0.3, -0.2, 0.0), Color(0.65, 0.22, 0.82), 0.38, true, existing), position))
+		&"battle_status_ring":
+			# Victory is intentionally a broad, centered status ring so it cannot
+			# be mistaken for the elevated boss weak-point marker.
+			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, board_center, Color(0.92, 0.32, 0.12), 0.75, 0.55, existing), board_center))
 		_:
 			effects.append(_acquire(&"ring", func(existing: Node3D = null) -> Node3D: return CombatVfxEffects.spawn_ring(host, position, color, 0.35, 0.55, existing), position))
 	if StringName(event.get("type", &"")) == &"damage_applied" and quality_tier != &"low":

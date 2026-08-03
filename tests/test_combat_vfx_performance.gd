@@ -49,25 +49,24 @@ func _test_capture_fixtures_execute(capture_script: Script) -> void:
 	assert_true(packed != null, "Capture fixture regression scene loads")
 	if packed == null:
 		return
-	var scene := packed.instantiate()
-	var chapter: Variant = load("res://src/content/chapter_one.gd").build()
-	var session: Variant = load("res://src/tactics/battle_session.gd").new(chapter, 1701)
 	var tree := Engine.get_main_loop() as SceneTree
-	tree.root.add_child(scene)
-	scene.setup_battle(chapter, session)
-	await tree.process_frame
-	var director := scene.get_node("CombatVfxDirector")
-	var camera := scene.get_node("TacticalCamera") as Camera3D
 	var fixtures: Array = capture_script.get_script_constant_map()["CAPTURE_FIXTURES"]
 	assert_equal(fixtures.size(), 6, "Executable capture fixture table remains complete")
 	if fixtures.size() < 6:
-		scene.queue_free()
-		await tree.process_frame
 		return
 	for index in [3, 4, 5]:
+		var scene := packed.instantiate()
+		var chapter: Variant = load("res://src/content/chapter_one.gd").build()
+		var session: Variant = load("res://src/tactics/battle_session.gd").new(chapter, 1701)
+		tree.root.add_child(scene)
+		scene.setup_battle(chapter, session)
+		await tree.process_frame
+		var director := scene.get_node("CombatVfxDirector")
+		var camera := scene.get_node("TacticalCamera") as Camera3D
 		var fixture: Array = fixtures[index]
-		director.clear_active_presentations()
 		director.reset_metrics()
+		assert_equal(director.active_presentation_count(), 0, "%s fixture starts without active remnants" % fixture[0])
+		assert_equal(int(director.get("_pooled_effect_count")), 0, "%s fixture starts with an empty pool" % fixture[0])
 		if fixture[0] in ["boss-hit", "defeat"]:
 			camera.focus(scene.get_unit_node(&"captain-1").global_position)
 		else:
@@ -86,9 +85,37 @@ func _test_capture_fixtures_execute(capture_script: Script) -> void:
 			for effect: Node3D in record.get("effects", []):
 				assert_true(is_instance_valid(effect) and effect.visible, "%s fixture effect root is visible" % fixture[0])
 			assert_equal(director.metrics().get("peak_active"), 1, "%s fixture records one active presentation" % fixture[0])
-		director.clear_active_presentations()
-	scene.queue_free()
-	await tree.process_frame
+			_assert_capture_primitive_state(fixture[0], director, record)
+		scene.queue_free()
+		await tree.process_frame
+
+func _assert_capture_primitive_state(capture_name: String, director: Node, record: Dictionary) -> void:
+	var effects: Array = record.get("effects", [])
+	if capture_name == "boss-hit":
+		var ring := effects[0] as Node3D
+		var mesh := ring.get_node("Mesh") as MeshInstance3D
+		assert_true(mesh.mesh is CylinderMesh, "Boss-hit weak point uses a ring cylinder")
+		assert_equal((mesh.mesh as CylinderMesh).top_radius, 0.45, "Boss-hit weak-point ring has its capture radius")
+		assert_true(_color_close((mesh.material_override as StandardMaterial3D).albedo_color, Color(0.85, 0.55, 0.95)), "Boss-hit ring keeps the lavender weak-point color")
+		assert_true(ring.global_position.y > 0.7, "Boss-hit ring is elevated over the boss weak point")
+	elif capture_name == "defeat":
+		var burst := effects[0] as Node3D
+		var particles := effects[1] as Node3D
+		var burst_mesh := burst.get_node("Mesh") as MeshInstance3D
+		assert_true(burst_mesh.mesh is QuadMesh, "Defeat uses a burst quad")
+		assert_equal((burst_mesh.mesh as QuadMesh).size, Vector2(0.45, 0.45), "Defeat burst is the critical large primitive")
+		assert_true(_color_close((burst_mesh.material_override as StandardMaterial3D).albedo_color, Color(0.5, 0.18, 0.62)), "Defeat burst keeps the dark violet dissolve color")
+		assert_equal((particles.get_node("Particles") as GPUParticles3D).amount, 16, "Defeat emits the full sixteen-particle dissolve")
+	elif capture_name == "victory":
+		var ring := effects[0] as Node3D
+		var mesh := ring.get_node("Mesh") as MeshInstance3D
+		assert_true(mesh.mesh is CylinderMesh, "Victory uses a center ring cylinder")
+		assert_equal((mesh.mesh as CylinderMesh).top_radius, 0.55, "Victory center ring is wider than the boss weak-point ring")
+		assert_true(_color_close((mesh.material_override as StandardMaterial3D).albedo_color, Color(0.92, 0.32, 0.12)), "Victory ring keeps the ember-orange status color")
+		assert_true(ring.global_position.is_equal_approx(director.board_center), "Victory ring is centered on the board, not the boss")
+
+func _color_close(actual: Color, expected: Color) -> bool:
+	return is_equal_approx(actual.r, expected.r) and is_equal_approx(actual.g, expected.g) and is_equal_approx(actual.b, expected.b)
 
 func _replay() -> Dictionary:
 	var director := DIRECTOR.new()
