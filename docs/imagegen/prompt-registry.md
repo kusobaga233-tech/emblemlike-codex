@@ -40,6 +40,28 @@ This registry plans future concept and raster work; it does not claim that any i
 
 ## Planned prompt specifications
 
+## Generated batch: star-ember-oath-aurelia-model-sheets-v01
+
+- Output directory: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-aurelia-model-sheets-v01`
+- Model/size/quality: `gpt-image-2` / `1024x768` / `medium` (PNG outputs are 1448x1086)
+- Raw manifest: `concept_manifest_raw.json`
+- Verified manifest: `concept_manifest_verified.json`
+- Prompts: `prompts.md`
+- Contact sheet: `concept_contact_sheet.png`
+- Visual inspection: Completed 2026-08-03. All four sheets accepted for Aurelia art direction only; no rejected sheets. No image is selected as a shipped asset.
+
+### Asset ID: aurelia-ember-warden-model-sheets-v01
+
+- `myimage-gen use-case slug`: `star-ember-oath-aurelia-model-sheets-v01`
+- Final prompts: See batch `prompts.md` and verified manifest; four consistent turnaround, face/hair, costume/material, and weapon/scale sheets.
+- Generated files: Four PNGs in the batch output directory; SHA-256 and dimensions recorded in `docs/visual/aurelia-model-sheet-review.md`.
+- Selected version: `v01` (art-direction reference only)
+- Intended 3D/UI use: Aurelia silhouette, costume, facial, hair, and weapon modeling direction; not runtime UI or shipped texture content.
+- Reviewer: Codex visual pass
+- License/source notes: Original Right Code Draw generation; provenance is art-direction-only and does not imply a final production asset license.
+- Raw/verified manifest and contact sheet: Present in batch output directory; contact sheet visually inspected.
+- Originality review: Accepted for independent silhouette/material direction; no franchise or living-artist imitation identifiers.
+
 ## Generated batch: star-ember-oath-ch1-production-v01
 
 - Output directory: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-ch1-production-v01`
