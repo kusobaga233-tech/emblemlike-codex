@@ -95,7 +95,7 @@ func _assert_capture_primitive_state(capture_name: String, director: Node, recor
 		var ring := effects[0] as Node3D
 		var mesh := ring.get_node("Mesh") as MeshInstance3D
 		assert_true(mesh.mesh is CylinderMesh, "Boss-hit weak point uses a ring cylinder")
-		assert_equal((mesh.mesh as CylinderMesh).top_radius, 0.45, "Boss-hit weak-point ring has its capture radius")
+		assert_true(is_equal_approx((mesh.mesh as CylinderMesh).top_radius, 0.45), "Boss-hit weak-point ring has its capture radius")
 		assert_true(_color_close((mesh.material_override as StandardMaterial3D).albedo_color, Color(0.85, 0.55, 0.95)), "Boss-hit ring keeps the lavender weak-point color")
 		assert_true(ring.global_position.y > 0.7, "Boss-hit ring is elevated over the boss weak point")
 	elif capture_name == "defeat":
@@ -110,7 +110,7 @@ func _assert_capture_primitive_state(capture_name: String, director: Node, recor
 		var ring := effects[0] as Node3D
 		var mesh := ring.get_node("Mesh") as MeshInstance3D
 		assert_true(mesh.mesh is CylinderMesh, "Victory uses a center ring cylinder")
-		assert_equal((mesh.mesh as CylinderMesh).top_radius, 0.55, "Victory center ring is wider than the boss weak-point ring")
+		assert_true(is_equal_approx((mesh.mesh as CylinderMesh).top_radius, 0.55), "Victory center ring is wider than the boss weak-point ring")
 		assert_true(_color_close((mesh.material_override as StandardMaterial3D).albedo_color, Color(0.92, 0.32, 0.12)), "Victory ring keeps the ember-orange status color")
 		assert_true(ring.global_position.is_equal_approx(director.board_center), "Victory ring is centered on the board, not the boss")
 
