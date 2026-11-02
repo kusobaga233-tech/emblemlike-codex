@@ -13,7 +13,7 @@ const HP_GREEN := Color("42b96b")
 const HP_EMPTY := Color("322f35")
 const DEFEAT_SCALE := Vector3(1.08, 0.08, 1.08)
 const PRODUCTION_DISPLAY_HEIGHT := 1.35
-const BOARD_GROUND_Y := -0.7
+const BOARD_GROUND_Y := -0.45
 const PRODUCTION_VISUALS := {
 	&"aurelia": "res://assets/production/models/hero_ember_warden.glb",
 	&"brann": "res://assets/production/models/hero_ash_vanguard.glb",
@@ -50,6 +50,7 @@ func configure(unit_state: Variant) -> void:
 	if unit_state == null or unit_state.definition == null or unit_state.grid_position == null:
 		return
 	unit_id = unit_state.instance_id
+	set_meta("definition_id", unit_state.definition.id)
 	team = unit_state.definition.team
 	max_hp = maxi(1, int(unit_state.definition.max_hp))
 	visual_hp = clampi(int(unit_state.current_hp), 0, max_hp)
@@ -126,6 +127,13 @@ func play_event(event: Dictionary) -> void:
 			set_selected(actor_id == unit_id)
 			if actor_id == unit_id:
 				_play_production_animation(&"select")
+		&"unit_deselected":
+			set_selected(false)
+		&"unit_acted":
+			if actor_id == unit_id:
+				var sprite := get_node_or_null("ProductionVisual") as Sprite3D
+				if sprite != null:
+					sprite.modulate = Color(0.5, 0.5, 0.5, 1.0)
 		&"unit_moved":
 			if actor_id == unit_id:
 				_play_production_animation(&"locomotion")
@@ -138,6 +146,10 @@ func play_event(event: Dictionary) -> void:
 		&"attack_finished":
 			if actor_id == unit_id and visual_hp > 0:
 				_play_production_animation(&"idle")
+		&"unit_healed":
+			if target_id == unit_id:
+				visual_hp = clampi(int(payload.get("remaining_hp", visual_hp)), 0, max_hp)
+				_update_hp_bar()
 		&"damage_applied":
 			if target_id == unit_id:
 				_play_production_animation(&"hit")
@@ -156,6 +168,10 @@ func play_event(event: Dictionary) -> void:
 				_animate_defeat()
 		&"phase_changed", &"phase_visual_changed":
 			last_phase = StringName(payload.get("to", last_phase))
+			if last_phase == team:
+				var sprite := get_node_or_null("ProductionVisual") as Sprite3D
+				if sprite != null:
+					sprite.modulate = Color.WHITE
 			_animate_phase_visual()
 		&"battle_status_changed":
 			if StringName(payload.get("to", &"")) == &"victory" and team == &"player":
@@ -182,29 +198,33 @@ func _build_body() -> void:
 
 
 func _build_production_visual(definition_id: StringName) -> void:
-	var path := String(PRODUCTION_VISUALS.get(definition_id, ""))
-	if path.is_empty():
+	var path := "res://assets/production/sprites/units_v03/%s.png" % String(definition_id)
+	if not ResourceLoader.exists(path):
 		return
-	production_uses_dynamic_fit = definition_id not in [&"aurelia", &"bridge-captain"]
-	var packed := load(path) as PackedScene
-	if packed == null:
-		return
-	var visual := packed.instantiate() as Node3D
-	if visual == null:
-		return
+	var visual := Sprite3D.new()
 	visual.name = "ProductionVisual"
+	visual.texture = load(path) as Texture2D
+	visual.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	visual.shaded = false
+	visual.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	var layouts: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/production/sprites/units_v03/layouts.json"))
+	var layout: Dictionary = layouts[String(definition_id)]
+	var anchor_data: Array = layout["foot_anchor_pixels"]
+	var foot_anchor := Vector2(float(anchor_data[0]), float(anchor_data[1]))
+	var canvas_size := visual.texture.get_size()
+	visual.pixel_size = PRODUCTION_DISPLAY_HEIGHT / float(layout["body_height_pixels"])
+	# Align the hand-reviewed midpoint of the two sole contacts to local origin.
+	# Weapons, hair and capes never influence the ground pivot.
+	visual.offset = Vector2(canvas_size.x * 0.5 - foot_anchor.x, foot_anchor.y - canvas_size.y * 0.5)
+	visual.set_meta("foot_anchor_pixels", foot_anchor)
+	visual.set_meta("head_ratio", float(layout["head_ratio"]))
+	visual.position.y = BOARD_GROUND_Y
+	visual.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	visual.alpha_scissor_threshold = 0.2
+	visual.no_depth_test = false
 	add_child(visual)
-	if production_uses_dynamic_fit:
-		_fit_production_visual(visual)
-	else:
-		visual.position = Vector3(0.0, -0.7, 0.0)
-		visual.scale = Vector3.ONE * 0.78
-	production_animation_player = _find_animation_player(visual)
-	_configure_production_animations()
-	_play_production_animation(&"idle")
-	var body := get_node_or_null("Body") as MeshInstance3D
-	if body != null:
-		body.visible = false
+	production_visual_bounds = AABB(Vector3(-0.45, BOARD_GROUND_Y, -0.05), Vector3(0.9, PRODUCTION_DISPLAY_HEIGHT, 0.1))
+	get_node("Body").visible = false
 
 
 func _fit_production_visual(visual: Node3D) -> void:
@@ -264,30 +284,21 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 	return null
 
 
-func _play_production_animation(animation_name: StringName) -> void:
-	if production_animation_player == null:
-		return
-	if production_animation_player.has_animation(animation_name):
-		production_animation_player.play(animation_name)
+func _play_production_animation(_animation_name: StringName) -> void:
+	# Static sprite presentation: all attack feedback belongs to the VFX director.
+	return
 
 
 func _build_selection_outline() -> void:
 	var outline := MeshInstance3D.new()
 	outline.name = "SelectionOutline"
-	if team == &"player":
-		var capsule := CapsuleMesh.new()
-		capsule.radius = clampf(minf(production_visual_bounds.size.x, production_visual_bounds.size.z) * 0.46, 0.35, 0.47)
-		capsule.height = PRODUCTION_DISPLAY_HEIGHT
-		outline.mesh = capsule
-		outline.material_override = _material(PLAYER_GOLD, true)
-	else:
-		var cylinder := CylinderMesh.new()
-		var footprint := clampf(minf(production_visual_bounds.size.x, production_visual_bounds.size.z) * 0.48, 0.36, 0.48)
-		cylinder.top_radius = footprint * 0.86
-		cylinder.bottom_radius = footprint
-		cylinder.height = PRODUCTION_DISPLAY_HEIGHT
-		outline.mesh = cylinder
-		outline.material_override = _material(ENEMY_OUTLINE, true)
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.36
+	ring.outer_radius = 0.44
+	outline.mesh = ring
+	outline.position.y = BOARD_GROUND_Y
+	outline.scale.y = 0.12
+	outline.material_override = _material(PLAYER_GOLD if team == &"player" else ENEMY_OUTLINE, true)
 	outline.visible = false
 	add_child(outline)
 
@@ -301,18 +312,24 @@ func _build_hp_bar() -> void:
 	background.name = "Background"
 	background.mesh = _bar_mesh()
 	background.material_override = _material(HP_EMPTY, true)
+	background.material_override.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	background.material_override.no_depth_test = true
+	background.material_override.render_priority = 1
 	hp_bar.add_child(background)
 	var fill := MeshInstance3D.new()
 	fill.name = "Fill"
 	fill.mesh = _bar_mesh()
 	fill.position = Vector3(0.0, 0.0, -0.012)
 	fill.material_override = _material(HP_GREEN, true)
+	fill.material_override.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	fill.material_override.no_depth_test = true
+	fill.material_override.render_priority = 2
 	hp_bar.add_child(fill)
 
 
-func _bar_mesh() -> BoxMesh:
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.82, 0.075, 0.055)
+func _bar_mesh() -> QuadMesh:
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(0.6, 0.055)
 	return mesh
 
 
@@ -322,7 +339,7 @@ func _update_hp_bar() -> void:
 		return
 	var ratio := clampf(float(visual_hp) / float(max_hp), 0.0, 1.0)
 	fill.scale.x = ratio
-	fill.position.x = -0.41 * (1.0 - ratio)
+	fill.position.x = -0.3 * (1.0 - ratio)
 	fill.visible = ratio > 0.0
 
 
@@ -353,22 +370,11 @@ func _pulse_body(target_scale: Vector3) -> void:
 
 
 func _animate_defeat() -> void:
-	if defeat_animation != null:
-		_commit_defeat_animation()
 	animation_kind = &"defeat"
-	if not visible:
-		return
-	var tween := _new_animation(&"defeat")
-	if tween == null:
-		_finish_defeat()
-		return
-	defeat_animation = tween
-	tween.tween_property(self, "scale", DEFEAT_SCALE, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_callback(Callable(self, "_finish_defeat"))
+	_finish_defeat()
 
 
 func _finish_defeat() -> void:
-	scale = DEFEAT_SCALE
 	visible = false
 
 
@@ -487,6 +493,9 @@ func _clear_visuals() -> void:
 	production_animation_player = null
 	production_visual_bounds = AABB()
 	production_uses_dynamic_fit = false
+	var static_sprite := get_node_or_null("ProductionVisual") as Sprite3D
+	if static_sprite != null:
+		static_sprite.texture = null
 	for child: Node in get_children():
 		child.free()
 	visible = true

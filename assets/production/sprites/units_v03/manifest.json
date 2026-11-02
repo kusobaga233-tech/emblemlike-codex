@@ -1,0 +1,373 @@
+[
+  {
+    "id": "aurelia",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\aurelia\\20261023-170347-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Adult female sword heroine Aurelia. Short shoulder-length layered bright flame-red hair, amber eyes, confident smile. Pearl-white and gold LIGHT armor with gold star chest clasp, small exposed waist, long split white and mist-blue rear coat panels, translucent coral-pink shoulder ribbons, white-gold boots. Narrow orange-glowing oathblade in right hand angled to side, sword not beneath feet. Preserve red hair and white-blue-gold-coral identity. Simplify ornaments into 3 or 4 large gold shapes.",
+    "source_sha256": "386bfb6c2a4ff706c1aaa0ed7d0fcb0cdf38922f6f1def51882aa3ca7f1e7ee3",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\aurelia.png",
+    "prepared_sha256": "f9575d812fb6d254b05154efca1dbe02f2a6303a35a0bd98d009d8f32461f2c9",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      767.9245562130178,
+      969.9497041420119
+    ],
+    "soles_pixels": [
+      [
+        656.6449704142012,
+        974.4497041420118
+      ],
+      [
+        879.2041420118344,
+        965.4497041420118
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 27,
+      "chin_y": 196,
+      "left_sole": [
+        628,
+        1052
+      ],
+      "right_sole": [
+        805,
+        1040
+      ]
+    },
+    "lower_body_y_scale": 0.5964705882352941,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\aurelia.png"
+  },
+  {
+    "id": "brann",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\brann\\20261023-170422-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Brann, adult male guardian. Square friendly strong face, short brown hair, navy and silver heavy armor with broad gold trim, coral scarf. Large simple blue kite shield with a single gold star and short spear with broad readable silver tip in other hand. Shield and spear do not extend below boot soles. Broad compact stocky silhouette, human face fully visible.",
+    "source_sha256": "d2ef197b3f35972684ed51026100dfd341b0ad73ab1b64c6dc42e5be4805eaf6",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\brann.png",
+    "prepared_sha256": "b87635c631b751842e998a48c40f89db616bff98ec04006379dd7596c07754ac",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      768.2133027522937,
+      970.0573394495412
+    ],
+    "soles_pixels": [
+      [
+        636.6192660550458,
+        963.5478091568251
+      ],
+      [
+        899.8073394495414,
+        976.5668697422575
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 77,
+      "chin_y": 295,
+      "left_sole": [
+        570,
+        1022
+      ],
+      "right_sole": [
+        840,
+        1037
+      ]
+    },
+    "lower_body_y_scale": 0.8904016337644656,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\brann.png"
+  },
+  {
+    "id": "elio",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\elio\\20261023-170506-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Elio, adult male healer. Short silver hair, teal eyes, gentle smile. Simple ivory coat and mist-blue panels with 3 large gold star decorations, coral belt, white boots. Holds short golden staff topped by cyan star crystal to side, bottom of staff ends above soles; free hand shows one small cyan healing star. Large head and expressive eyes; do not draw a tall slender realistic man.",
+    "source_sha256": "2e03c5641233f1122c8d7c16bc5b2a439697d9c33dcc51a3f40a36f4d8341d50",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\elio.png",
+    "prepared_sha256": "cc217c1883f2e0062405a7e9d96cd5dc744e5f8fdf7ae421fb75b17c450c3e29",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      767.872340425532,
+      970.031914893617
+    ],
+    "soles_pixels": [
+      [
+        693.7234042553191,
+        973.2761897027774
+      ],
+      [
+        842.0212765957447,
+        966.7876400844567
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 31,
+      "chin_y": 266,
+      "left_sole": [
+        640,
+        1056
+      ],
+      "right_sole": [
+        804,
+        1048
+      ]
+    },
+    "lower_body_y_scale": 0.8969465648854962,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\elio.png"
+  },
+  {
+    "id": "fenn",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\fenn\\20261023-170558-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Fenn, adult male archer. Short forest-green hair, amber eyes and confident smirk. Simple teal leather ranger armor, ivory shoulder guard, coral scarf, brown gloves and boots. Ivory-gold curved bow in left hand clearly away from torso, one arrow in right, simple quiver behind shoulder. Bow ends above soles, all equipment contained, unmistakable archer silhouette.",
+    "source_sha256": "326ea26a15ad44aa5a8c8c6de3d255220fee005d3c6e35dded00013dfd6eb6a4",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\fenn.png",
+    "prepared_sha256": "6882f5b61b2d52d7fd96c833594ec5c35ac3476218477f0889f1535de4dbeb48",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      767.8914835164837,
+      969.6923076923077
+    ],
+    "soles_pixels": [
+      [
+        621.3598901098901,
+        964.7680652680652
+      ],
+      [
+        914.4230769230771,
+        974.6165501165501
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 28,
+      "chin_y": 210,
+      "left_sole": [
+        575,
+        1045
+      ],
+      "right_sole": [
+        826,
+        1058
+      ]
+    },
+    "lower_body_y_scale": 0.6488413547237076,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\fenn.png"
+  },
+  {
+    "id": "bridge-captain",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\bridge-captain\\20261023-170642-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Enemy Bridge Captain, adult male commander. Short silver hair, stern eyebrows and readable face. Charcoal black armor with burgundy panels and broad silver edging, small purple star gem, SHORT burgundy cape ending near knees. Broad dark sword with purple edge beside body and compact dark kite shield. Sword and cape above boot baseline. Same four-head scale as heroes, commanding cartoon knight silhouette.",
+    "source_sha256": "96049fd2bbedfc5060ca967ecbdbe59a7b1487b50e2a33fc2ff561a3a3aaeed1",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\bridge-captain.png",
+    "prepared_sha256": "8dea999c1894403626eaef4e4773a9e242247e621b746de1c9517dd8072c6153",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      767.9375,
+      970.3194444444445
+    ],
+    "soles_pixels": [
+      [
+        597.3472222222223,
+        962.5450542005422
+      ],
+      [
+        938.5277777777778,
+        978.093834688347
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 35,
+      "chin_y": 215,
+      "left_sole": [
+        589,
+        1025
+      ],
+      "right_sole": [
+        878,
+        1045
+      ]
+    },
+    "lower_body_y_scale": 0.6585365853658537,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\bridge-captain.png"
+  },
+  {
+    "id": "hollow-blade",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\hollow-blade\\20261023-170728-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Hollow Blade, adult undead enemy melee swordsman. Stylized gray face, readable yellow eyes beneath charcoal hood. Simple charcoal armor, burgundy scarf and purple chest rune. Short worn steel sword in one hand, small round dark shield in other. Compact upright ready stance with both boots aligned, sword above ground. Dark but readable two-tone shapes, no gore or realistic horror.",
+    "source_sha256": "581dea3121a2bc06f842f2e40f2969752ca01e19c30181b03a10f05fb70beb0f",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\hollow-blade.png",
+    "prepared_sha256": "5c1a2078a8d0d8fc11ae022fc6d11e81ca5a9cb7c0f4d0a2803f4c1273faea18",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      767.9867841409691,
+      969.9559471365639
+    ],
+    "soles_pixels": [
+      [
+        634.1211453744493,
+        966.7116723274036
+      ],
+      [
+        901.852422907489,
+        973.2002219457241
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 32,
+      "chin_y": 259,
+      "left_sole": [
+        593,
+        1041
+      ],
+      "right_sole": [
+        879,
+        1049
+      ]
+    },
+    "lower_body_y_scale": 0.8664122137404581,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\hollow-blade.png"
+  },
+  {
+    "id": "hollow-bow",
+    "source_image": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\hollow-bow\\20261023-170838-gpt-image-2-original-japanese-cartoon-tactic.png",
+    "source_dimensions": [
+      1448,
+      1086
+    ],
+    "requested_size": "1024x768",
+    "returned_size_matches_request": false,
+    "prompt": "Original Japanese cartoon tactical RPG character sprite. STRICT 4-head anatomy: crown-to-chin is 25 percent of crown-to-soles height. Head plus torso plus thighs plus calves/boots each occupy roughly one head-height. Moderately enlarged head, natural shoulders, compact sturdy torso and legs, NOT a huge bobblehead, NOT 2-head or 3-head chibi proportions, NOT a skinny elongated body. A clean four-head-height adult game character, with medium large anime eyes and clear simple face. Hand-drawn Japanese anime game style, bold clean dark outlines, bright flat color masses, only two-tone hard cel shading, broad simple costume shapes, NO tiny filigree or noisy painting or realistic textures. One full-body character only, three-quarter FRONT view, upright balanced neutral battle-ready stance, compact shoulders and short sturdy limbs, both boots clearly visible close together and soles on exactly the same horizontal baseline, body centered over midpoint of feet. Weapon held visibly to the side inside frame. Clear silhouette readable at 80 pixels tall. Transparent background with true alpha, ample empty margins around full figure and weapon. No ground, cast shadow, checkerboard, UI, captions, frame, labels, logos, other characters. Single static pose, not an animation sheet. Hollow Bow, adult enemy archer. Stylized pale-gray face with large readable violet eyes beneath charcoal hood. Dark violet and burgundy leather, short ragged shoulder mantle, visible quiver with 3 purple arrows, brown boots. Dark curved recurve bow in left hand to the side and single arrow in right; full bow inside frame and above soles. Compact balanced standing pose, no crouching, no spear or staff.",
+    "source_sha256": "ca32c76ad1e708f8e59f85f28fd4059fc5f1d8de713b5673169f4304a3a4740d",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-chibi4-sprites-20261023-v01\\proportion-revision\\prepared\\hollow-bow.png",
+    "prepared_sha256": "6fc994997e5ae4548e1eba6beadbfe10e861e6e23f23a9fc77168c0f07876543",
+    "canvas": [
+      1536,
+      1024
+    ],
+    "foot_anchor_pixels": [
+      767.7053140096618,
+      969.9565217391304
+    ],
+    "soles_pixels": [
+      [
+        644.5169082125603,
+        972.7543273817637
+      ],
+      [
+        890.8937198067633,
+        967.1587160964972
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "source_landmarks": {
+      "crown_y": 36,
+      "chin_y": 243,
+      "left_sole": [
+        584,
+        1044
+      ],
+      "right_sole": [
+        824,
+        1037
+      ]
+    },
+    "lower_body_y_scale": 0.7786833855799373,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "visual_review": "PASS WITH NOTES: independent review accepts approximately four-head cartoon silhouettes and clear cel-shading; exact underlying head ratio under hoods cannot be visually certified. All seven anchor transforms tested; Fenn isolated capture visually aligns. Overlap/health bar occlusion remains.",
+    "final_copied_path": "D:\\godot-proj\\star-ember-oath-godot\\assets\\production\\sprites\\units_v03\\hollow-bow.png"
+  }
+]

@@ -152,6 +152,22 @@ $requiredFiles = @(
 )
 $missing = @($requiredFiles | Where-Object { -not (Test-Path -LiteralPath (Join-Path $ProjectRoot $_)) })
 Add-GateResult 'Required files' ($missing.Count -eq 0) $(if ($missing.Count) { 'missing: ' + ($missing -join ', ') } else { 'all present' })
+
+$exportPresetPath = Join-Path $ProjectRoot 'export_presets.cfg'
+$requiredExportExclusions = @('tests/*', 'tools/*', 'docs/*', 'build/*', 'src/qa/*', 'assets/test/*', 'assets/production/concepts/*')
+$exportBoundaryPassed = $false
+$exportBoundaryDetail = 'preset missing or exclude_filter missing'
+if (Test-Path -LiteralPath $exportPresetPath) {
+    $exportPreset = Get-Content -Raw -Encoding UTF8 -LiteralPath $exportPresetPath
+    $excludeMatch = [regex]::Match($exportPreset, '(?m)^exclude_filter="([^"]*)"\r?$')
+    if ($excludeMatch.Success) {
+        $configuredExclusions = @($excludeMatch.Groups[1].Value.Split(',') | ForEach-Object { $_.Trim() })
+        $missingExclusions = @($requiredExportExclusions | Where-Object { $configuredExclusions -notcontains $_ })
+        $exportBoundaryPassed = $missingExclusions.Count -eq 0
+        $exportBoundaryDetail = if ($exportBoundaryPassed) { 'all development-only resource categories are excluded' } else { 'missing exclusions: ' + ($missingExclusions -join ', ') }
+    }
+}
+Add-GateResult 'Release resource boundary' $exportBoundaryPassed $exportBoundaryDetail
 Add-GateResult 'Godot executable' (Test-Path -LiteralPath $GodotPath -PathType Leaf) $GodotPath
 
 $encodingIssues = @(Test-TextEncoding)

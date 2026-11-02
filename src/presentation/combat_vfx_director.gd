@@ -93,6 +93,45 @@ func clear_active_presentations() -> void:
 		_release_effects(record)
 		presentation_finished.emit(StringName(record.get("id", &"")))
 
+func shutdown() -> void:
+	clear_active_presentations()
+	for kind: StringName in _effect_pool.keys():
+		for node: Node3D in _effect_pool[kind]:
+			if is_instance_valid(node):
+				_dispose_effect_node(node)
+	_effect_pool.clear()
+	_pooled_effect_count = 0
+	if is_instance_valid(_effect_host):
+		_effect_host.free()
+	_effect_host = null
+
+
+func _dispose_effect_node(node: Node3D) -> void:
+	if not is_instance_valid(node):
+		return
+	var children := node.get_children()
+	for child: Node in children:
+		if child is GPUParticles3D:
+			var particles := child as GPUParticles3D
+			particles.emitting = false
+			particles.process_material = null
+			particles.draw_pass_1 = null
+		if child is MeshInstance3D:
+			var mesh_node := child as MeshInstance3D
+			mesh_node.mesh = null
+			mesh_node.material_override = null
+		if child.get_parent() != null:
+			child.get_parent().remove_child(child)
+		child.free()
+	if node is MeshInstance3D:
+		var mesh_node := node as MeshInstance3D
+		mesh_node.mesh = null
+		mesh_node.material_override = null
+	if node.get_parent() != null:
+		node.get_parent().remove_child(node)
+	node.free()
+
+
 func active_presentation_count() -> int:
 	return _active.size()
 

@@ -4,6 +4,8 @@ Review date: 2026-08-03
 Batch: `D:\CODEX-PROJ\common\outputs\imagegen\star-ember-oath-aurelia-model-sheets-v01`  
 Reviewer: Codex visual pass (contact sheet inspected)
 
+Archive update: 2026-10-20. The complete batch, including PNGs, response JSON, manifests, prompts, and contact sheet, is archived at `res://assets/production/concepts/heroes/aurelia-model-sheets-v01` for provenance and reproducibility. The images remain art-direction references only; none is a runtime or shipped asset.
+
 ## Validation
 
 All four approved PNGs decode successfully, are UTF-8-independent binary assets, and share the expected 1448x1086 canvas. SHA-256 values below match `concept_manifest_verified.json`.
@@ -17,5 +19,5 @@ All four approved PNGs decode successfully, are UTF-8-independent binary assets,
 
 ## Art-direction decision
 
-Accepted for Aurelia Ember Warden art direction and future modeling reference. The batch consistently communicates an adult red-haired female hero, lightweight white-gold/mist-blue armor with coral accents, and a high-saturation Japanese anime cel-shaded direction. It is reference-only: no PNG is copied into Godot, selected as a shipped asset, or treated as a production mesh. No rejected sheets; implementation, rigging, and Blender work remain out of scope for Task 1.
+Accepted for Aurelia Ember Warden art direction and future modeling reference. The batch consistently communicates an adult red-haired female hero, lightweight white-gold/mist-blue armor with coral accents, and a high-saturation Japanese anime cel-shaded direction. The PNGs are archived in Godot for provenance but are not selected as runtime or shipped assets, and are not treated as production meshes. No rejected sheets; implementation, rigging, and Blender work remain out of scope for Task 1.
 

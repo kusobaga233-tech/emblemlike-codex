@@ -1,0 +1,296 @@
+[
+  {
+    "id": "aurelia",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. Aurelia the Ember Warden, an adult female sword vanguard with shoulder-length layered flame-red hair, amber eyes and determined face. Lightweight pearl-white and gold armor, high collar and gold star chest clasp, exposed waist, ornate fitted waist armor, long split white and mist-blue rear coat panels, translucent coral shoulder ribbons, white gold boots. Hold an elegant narrow glowing orange-edged oathblade clearly in her right hand angled outward and down, natural grip. Preserve the long rear panels and light armor silhouette, not a full gown or plain shorts. Red hair, beautiful expressive face and sword must read immediately.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\aurelia\\20261023-154215-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file4.aitohumanize.com/file/631032f9ce154c70a6a0f95b1842a56b.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\aurelia\\20261023-154215-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.7340874057568451,
+    "foreground_bbox_alpha_gt16": [
+      134,
+      5,
+      1133,
+      1078
+    ],
+    "sha256": "93e884837c9d06ab0327b3028e086001b45feb1438cbe9bd16e6bbf8831b75a3",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\aurelia.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\aurelia.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "f62fd426caa2a33f7e21d3f3ca2df2ec6466d4a2419fca137f80dbb1c7bef2fc",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  },
+  {
+    "id": "brann",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. Brann the Ash Vanguard, broad-shouldered adult male guardian, short dark brown hair, warm tan skin and firm reassuring face. Substantial navy blue and silver plate armor with warm gold edging, compact coral mantle. Large readable kite shield in left hand, short spear in right hand pointing diagonally up beside body, full spear tip inside canvas. Shield-forward grounded stance. Broad triangular silhouette, powerful physique and carefully articulated armor, human face visible, not a helmet hiding the face.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\brann\\20261023-154259-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file5.aitohumanize.com/file/1b521b9e2ee9459e83773a6af620000f.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\brann\\20261023-154259-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.7028510780094218,
+    "foreground_bbox_alpha_gt16": [
+      265,
+      8,
+      1111,
+      1071
+    ],
+    "sha256": "569998a6f98cfb5a30257305b8148bda2a20d1051d15f204121d33e482e17770",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\brann.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\brann.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "52ca7cfa29e9466c4781a308e3c97a1cf2ee9da55179e90c5e2f2cd7dfba73fb",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  },
+  {
+    "id": "elio",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. Elio the Starbound Mender, adult male healer, soft silver hair, kind teal eyes. Refined layered ivory priest coat with mist-blue fabric, gold constellations and small coral sash, fitted boots. Holds a slender gold staff topped by a cyan star-shaped crystal beside body, other hand open with a small floating healing spark. Elegant slender silhouette, readable face and white robe folds, staff not covering face, calm supportive ready stance.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\elio\\20261023-154352-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file4.aitohumanize.com/file/5ae584d500b44201a5045f75d9aae547.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\elio\\20261023-154352-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.6975589623841356,
+    "foreground_bbox_alpha_gt16": [
+      336,
+      1,
+      1118,
+      1086
+    ],
+    "sha256": "d17ed5f82b495044f3fbd42f22f9e42837877578e0a93da2c65a1b5e310bbff9",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\elio.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\elio.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "9edd9d941951795feb9f4ca09c88c40539d7fc90899c22102b350d02662e48e9",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  },
+  {
+    "id": "fenn",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. Fenn the Dawn Archer, athletic adult male archer, short forest-green hair and confident amber eyes. Lightweight teal and brown leather ranger armor, ivory shoulder accents, small coral scarf, gold buckles, visible quiver behind shoulder and fitted tall boots. Holds a distinctive curved ivory-gold longbow in left hand and a clearly separated arrow in right hand, resting ready stance, bowstring visible and bow fully inside image. Agile asymmetric silhouette, handsome face, unmistakably an archer, no staff or sword.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\fenn\\20261023-154437-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file5.aitohumanize.com/file/3b479dd4edd24891b19e89f0930df4c7.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\fenn\\20261023-154437-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.8255471444705595,
+    "foreground_bbox_alpha_gt16": [
+      298,
+      19,
+      1149,
+      1070
+    ],
+    "sha256": "29baa02a1f0c62a93d8faf62acffbdbeffa6d85b23cd1c0cbd71b23f36552469",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\fenn.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\fenn.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "0869aac434d28102d979315fe5c757b70511074b139fb0567cfcf38725fefd1b",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  },
+  {
+    "id": "bridge-captain",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. The Bridge Captain, adult male enemy commander with silver hair and a stern visible face. Elegant charcoal black and burgundy steel armor with restrained violet crystal accents and tarnished silver trim, long split burgundy command mantle. Holds a broad dark sword edged in violet in one hand and a compact heraldic shield in the other, full weapons contained. Commanding broad silhouette but same character scale as heroes, readable armor plates and dark-red cape. Original insignia only; no franchise emblems.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\bridge-captain\\20261023-154512-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file4.aitohumanize.com/file/2d3beaf432a14d30b9db0d9a887e89db.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\bridge-captain\\20261023-154512-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.7007321968193889,
+    "foreground_bbox_alpha_gt16": [
+      120,
+      21,
+      1269,
+      1064
+    ],
+    "sha256": "6ef10da37a029b1b9060c49cbecc9687992674e639a45841aa0deb97bb49b05a",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\bridge-captain.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\bridge-captain.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "d1a72405dd1b684027ab169ebe336aea0d7a7f1b2f67c0888a01389f12aab51c",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  },
+  {
+    "id": "hollow-blade",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. Hollow Blade, adult undead enemy swordsman with ash-gray face partly visible beneath a broken dark hood. Weathered charcoal plate and burgundy cloth wraps, small violet rune glow at chest, leather boots. Holds a worn steel sword and small round battered shield, aggressive but balanced ready stance, sword angled clear of legs. Distinct thin angular silhouette, readable hands and weapon, layered fabric and armor material definition, ominous but not gore.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\hollow-blade\\20261023-154556-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file4.aitohumanize.com/file/8b9f6c885bab42e5aadf75284f7aa438.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\hollow-blade\\20261023-154556-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.7422729515786046,
+    "foreground_bbox_alpha_gt16": [
+      118,
+      16,
+      1113,
+      1070
+    ],
+    "sha256": "c55e5de2b994fc183b6ec2e0d743d65d37cfa22ed49a5ab66d18aa7660e6adcb",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\hollow-blade.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\hollow-blade.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "5a9bed92f38e25cb511a5f99110d5bc5d6fa492eea9b3a449f0dc2ce0fc4e51c",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  },
+  {
+    "id": "hollow-bow",
+    "prompt": "Original premium Japanese fantasy tactical RPG static battle sprite. Single adult character, 5.5-head heroic proportions, three-quarter front view facing slightly right, full body including both boots and complete weapon with generous 8 percent empty margins. Polished hand-painted anime game art, crisp intentional ink contours, controlled cel shading with rich material definition, detailed expressive face, anatomically correct hands, clear readable silhouette at 120 pixels height, convincing ready stance. Unified lighting from upper left, restrained highlights, coherent pearl-white gold mist-blue coral allied palette versus charcoal burgundy violet enemy palette. True alpha transparent background, no checkerboard, no ground, no cast shadow, no scene, no frame, no labels, no text, no UI, no other characters. Not a 3D render, not low-poly, not a toy, not a screenshot. Hollow Bow, adult enemy archer with pale gray face beneath a charcoal hood. Lean burgundy leather armor and ragged dark-violet shoulder mantle, fitted boots and visible quiver of violet-fletched arrows. Holds a dark angular recurve bow clearly away from torso and a single arrow ready in the other hand. Restrained violet accents, bent-knee alert stance, full bow and boots visible, unmistakable archer silhouette, no spear, no staff, no gore.",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\hollow-bow\\20261023-154631-gpt-image-2-original-premium-japanese-fantas.png",
+    "image_url": "https://file4.aitohumanize.com/file/a76404d855794e18b8ce9006525483d4.png",
+    "response_json": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\hollow-bow\\20261023-154631-gpt-image-2-original-premium-japanese-fantas.json",
+    "width": 1448,
+    "height": 1086,
+    "mode": "RGBA",
+    "requested_size": "1024x768",
+    "exact_requested_size": false,
+    "alpha_extrema": [
+      0,
+      255
+    ],
+    "alpha_lt8_ratio": 0.7882886664021245,
+    "foreground_bbox_alpha_gt16": [
+      371,
+      11,
+      1242,
+      1075
+    ],
+    "sha256": "ffd0d2f8683cc1e76154f706b0cfe3012268aa46d90a94e710a483146cd036d7",
+    "review": "candidate for in-engine evaluation; alpha composited on dark/light and no low-poly source",
+    "normalized_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\normalized\\hollow-bow.png",
+    "normalized_size": [
+      640,
+      768
+    ],
+    "baseline": 980,
+    "normalization": "alpha<8 removed; detached components<18 pixels removed; transparent RGB zeroed; aspect retained",
+    "prepared_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-commercial-sprites-20261023-v01\\prepared\\hollow-bow.png",
+    "prepared_dimensions": [
+      1536,
+      1024
+    ],
+    "body_render_height": 850,
+    "anchor_method": "median opaque feet x in bottom 10 percent; 850px opaque silhouette height",
+    "prepared_sha256": "b5283683f801574a31b319de9d095af13073f9175f904d5226ecd81263cea18a",
+    "visual_review": "Main reviewer: accept for in-engine candidate evaluation after contact-sheet and light/dark composite inspection; not a claim of entire game commercial quality.",
+    "independent_review": "PASS WITH NOTES: Independent visual review found no demonstrated blocker in seven character artworks for a commercial-style vertical slice. Notes: Elio soft pale edges, reduced bowstring readability, ally/enemy clustering and health-bar overlap. Not full product parity approval."
+  }
+]

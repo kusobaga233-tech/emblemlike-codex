@@ -1,0 +1,42 @@
+[
+  {
+    "index": 1,
+    "title": "01_turnaround",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-oath-aurelia-model-sheets-v01\\20260803-151947-gpt-image-2-japanese-anime-cel-shaded-produc.png",
+    "bytes": 1760867,
+    "width": 1448,
+    "height": 1086,
+    "sha256": "864ff111d5038f1f5b94539c582e5b90f74afb2dd634bfffe56d59fdad4b59bd",
+    "prompt": "Japanese anime cel-shaded production model sheet for the same adult red-haired female heroine Aurelia Ember Warden from the approved bright v03 direction, exact character consistency: shoulder-length flowing coral-red hair, soft amber eyes, light white-gold and mist-blue armor, coral translucent cape ribbons, exposed shoulders and small midriff, split skirt with thigh openings, white boots, slim glowing orange oathblade. Show clean full-body front, left side, back, and 3/4 views on a plain white background, orthographic turnaround, consistent proportions and costume seams, no perspective distortion, no UI, no text, no logos, no photorealism"
+  },
+  {
+    "index": 2,
+    "title": "02_face_hair",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-oath-aurelia-model-sheets-v01\\20260803-152215-gpt-image-2-japanese-anime-cel-shaded-facial.png",
+    "bytes": 2311399,
+    "width": 1448,
+    "height": 1086,
+    "sha256": "f66f1f5f96fd91842446d5da11b7ad37e4370b67e4228e9a25b873f0012758bc",
+    "prompt": "Japanese anime cel-shaded facial and hair expression model sheet for the same adult red-haired female heroine Aurelia Ember Warden, keep exact approved v03 costume colors: white-gold light armor, mist-blue fabric, coral accents, amber eyes. Show front and 3/4 head views, neutral, confident, concerned, battle shout, hurt, victory expressions; include front/side/back hair views and hair strand grouping for modeling, clean white background, production reference sheet, no UI, no text, no logos"
+  },
+  {
+    "index": 3,
+    "title": "03_costume_materials",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-oath-aurelia-model-sheets-v01\\20260803-152348-gpt-image-2-japanese-anime-cel-shaded-costum.png",
+    "bytes": 2065379,
+    "width": 1448,
+    "height": 1086,
+    "sha256": "63150c72da9b5ae2c6ee8b45784432d10803651ccc65109d5cb30ac274c9d05e",
+    "prompt": "Japanese anime cel-shaded costume construction and material callout sheet for the same adult red-haired female heroine Aurelia Ember Warden, consistent v03 design. Show isolated torso, shoulder, bracer, waist, skirt split, boot and cape-ribbon details with simple labeled color swatches but no readable text: white-gold thin armor plates, mist-blue satin fabric, coral translucent ribbons, warm amber crystal core, low-contrast soft metal, seam and fastener details, modeling-friendly orthographic closeups, no UI, no logos, no photorealism"
+  },
+  {
+    "index": 4,
+    "title": "04_weapon_scale",
+    "image_path": "D:\\CODEX-PROJ\\common\\outputs\\imagegen\\star-ember-oath-aurelia-model-sheets-v01\\20260803-152600-gpt-image-2-japanese-anime-cel-shaded-weapon.png",
+    "bytes": 1769359,
+    "width": 1448,
+    "height": 1086,
+    "sha256": "2f11d2b0b2cd964d748f2463208c9d30ec41fe716d38046c7f1b91facc91c916",
+    "prompt": "Japanese anime cel-shaded weapon and hand-scale model sheet for the same adult red-haired female heroine Aurelia Ember Warden. Show glowing orange oathblade front, side, back, guard and pommel details, hand grip scale, sheathed hip placement, weapon socket orientation, clean white background, high-saturation but soft-contrast white-gold/mist-blue/coral palette, production reference for Blender, no UI, no text, no logos, no photorealism"
+  }
+]

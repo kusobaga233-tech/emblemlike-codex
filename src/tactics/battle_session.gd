@@ -24,6 +24,7 @@ var battle_status: StringName = &"ongoing"
 var event_queue: Array[Dictionary] = []
 var resonance_state: Variant
 var fired_scripted_event_ids: Array[StringName] = []
+var _move_origins: Dictionary = {}
 
 var _base_seed: int = 1
 var _combat_index: int = 0
@@ -49,6 +50,17 @@ func move_selected(destination: Vector2i) -> Dictionary:
 	return _execute(BattleCommandScript.move_selected(destination))
 
 
+func undo_selected_move() -> Dictionary:
+	return _execute(BattleCommandScript.undo_selected_move())
+
+
+func can_undo_selected_move() -> bool:
+	if battle_status != &"ongoing" or turn_state.phase != &"player" or selected_unit_id == &"":
+		return false
+	var unit: Variant = _find_unit(selected_unit_id)
+	return unit != null and unit.current_hp > 0 and not unit.acted and unit.has_moved and _move_origins.has(selected_unit_id)
+
+
 func forecast_attack(target_id: StringName) -> Dictionary:
 	return _execute(BattleCommandScript.forecast_attack(target_id))
 
@@ -63,6 +75,10 @@ func end_player_phase() -> Dictionary:
 
 func wait_selected() -> Dictionary:
 	return _execute(BattleCommandScript.wait_selected())
+
+func forecast_support(target_id: StringName) -> Dictionary:
+	return _execute(BattleCommandScript.forecast_support(target_id))
+
 
 func support_selected(target_id: StringName) -> Dictionary:
 	return _execute(BattleCommandScript.support_selected(target_id))
@@ -105,6 +121,8 @@ func _execute(command: Variant) -> Dictionary:
 			return _select_unit(command.unit_id)
 		&"move_selected":
 			return _move_selected(command.destination)
+		&"undo_selected_move":
+			return _undo_selected_move()
 		&"forecast_attack":
 			return _forecast_attack(command.target_id)
 		&"confirm_attack":
@@ -115,6 +133,8 @@ func _execute(command: Variant) -> Dictionary:
 			return _wait_selected()
 		&"advance_enemy_phase":
 			return _advance_enemy_phase()
+		&"forecast_support":
+			return _forecast_support(command.target_id)
 		&"support_selected":
 			return _support_selected(command.target_id)
 		&"use_resonance_selected":
@@ -143,6 +163,14 @@ func _select_unit(id: StringName) -> Dictionary:
 		&"",
 		{"previous_unit_id": previous_id},
 	)])
+
+
+func clear_selection() -> Dictionary:
+	if selected_unit_id == &"":
+		return _accept([])
+	var previous := selected_unit_id
+	selected_unit_id = &""
+	return _accept([BattleEventScript.state_changed(&"unit_deselected", previous)])
 
 
 func _wait_selected() -> Dictionary:
@@ -185,11 +213,35 @@ func _move_selected(destination: Vector2i) -> Dictionary:
 	unit.grid_position.x = destination.x
 	unit.grid_position.y = destination.y
 	unit.has_moved = true
+	_move_origins[unit.instance_id] = origin
 	return _accept([BattleEventScript.state_changed(
 		&"unit_moved",
 		unit.instance_id,
 		&"",
 		{"from": origin, "to": destination},
+	)])
+
+
+func _undo_selected_move() -> Dictionary:
+	if not can_undo_selected_move():
+		var selected: Variant = _find_unit(selected_unit_id)
+		if selected != null and selected.acted:
+			return _reject(&"action_already_committed")
+		return _reject(&"no_reversible_move")
+	var unit: Variant = _find_unit(selected_unit_id)
+	var origin: Vector2i = _move_origins[selected_unit_id]
+	if _living_unit_at(origin, unit) != null:
+		return _reject(&"origin_occupied")
+	var destination := Vector2i(unit.grid_position.x, unit.grid_position.y)
+	unit.grid_position.x = origin.x
+	unit.grid_position.y = origin.y
+	unit.has_moved = false
+	_move_origins.erase(selected_unit_id)
+	return _accept([BattleEventScript.state_changed(
+		&"unit_moved",
+		unit.instance_id,
+		&"",
+		{"from": destination, "to": origin, "undo": true},
 	)])
 
 
@@ -217,7 +269,7 @@ func _confirm_attack(target_id: StringName) -> Dictionary:
 	_append_objective_event(events)
 	return _accept(events)
 
-func _support_selected(target_id: StringName) -> Dictionary:
+func _support_validation(target_id: StringName) -> Dictionary:
 	var selected_result := _selected_player_unit()
 	if not selected_result["ok"]: return selected_result
 	var actor = selected_result["unit"]
@@ -226,6 +278,22 @@ func _support_selected(target_id: StringName) -> Dictionary:
 	if target == null or target == actor or target.current_hp <= 0 or target.definition.team != &"player": return _reject(&"invalid_target")
 	if GridRulesScript.manhattan(actor.grid_position, target.grid_position) != 1: return _reject(&"out_of_range")
 	if target.current_hp >= target.definition.max_hp: return _reject(&"full_hp")
+	return {"ok": true, "actor": actor, "target": target}
+
+
+func _forecast_support(target_id: StringName) -> Dictionary:
+	var result := _support_validation(target_id)
+	if not result.ok: return result
+	var target: Variant = result.target
+	var amount: int = mini(8, target.definition.max_hp - target.current_hp)
+	return _accept([], {"forecast": {"target_name": target.definition.display_name, "amount": amount, "current_hp": target.current_hp, "remaining_hp": target.current_hp + amount, "max_hp": target.definition.max_hp}})
+
+
+func _support_selected(target_id: StringName) -> Dictionary:
+	var result := _support_validation(target_id)
+	if not result.ok: return result
+	var actor: Variant = result.actor
+	var target: Variant = result.target
 	var before_hp: int = target.current_hp
 	var before_resonance: int = resonance_state.value
 	target.current_hp = mini(target.definition.max_hp, target.current_hp + 8)
@@ -274,6 +342,7 @@ func _end_player_phase() -> Dictionary:
 	var enemy_acted_before := _acted_ids(&"enemy")
 	var round_before: int = turn_state.round
 	selected_unit_id = &""
+	_move_origins.clear()
 	turn_state.end_player_phase()
 	var events: Array[Dictionary] = [BattleEventScript.state_changed(
 		&"phase_changed",

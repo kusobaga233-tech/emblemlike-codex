@@ -4,3 +4,13 @@
 *.translation
 *.import
 build/
+
+# Local tooling caches and private configuration
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx

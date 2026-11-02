@@ -42,6 +42,75 @@ func run() -> void:
 	await _test_tactical_camera_frames_local_group_without_losing_overview()
 	_test_tactical_camera_projects_every_board_corner_at_clamp_extremes()
 	await _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup()
+	_test_right_click_empty_board_undoes_pending_move()
+	_test_right_click_character_undoes_pending_move()
+	_test_wait_commits_move_and_right_click_cannot_undo()
+
+
+func _test_right_click_empty_board_undoes_pending_move() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var scene: Variant = load(BATTLE_SCENE_PATH).instantiate()
+	tree.root.add_child(scene)
+	assert_true(scene.has_method("handle_board_right_click"), "battle provides right-click routing")
+	if not scene.has_method("handle_board_right_click"):
+		scene.free()
+		return
+	scene.session.select_unit(&"aurelia-1")
+	scene.session.move_selected(Vector2i(2, 6))
+	assert_true(scene.handle_board_right_click(&"cell"), "right-clicking empty board restores pending move")
+	_finish_test_move(scene)
+	assert_equal(_unit_position(scene.get_unit_node(&"aurelia-1")), Vector2i(1, 7), "empty board right-click returns unit to origin")
+	assert_equal(scene.session._find_unit(&"aurelia-1").has_moved, false, "empty board right-click restores move allowance")
+	assert_true(scene.get_node_or_null("BattleHud/Layout/Commands/UndoMove") == null, "standalone undo button is removed")
+	scene.free()
+
+
+func _test_right_click_character_undoes_pending_move() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var scene: Variant = load(BATTLE_SCENE_PATH).instantiate()
+	tree.root.add_child(scene)
+	assert_true(scene.has_method("handle_board_right_click"), "battle provides right-click routing")
+	if not scene.has_method("handle_board_right_click"):
+		scene.free()
+		return
+	scene.session.select_unit(&"aurelia-1")
+	scene.session.move_selected(Vector2i(2, 6))
+	assert_true(scene.handle_board_right_click(&"unit"), "right-click on any character undoes current pending move")
+	_finish_test_move(scene)
+	assert_equal(_unit_position(scene.get_unit_node(&"aurelia-1")), Vector2i(1, 7), "unit right-click restores original position")
+	assert_equal(scene.session.selected_unit_id, &"aurelia-1", "unit right-click preserves current selection")
+	scene.session.move_selected(Vector2i(2, 6))
+	assert_true(not scene.handle_board_right_click(&"outside"), "right-click outside board does not undo")
+	_finish_test_move(scene)
+	assert_equal(_unit_position(scene.get_unit_node(&"aurelia-1")), Vector2i(2, 6), "outside click leaves pending move intact")
+	scene.free()
+
+
+func _test_wait_commits_move_and_right_click_cannot_undo() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var scene: Variant = load(BATTLE_SCENE_PATH).instantiate()
+	tree.root.add_child(scene)
+	assert_true(scene.has_method("handle_board_right_click"), "battle provides right-click routing")
+	if not scene.has_method("handle_board_right_click"):
+		scene.free()
+		return
+	scene.session.select_unit(&"aurelia-1")
+	scene.session.move_selected(Vector2i(2, 6))
+	scene._on_hud_command(&"wait")
+	assert_true(scene.last_command_result.get("ok", false), "wait command commits movement action")
+	assert_true(not scene.handle_board_right_click(&"cell"), "right-click cannot undo after wait commits action")
+	_finish_test_move(scene)
+	assert_equal(_unit_position(scene.get_unit_node(&"aurelia-1")), Vector2i(2, 6), "committed movement remains at destination")
+	scene.free()
+
+
+func _finish_test_move(scene: Node3D) -> void:
+	var unit: Variant = scene.get_unit_node(&"aurelia-1")
+	if unit.position_animation != null: unit.position_animation.custom_step(1.0)
+
+
+func _unit_position(unit: Node3D) -> Vector2i:
+	return Vector2i(roundi(unit.position.x), roundi(unit.position.z))
 
 
 func _test_board_build_palette_rebuild_and_overlays() -> void:
@@ -101,7 +170,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	enemy.configure(enemy_state)
 	assert_true(player.get_node_or_null("PickArea/CollisionShape3D") is CollisionShape3D, "Player unit owns a physics pick shape")
 	var production_bounds: AABB = player.get("production_visual_bounds")
-	assert_true(absf(production_bounds.position.y + 0.7) < 0.02, "Production visual is grounded on the board")
+	assert_true(absf(production_bounds.position.y - _unit_script.BOARD_GROUND_Y) < 0.02, "Production visual is grounded on the board")
 	assert_true(production_bounds.size.y >= 1.2 and production_bounds.size.y <= 1.45, "Production visual has bounded display height")
 	assert_true(player.get_node("HpBar").position.y > production_bounds.end.y, "HP bar is above the normalized visual")
 	var pick_shape := player.get_node("PickArea/CollisionShape3D") as CollisionShape3D
@@ -115,11 +184,11 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	assert_true(player.get_node("HpBar/Fill").material_override.albedo_texture == null, "HP bar uses no texture")
 	assert_true(player.get_node("SelectionOutline").material_override.albedo_texture == null, "Selection outline uses no texture")
 	player.play_event({"type": &"attack_started", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {"distance": 1}})
-	assert_equal(player.production_animation_player.current_animation, "attack_primary", "Attack start triggers primary production clip")
+	assert_true(player.production_animation_player == null, "Static sprites do not play character clips")
 	player.play_event({"type": &"attack_started", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {"distance": 2}})
-	assert_equal(player.production_animation_player.current_animation, "attack_secondary", "Reach attack triggers secondary production clip")
+	assert_true(player.production_animation_player == null, "Static sprites do not play character clips")
 	player.play_event({"type": &"attack_finished", "actor_id": &"fenn-1", "target_id": &"blade-1", "payload": {}})
-	assert_equal(player.production_animation_player.current_animation, "idle", "Attack finish reliably returns production visual to idle")
+	assert_true(player.production_animation_player == null, "Static sprites do not play character clips")
 
 	player.set_selected(true)
 	assert_true(player.get_node("SelectionOutline").visible, "Selection outline can be shown")
@@ -157,7 +226,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 	if move_tween != null:
 		move_tween.custom_step(1.0)
 	assert_equal(player.position, Vector3(4.0, 0.7, 5.0), "Move event updates only the presentation position")
-	assert_equal(player.production_animation_player.current_animation, "idle", "Completed movement returns locomotion to idle")
+	assert_true(player.production_animation_player == null, "Static sprites do not play character clips")
 	player.play_event({
 		"type": &"unit_moved",
 		"actor_id": &"fenn-1",
@@ -211,11 +280,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 		"payload": {"remaining_hp": 0},
 	})
 	assert_equal(player.get("animation_kind"), &"defeat", "Defeat event starts the defeat Tween")
-	assert_true(player.visible, "Defeat Tween keeps the unit visible at animation start")
-	var defeat_tween := _animation_tween(player, &"defeat_animation")
-	assert_true(defeat_tween != null and defeat_tween.is_valid(), "Defeat event owns a valid headless Tween")
-	if defeat_tween != null:
-		defeat_tween.custom_step(1.0)
+	assert_true(player.defeat_animation == null, "Static sprite defeat does not deform the character")
 	assert_true(not player.visible, "Defeat event hides the defeated presentation node")
 	assert_equal(_session_snapshot(session), before_state, "Direct event playback cannot mutate BattleSession")
 	animation_root.free()
@@ -224,7 +289,7 @@ func _test_unit_primitives_selection_hp_and_event_playback() -> void:
 func _test_tactical_camera_reset_focus_orbit_and_zoom_clamps() -> void:
 	var camera: Camera3D = _camera_script.new()
 	camera.configure_board(8, 10)
-	assert_equal(camera.pitch_degrees, 40.0, "Camera starts at a forty degree tactical angle")
+	assert_equal(camera.pitch_degrees, 45.0, "Camera starts at a forty-five degree tactical angle")
 	assert_equal(camera.focus_point, Vector3(3.5, 0.0, 4.5), "Camera resets to the board center")
 	var reset_distance: float = camera.distance
 	assert_true(reset_distance >= camera.min_distance and reset_distance <= camera.max_distance, "Reset frames the board inside zoom clamps")
@@ -239,7 +304,7 @@ func _test_tactical_camera_reset_focus_orbit_and_zoom_clamps() -> void:
 	camera.zoom(-10000.0)
 	assert_equal(camera.distance, camera.min_distance, "Zoom in respects the near clamp")
 	camera.reset_view()
-	assert_equal(camera.pitch_degrees, 40.0, "Reset restores tactical pitch")
+	assert_equal(camera.pitch_degrees, 45.0, "Reset restores tactical pitch")
 	assert_equal(camera.focus_point, Vector3(3.5, 0.0, 4.5), "Reset restores board center")
 	var framing_snapshot := [camera.framing_mode, camera.focus_point, camera.distance, camera.yaw_degrees, camera.pitch_degrees]
 	camera.request_impact(Vector3(2.0, 0.7, 3.0), 9.0, 4.0)
@@ -362,7 +427,7 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	assert_true(scene.get_node("Units/aurelia-1/ProductionVisual") != null, "Aurelia uses the imported hero production visual")
 	assert_true(scene.get_node("Units/captain-1/ProductionVisual") != null, "Bridge captain uses the imported boss production visual")
 	var aurelia_visual := scene.get_node("Units/aurelia-1")
-	assert_true(aurelia_visual.get("production_animation_player") is AnimationPlayer, "Aurelia exposes its imported AnimationPlayer")
+	assert_true(aurelia_visual.get("production_animation_player") == null, "Aurelia uses static sprite without animation player")
 	if aurelia_visual.get("production_animation_player") is AnimationPlayer:
 		assert_equal(aurelia_visual.get("production_animation_player").current_animation, "idle", "Production visual starts in idle")
 	assert_equal(_count_type(scene, Camera3D), 1, "Battle scene has exactly one Camera3D")
@@ -437,7 +502,7 @@ func _test_battle_scene_smoke_signal_isolation_ownership_and_cleanup() -> void:
 	_step_animation_channels(blade, [&"defeat_animation", &"phase_animation"])
 	assert_equal(blade.visual_hp, 0, "Same-batch defeat commits zero visual HP")
 	assert_true(not blade.visible, "Same-batch defeat and phase finish hidden")
-	assert_equal(blade.scale, Vector3(1.08, 0.08, 1.08), "Defeat Tween commits its terminal scale")
+	assert_equal(blade.scale, Vector3.ONE, "Static defeated sprite is hidden without flattening")
 	assert_equal(blade.last_phase, &"player", "Same-batch defeat and phase keep the phase visual")
 	assert_equal(_session_snapshot(session), before_state, "Scene event consumption leaves the session snapshot identical")
 

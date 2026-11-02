@@ -1,0 +1,277 @@
+{
+  "inspection_date": "2026-10-22",
+  "method": "Pillow RGBA alpha metrics and OpenCV connected-component diagnostics; visual images reviewed separately",
+  "source_root": "D:\\godot-proj\\star-ember-oath-godot\\assets\\test\\cutout\\aurelia_v01",
+  "assets": [
+    {
+      "file": "aurelia_full.png",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.6476,
+      "soft_alpha_ratio": 0.0187,
+      "components_alpha_ge_8": 6,
+      "small_components_under_100px": 4,
+      "largest_components": [
+        536851,
+        9810,
+        5,
+        5,
+        5
+      ],
+      "soft_edge_saturated_rgb_pixels": 7820,
+      "sha256": "7c1fea393bb52f85cae344650024e8d02fa4e724f66b5d83cec40458e52e35fd"
+    },
+    {
+      "file": "body_no_sword_no_head.png",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.8674,
+      "soft_alpha_ratio": 0.001,
+      "components_alpha_ge_8": 179,
+      "small_components_under_100px": 171,
+      "largest_components": [
+        201284,
+        2598,
+        1833,
+        703,
+        592
+      ],
+      "soft_edge_saturated_rgb_pixels": 15,
+      "sha256": "876b08c4ba20aa6ed7ef387c2a6d56e68cd130a0a6d852b50cff4e51d6bbedb1"
+    },
+    {
+      "file": "clean_head.png",
+      "dimensions": [
+        266,
+        310
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.4084,
+      "soft_alpha_ratio": 0.0116,
+      "components_alpha_ge_8": 1,
+      "small_components_under_100px": 0,
+      "largest_components": [
+        48598
+      ],
+      "soft_edge_saturated_rgb_pixels": 99,
+      "sha256": "ea525c116efbe247fab7d64c55b1e415fafa6b391fb96c578edd64d99dba0a28"
+    },
+    {
+      "file": "clean_weapon_hand.png",
+      "dimensions": [
+        138,
+        1147
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.7595,
+      "soft_alpha_ratio": 0.0191,
+      "components_alpha_ge_8": 1,
+      "small_components_under_100px": 0,
+      "largest_components": [
+        37301
+      ],
+      "soft_edge_saturated_rgb_pixels": 20,
+      "sha256": "35d197143bbecd1c4d473bf7962e901ce1df02fe16f2fb587261932ff978c214"
+    },
+    {
+      "file": "arm_front.png",
+      "dimensions": [
+        147,
+        328
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.7447,
+      "soft_alpha_ratio": 0.0136,
+      "components_alpha_ge_8": 6,
+      "small_components_under_100px": 1,
+      "largest_components": [
+        7126,
+        4175,
+        575,
+        140,
+        131
+      ],
+      "soft_edge_saturated_rgb_pixels": 0,
+      "sha256": "b25d46ea3fc8d9da0f8242c0d484c64aad5435408bc74e41c7b55473361878d4"
+    },
+    {
+      "file": "arm_back.png",
+      "dimensions": [
+        126,
+        201
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.4501,
+      "soft_alpha_ratio": 0.0078,
+      "components_alpha_ge_8": 2,
+      "small_components_under_100px": 0,
+      "largest_components": [
+        13067,
+        815
+      ],
+      "soft_edge_saturated_rgb_pixels": 0,
+      "sha256": "29769de5818f4362950de39d4e039c7d21bc4e1d8a06fc751c51dfadd6b4752f"
+    },
+    {
+      "file": "hand_front.png",
+      "dimensions": [
+        85,
+        115
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.5391,
+      "soft_alpha_ratio": 0.1051,
+      "components_alpha_ge_8": 2,
+      "small_components_under_100px": 1,
+      "largest_components": [
+        4147,
+        88
+      ],
+      "soft_edge_saturated_rgb_pixels": 2,
+      "sha256": "8e3cd1a4e1ecf94c2e12f6010262f11ad958fb69c5622fe8ba272be4df810562"
+    },
+    {
+      "file": "hair_front.png",
+      "dimensions": [
+        211,
+        255
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.4717,
+      "soft_alpha_ratio": 0.0005,
+      "components_alpha_ge_8": 4,
+      "small_components_under_100px": 1,
+      "largest_components": [
+        28020,
+        217,
+        144,
+        45
+      ],
+      "soft_edge_saturated_rgb_pixels": 0,
+      "sha256": "6035989d9434bc964809f565eef37fd428b0cdc20cf43d668984a626f0b8e719"
+    },
+    {
+      "file": "hair_back.png",
+      "dimensions": [
+        523,
+        381
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.8337,
+      "soft_alpha_ratio": 0.0007,
+      "components_alpha_ge_8": 19,
+      "small_components_under_100px": 8,
+      "largest_components": [
+        17425,
+        11027,
+        1852,
+        792,
+        411
+      ],
+      "soft_edge_saturated_rgb_pixels": 1,
+      "sha256": "8c92e500f84f9ed9cffbeaab71627e679ac4d80ded1e75d0da45ee17d3807181"
+    },
+    {
+      "file": "cloth_front.png",
+      "dimensions": [
+        718,
+        718
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.7288,
+      "soft_alpha_ratio": 0.0099,
+      "components_alpha_ge_8": 7,
+      "small_components_under_100px": 4,
+      "largest_components": [
+        78812,
+        59458,
+        307,
+        28,
+        5
+      ],
+      "soft_edge_saturated_rgb_pixels": 5,
+      "sha256": "e2b4f94771c6563df47fa8c423a42e44c4b3ee7510ea1b82926346ab9e71d00d"
+    },
+    {
+      "file": "cloth_back.png",
+      "dimensions": [
+        721,
+        569
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.9241,
+      "soft_alpha_ratio": 0.0074,
+      "components_alpha_ge_8": 5,
+      "small_components_under_100px": 0,
+      "largest_components": [
+        13897,
+        10406,
+        4301,
+        1200,
+        514
+      ],
+      "soft_edge_saturated_rgb_pixels": 2,
+      "sha256": "7a6b352a435d5117df1680587727a1f8fc5ea4dfac3f446ad918e553fc70d40a"
+    },
+    {
+      "file": "oathblade.png",
+      "dimensions": [
+        138,
+        1147
+      ],
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "transparent_ratio": 0.6681,
+      "soft_alpha_ratio": 0.0281,
+      "components_alpha_ge_8": 1,
+      "small_components_under_100px": 0,
+      "largest_components": [
+        52471
+      ],
+      "soft_edge_saturated_rgb_pixels": 911,
+      "sha256": "a7641b1a25389ae9822daeceac0dfc1d31e4f39fbb8c7aa471cef1690e398b0b"
+    }
+  ],
+  "limitations": "RGB edge color metric is diagnostic only; must not be used as sole rejection evidence because view-dependent compositing and alpha premultiplication matter."
+}

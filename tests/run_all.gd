@@ -73,7 +73,7 @@ func _run_test_process(test_path: String, file_name: String) -> bool:
 			"--script",
 			get_script().resource_path,
 			"--quit-after",
-			"120",
+			"1800",
 			"--",
 			INNER_WORKER_FLAG,
 			test_path,
@@ -88,7 +88,7 @@ func _run_test_process(test_path: String, file_name: String) -> bool:
 		print("FAIL %s" % file_name)
 		print("  Test suite emitted SCRIPT ERROR while running this file; treating run as failed.")
 		return false
-	return worker_exit_code == 0
+	return worker_exit_code == 0 and combined_output.contains("PASS " + file_name)
 
 
 func _has_script_error_diagnostic(worker_output: String) -> bool:

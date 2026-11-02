@@ -59,7 +59,7 @@ script = ExtResource("1")
 [node name="Backdrop" type="Panel" parent="."]
 layout_mode = 0
 offset_right = 388.0
-offset_bottom = 348.0
+offset_bottom = 548.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("Style_panel")
 
@@ -68,7 +68,7 @@ layout_mode = 0
 offset_left = 18.0
 offset_top = 16.0
 offset_right = 370.0
-offset_bottom = 332.0
+offset_bottom = 532.0
 theme_override_constants/separation = 8
 
 [node name="Objective" type="Label" parent="Layout"]
@@ -89,6 +89,12 @@ theme_override_font_sizes/font_size = 17
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
 
+[node name="MoveStatus" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+
 [node name="Commands" type="VBoxContainer" parent="Layout"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -104,6 +110,14 @@ theme_override_styles/focus = SubResource("Style_button_focus")
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "攻击"
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("Style_button")
+theme_override_styles/hover = SubResource("Style_button_hover")
+theme_override_styles/focus = SubResource("Style_button_focus")
+[node name="Support" type="Button" parent="Layout/Commands"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "治疗"
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("Style_button")
 theme_override_styles/hover = SubResource("Style_button_hover")
@@ -124,3 +138,9 @@ theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("Style_button")
 theme_override_styles/hover = SubResource("Style_button_hover")
 theme_override_styles/focus = SubResource("Style_button_focus")
+
+[node name="Feedback" type="Label" parent="Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.78, 0.42, 1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3

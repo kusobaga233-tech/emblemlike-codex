@@ -94,8 +94,14 @@ func run() -> void:
 	await _move_pointer_world(battle.get_unit_node(&"captain-1").global_position)
 	assert_true(battle.get_node("CombatForecastPanel").visible, "Returning hover restores legal forecast")
 	await _click_world(battle.get_unit_node(&"captain-1").global_position)
-	await _frames(3)
-	assert_equal(tree.current_scene.scene_file_path, RESULT, "Terminal battle advances to result")
+	assert_true(not battle.combat_presentation_busy(), "target click only locks terminal attack preview")
+	var confirm: Button = battle.get_node("CombatForecastPanel/Layout/Actions/Confirm")
+	await _click_control(confirm)
+	assert_true(battle.combat_presentation_busy(), "terminal battle still presents final attack")
+	assert_equal(tree.current_scene.scene_file_path, BATTLE, "result does not interrupt final attack")
+	battle.get_node("SpriteCombatPresentation").advance(5.0)
+	await _frames(4)
+	assert_equal(tree.current_scene.scene_file_path, RESULT, "Terminal battle advances to result after sprite presentation")
 	assert_equal(coordinator.result_summary["outcome"], &"victory", "Coordinator retains result summary")
 	(tree.current_scene.get_node("Layout/Actions/Retry") as Button).pressed.emit()
 	await _frames(3)
@@ -167,3 +173,16 @@ func _move_pointer_world(world_position: Vector3) -> void:
 	Input.parse_input_event(motion)
 	await (Engine.get_main_loop() as SceneTree).physics_frame
 	await (Engine.get_main_loop() as SceneTree).process_frame
+
+
+func _click_control(button: Button) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = button.get_global_rect().get_center()
+	Input.parse_input_event(press)
+	await _frames(1)
+	var release := press.duplicate() as InputEventMouseButton
+	release.pressed = false
+	Input.parse_input_event(release)
+	await _frames(1)

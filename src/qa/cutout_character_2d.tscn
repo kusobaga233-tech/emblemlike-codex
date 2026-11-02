@@ -1,0 +1,181 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://src/qa/cutout_character_2d.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/test/cutout/aurelia_v01/body_no_sword_no_head.png" id="2_body"]
+[ext_resource type="Texture2D" path="res://assets/test/cutout/aurelia_v01/clean_head.png" id="3_head"]
+[ext_resource type="Texture2D" path="res://assets/test/cutout/aurelia_v01/clean_weapon_hand.png" id="4_weapon"]
+
+[sub_resource type="Animation" id="Animation_RESET"]
+resource_name = "RESET"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [Vector2(0, 0)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/root:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [0.0]}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton2D/root:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [Vector2(1, 1)]}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Skeleton2D/root/body/head:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [0.0]}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton2D/root/body/weapon:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [0.0]}
+
+[sub_resource type="Animation" id="Animation_idle"]
+resource_name = "idle"
+length = 1.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.6, 1.2), "transitions": PackedFloat32Array(0.7, 0.7, 0.7), "update": 0, "values": [Vector2(0, 0), Vector2(0, -7), Vector2(0, 0)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/root/body/head:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.6, 1.2), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [-0.015, 0.018, -0.015]}
+
+[sub_resource type="Animation" id="Animation_locomotion"]
+resource_name = "locomotion"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.15, 0.3, 0.45, 0.6), "transitions": PackedFloat32Array(1, 1, 1, 1, 1), "update": 0, "values": [Vector2(-5, 0), Vector2(0, -12), Vector2(5, 0), Vector2(0, -12), Vector2(-5, 0)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/root:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.3, 0.6), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [-0.025, 0.025, -0.025]}
+
+[sub_resource type="Animation" id="Animation_attack"]
+resource_name = "attack_primary"
+length = 0.65
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.16, 0.31, 0.65), "transitions": PackedFloat32Array(1, 1, 0.35, 1), "update": 0, "values": [Vector2(0, 0), Vector2(-22, 7), Vector2(32, -4), Vector2(0, 0)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/root/body/weapon:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.16, 0.31, 0.65), "transitions": PackedFloat32Array(1, 1, 0.25, 1), "update": 0, "values": [0.0, -0.7, 0.85, 0.0]}
+tracks/2/type = "method"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {"times": PackedFloat32Array(0.08, 0.3, 0.52), "transitions": PackedFloat32Array(1, 1, 1), "values": [{"method": &"_emit_presentation_event", "args": [&"weapon_trail_on"]}, {"method": &"_emit_presentation_event", "args": [&"impact"]}, {"method": &"_emit_presentation_event", "args": [&"weapon_trail_off"]}]}
+
+[sub_resource type="Animation" id="Animation_hit"]
+resource_name = "hit"
+length = 0.45
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton2D/root:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.08, 0.2, 0.45), "transitions": PackedFloat32Array(1, 1, 1, 1), "update": 0, "values": [Vector2(0, 0), Vector2(-25, 5), Vector2(-14, 0), Vector2(0, 0)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton2D/root:scale")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.08, 0.22, 0.45), "transitions": PackedFloat32Array(1, 1, 1, 1), "update": 0, "values": [Vector2(1, 1), Vector2(0.92, 1.06), Vector2(1.04, 0.97), Vector2(1, 1)]}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
+_data = {
+&"RESET": SubResource("Animation_RESET"),
+&"attack_primary": SubResource("Animation_attack"),
+&"hit": SubResource("Animation_hit"),
+&"idle": SubResource("Animation_idle"),
+&"locomotion": SubResource("Animation_locomotion")
+}
+
+[node name="CutoutCharacter2D" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Skeleton2D" type="Skeleton2D" parent="."]
+
+[node name="root" type="Bone2D" parent="Skeleton2D"]
+rest = Transform2D(1, 0, 0, 1, 0, 0)
+
+[node name="body" type="Bone2D" parent="Skeleton2D/root"]
+rest = Transform2D(1, 0, 0, 1, 0, 0)
+
+[node name="BodyArt" type="Sprite2D" parent="Skeleton2D/root/body"]
+texture_filter = 1
+texture = ExtResource("2_body")
+position = Vector2(0, -231.04)
+scale = Vector2(0.38, 0.38)
+
+[node name="head" type="Bone2D" parent="Skeleton2D/root/body"]
+position = Vector2(0, -401.28)
+rest = Transform2D(1, 0, 0, 1, 0, -401.28)
+autocalculate_length_and_angle = false
+length = 90.0
+
+[node name="HeadArt" type="Sprite2D" parent="Skeleton2D/root/body/head"]
+texture_filter = 1
+texture = ExtResource("3_head")
+position = Vector2(1.14, -47.88)
+scale = Vector2(0.38, 0.38)
+
+
+[node name="weapon" type="Bone2D" parent="Skeleton2D/root/body"]
+position = Vector2(-115.9, -339.72)
+rest = Transform2D(1, 0, 0, 1, -115.9, -339.72)
+autocalculate_length_and_angle = false
+length = 220.0
+
+[node name="WeaponArt" type="Sprite2D" parent="Skeleton2D/root/body/weapon"]
+texture_filter = 1
+texture = ExtResource("4_weapon")
+position = Vector2(-11.78, 129.01)
+scale = Vector2(0.38, 0.38)
+
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("AnimationLibrary_main")}

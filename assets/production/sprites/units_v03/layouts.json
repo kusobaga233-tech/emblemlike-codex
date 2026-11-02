@@ -1,0 +1,240 @@
+{
+  "aurelia": {
+    "foot_anchor_pixels": [
+      767.9245562130178,
+      969.9497041420119
+    ],
+    "soles_pixels": [
+      [
+        656.6449704142012,
+        974.4497041420118
+      ],
+      [
+        879.2041420118344,
+        965.4497041420118
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 27,
+      "chin_y": 196,
+      "left_sole": [
+        628,
+        1052
+      ],
+      "right_sole": [
+        805,
+        1040
+      ]
+    }
+  },
+  "brann": {
+    "foot_anchor_pixels": [
+      768.2133027522937,
+      970.0573394495412
+    ],
+    "soles_pixels": [
+      [
+        636.6192660550458,
+        963.5478091568251
+      ],
+      [
+        899.8073394495414,
+        976.5668697422575
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 77,
+      "chin_y": 295,
+      "left_sole": [
+        570,
+        1022
+      ],
+      "right_sole": [
+        840,
+        1037
+      ]
+    }
+  },
+  "elio": {
+    "foot_anchor_pixels": [
+      767.872340425532,
+      970.031914893617
+    ],
+    "soles_pixels": [
+      [
+        693.7234042553191,
+        973.2761897027774
+      ],
+      [
+        842.0212765957447,
+        966.7876400844567
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 31,
+      "chin_y": 266,
+      "left_sole": [
+        640,
+        1056
+      ],
+      "right_sole": [
+        804,
+        1048
+      ]
+    }
+  },
+  "fenn": {
+    "foot_anchor_pixels": [
+      767.8914835164837,
+      969.6923076923077
+    ],
+    "soles_pixels": [
+      [
+        621.3598901098901,
+        964.7680652680652
+      ],
+      [
+        914.4230769230771,
+        974.6165501165501
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 28,
+      "chin_y": 210,
+      "left_sole": [
+        575,
+        1045
+      ],
+      "right_sole": [
+        826,
+        1058
+      ]
+    }
+  },
+  "bridge-captain": {
+    "foot_anchor_pixels": [
+      767.9375,
+      970.3194444444445
+    ],
+    "soles_pixels": [
+      [
+        597.3472222222223,
+        962.5450542005422
+      ],
+      [
+        938.5277777777778,
+        978.093834688347
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 35,
+      "chin_y": 215,
+      "left_sole": [
+        589,
+        1025
+      ],
+      "right_sole": [
+        878,
+        1045
+      ]
+    }
+  },
+  "hollow-blade": {
+    "foot_anchor_pixels": [
+      767.9867841409691,
+      969.9559471365639
+    ],
+    "soles_pixels": [
+      [
+        634.1211453744493,
+        966.7116723274036
+      ],
+      [
+        901.852422907489,
+        973.2002219457241
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 32,
+      "chin_y": 259,
+      "left_sole": [
+        593,
+        1041
+      ],
+      "right_sole": [
+        879,
+        1049
+      ]
+    }
+  },
+  "hollow-bow": {
+    "foot_anchor_pixels": [
+      767.7053140096618,
+      969.9565217391304
+    ],
+    "soles_pixels": [
+      [
+        644.5169082125603,
+        972.7543273817637
+      ],
+      [
+        890.8937198067633,
+        967.1587160964972
+      ]
+    ],
+    "head_ratio": 4.0,
+    "body_height_pixels": 850,
+    "canvas": [
+      1536,
+      1024
+    ],
+    "source_landmarks": {
+      "crown_y": 36,
+      "chin_y": 243,
+      "left_sole": [
+        584,
+        1044
+      ],
+      "right_sole": [
+        824,
+        1037
+      ]
+    }
+  }
+}

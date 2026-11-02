@@ -25,6 +25,7 @@ func run() -> void:
 
 	_test_battle_command_is_typed_data()
 	_test_chapter_one_player_flow_enemy_phase_and_round_reset()
+	_test_uncommitted_move_can_be_undone_before_action()
 	_test_mutations_flush_matching_ordered_events()
 	_test_rejected_commands_are_exact_no_ops()
 	_test_unit_acted_is_an_exact_no_op()
@@ -140,6 +141,39 @@ func _test_generic_round_start_runtime_and_save_continuation() -> void:
 		var original_next: Dictionary = session.advance_enemy_phase()
 		var restored_next: Dictionary = restored.advance_enemy_phase()
 		assert_equal(SaveService.canonical_json(original_next.events), SaveService.canonical_json(restored_next.events), "Runtime event continuation remains deterministic after restore")
+
+
+func _test_uncommitted_move_can_be_undone_before_action() -> void:
+	var session: Variant = _new_session(702)
+	assert_true(session.select_unit(&"aurelia-1")["ok"], "select unit before reversible move")
+	var unit: Variant = _unit(session, &"aurelia-1")
+	var origin := Vector2i(unit.grid_position.x, unit.grid_position.y)
+	var destination := Vector2i(2, 6)
+	assert_true(session.move_selected(destination)["ok"], "unit can move before action")
+	assert_true(session.can_undo_selected_move(), "HUD rule query reports movement can be undone")
+	var undo: Dictionary = session.undo_selected_move()
+	assert_true(undo["ok"], "uncommitted movement can be undone")
+	assert_equal(Vector2i(unit.grid_position.x, unit.grid_position.y), origin, "undo restores exact origin")
+	assert_equal(unit.has_moved, false, "undo restores movement allowance")
+	assert_equal(session.selected_unit_id, &"aurelia-1", "undo keeps unit selected")
+	assert_equal(_event_types(undo["events"]), PackedStringArray(["unit_moved"]), "undo is presented through a normal movement event")
+	assert_true(session.move_selected(destination)["ok"], "unit can move again after undo")
+	assert_true(session.wait_selected()["ok"], "unit can commit its action")
+	var rejected: Dictionary = session.undo_selected_move()
+	assert_equal(rejected.get("reason"), &"action_already_committed", "movement cannot be undone after action")
+	assert_equal(Vector2i(unit.grid_position.x, unit.grid_position.y), destination, "rejected undo does not change unit position")
+	var other: Variant = _new_session(703)
+	other.select_unit(&"aurelia-1")
+	other.move_selected(destination)
+	var blocker: Variant = _unit(other, &"brann-1")
+	blocker.grid_position.x = origin.x
+	blocker.grid_position.y = origin.y
+	var occupied: Dictionary = other.undo_selected_move()
+	assert_equal(occupied.get("reason"), &"origin_occupied", "undo refuses to overlap another unit at origin")
+	assert_equal(Vector2i(_unit(other, &"aurelia-1").grid_position.x, _unit(other, &"aurelia-1").grid_position.y), destination, "occupied origin rejection keeps destination")
+	other.end_player_phase()
+	assert_true(not other.can_undo_selected_move(), "undo unavailable outside player phase")
+
 
 
 func _test_mutations_flush_matching_ordered_events() -> void:

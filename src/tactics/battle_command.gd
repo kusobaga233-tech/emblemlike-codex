@@ -55,3 +55,11 @@ static func support_selected(target: StringName) -> CommandData:
 
 static func use_resonance_selected(partner: StringName, target: StringName) -> CommandData:
 	return CommandData.new(&"use_resonance_selected", &"", target, Vector2i.ZERO, partner)
+
+
+static func undo_selected_move() -> CommandData:
+	return CommandData.new(&"undo_selected_move")
+
+
+static func forecast_support(target: StringName) -> CommandData:
+	return CommandData.new(&"forecast_support", &"", target)

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "aurelia",
+    "file": "aurelia.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "2e785bb3c44d1a7185957bb51065e96d8287f7b93fc8af9e9462bdd37713f748",
+    "status": "prototype static sprite; not final character art"
+  },
+  {
+    "id": "brann",
+    "file": "brann.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "b62e95ad61dbf235bc0f2c97591e6c15e475f63a484898aa2aa264949b9c0617",
+    "status": "prototype static sprite; not final character art"
+  },
+  {
+    "id": "bridge-captain",
+    "file": "bridge-captain.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "92d38dccfe764209871a640463cf61301de8fd07f4ff975816de1f6a8a34e0c4",
+    "status": "prototype static sprite; not final character art"
+  },
+  {
+    "id": "elio",
+    "file": "elio.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "6e17b831b1201a63da96af2a98464a853d7799edbf0c442b0ab6d06ed2501342",
+    "status": "prototype static sprite; not final character art"
+  },
+  {
+    "id": "fenn",
+    "file": "fenn.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "3f1e5ead9a8530bf9e81081a7b878e97f028ebb121b97f0cc95d21d541dc9b80",
+    "status": "prototype static sprite; not final character art"
+  },
+  {
+    "id": "hollow-blade",
+    "file": "hollow-blade.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "d601b16c112c82dd623862c1e44accd94c8fd3f4e3ad6df4fb3e5e0ca420463f",
+    "status": "prototype static sprite; not final character art"
+  },
+  {
+    "id": "hollow-bow",
+    "file": "hollow-bow.png",
+    "width": 320,
+    "height": 512,
+    "foot_baseline": 500,
+    "source": "res://assets/production/models",
+    "sha256": "8fd4575e2375c6e40b7f1fd19bbfeb28b2975406e126fb2dfff6296c5f930bdf",
+    "status": "prototype static sprite; not final character art"
+  }
+]

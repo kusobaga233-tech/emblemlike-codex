@@ -1,0 +1,342 @@
+{
+  "asset": "Aurelia cutout v02 conservative formal layers",
+  "source": "D:\\godot-proj\\star-ember-oath-godot\\assets\\test\\cutout\\aurelia_v01\\aurelia_full.png",
+  "source_dimensions": [
+    1024,
+    1536
+  ],
+  "processing": {
+    "method": "Deterministic source-alpha masking; no generated or invented pixels.",
+    "edge_despill": "Stronger green/yellow-key correction restricted to semi-transparent boundary pixels; opaque authored colors and alpha are unchanged.",
+    "despill_stats": {
+      "edge_pixels_checked": 182451,
+      "edge_pixels_despilled": 30073,
+      "strong_edge_pixels_deopaqued": 281,
+      "yellow_key_edge_pixels_deopaqued": 69189
+    },
+    "despill_stats_v2": {
+      "body_boundary_pixels_corrected": 187,
+      "weapon_hand_boundary_pixels_corrected": 1037
+    },
+    "method_v2": "Deterministic visible-pixel partition from aurelia_full.png; conservative polygon and palette masks; no inpaint or foreign puppet parts.",
+    "despill_stats_v3": {
+      "body": {
+        "green_pixels_corrected": 0,
+        "yellow_pixels_corrected": 810,
+        "severe_fringe_pixels_deopaqued": 0
+      },
+      "hair_front": {
+        "green_pixels_corrected": 0,
+        "yellow_pixels_corrected": 851,
+        "severe_fringe_pixels_deopaqued": 0
+      },
+      "hair_back": {
+        "green_pixels_corrected": 0,
+        "yellow_pixels_corrected": 2530,
+        "severe_fringe_pixels_deopaqued": 0
+      },
+      "hand_front": {
+        "green_pixels_corrected": 65,
+        "yellow_pixels_corrected": 900,
+        "severe_fringe_pixels_deopaqued": 0
+      },
+      "arm_front": {
+        "green_pixels_corrected": 52,
+        "yellow_pixels_corrected": 953,
+        "severe_fringe_pixels_deopaqued": 0
+      },
+      "arm_back": {
+        "green_pixels_corrected": 13,
+        "yellow_pixels_corrected": 465,
+        "severe_fringe_pixels_deopaqued": 0
+      },
+      "cloth_front": {
+        "green_pixels_corrected": 310,
+        "yellow_pixels_corrected": 4219,
+        "severe_fringe_pixels_deopaqued": 10
+      },
+      "cloth_back": {
+        "green_pixels_corrected": 483,
+        "yellow_pixels_corrected": 1328,
+        "severe_fringe_pixels_deopaqued": 3
+      }
+    }
+  },
+  "layers": [
+    {
+      "file": "body_no_sword_no_head.png",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "source_box": [
+        0,
+        0,
+        1024,
+        1536
+      ],
+      "pivot_pixels": [
+        512,
+        1376
+      ],
+      "pivot_normalized": [
+        0.5,
+        0.895833
+      ],
+      "notes": "Full-canvas residual body after head, weapon/hand, arms, visible hair and visible cloth panels are removed. No hidden pixels are synthesized."
+    },
+    {
+      "file": "clean_head.png",
+      "dimensions": [
+        266,
+        310
+      ],
+      "source_box": [
+        382,
+        39,
+        648,
+        349
+      ],
+      "pivot_pixels": [
+        130,
+        281
+      ],
+      "pivot_normalized": [
+        0.488722,
+        0.906452
+      ],
+      "pivot_semantics": "neck attachment"
+    },
+    {
+      "file": "clean_weapon_hand.png",
+      "dimensions": [
+        138,
+        1147
+      ],
+      "source_box": [
+        107,
+        248,
+        245,
+        1395
+      ],
+      "pivot_pixels": [
+        100,
+        234
+      ],
+      "pivot_normalized": [
+        0.724638,
+        0.20401
+      ],
+      "pivot_source_pixels": [
+        207,
+        482
+      ],
+      "pivot_semantics": "wrist / visible grip center",
+      "notes": "Source-faithful sword, guard, visible gripping glove and cuff. Narrow lower-blade mask excludes neighboring cape/ribbon fragments."
+    },
+    {
+      "file": "hair_front.png",
+      "dimensions": [
+        211,
+        255
+      ],
+      "source_box": [
+        415,
+        49,
+        626,
+        304
+      ],
+      "pivot_source_pixels": [
+        512,
+        112
+      ],
+      "pivot_pixels": [
+        97,
+        63
+      ],
+      "pivot_normalized": [
+        0.459716,
+        0.247059
+      ],
+      "pivot_semantics": "upper-head attachment",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Color-selected visible bangs only. Face-overlapped hair roots are absent; use subtle secondary motion."
+    },
+    {
+      "file": "hair_back.png",
+      "dimensions": [
+        523,
+        381
+      ],
+      "source_box": [
+        262,
+        224,
+        785,
+        605
+      ],
+      "pivot_source_pixels": [
+        512,
+        224
+      ],
+      "pivot_pixels": [
+        250,
+        0
+      ],
+      "pivot_normalized": [
+        0.478011,
+        0.0
+      ],
+      "pivot_semantics": "top of visible back-hair mass; hidden root absent",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Visible auburn mass only; torso-hidden center sections are absent. Recommended sway <= 10 pixels at 1024x1536."
+    },
+    {
+      "file": "hand_front.png",
+      "dimensions": [
+        85,
+        115
+      ],
+      "source_box": [
+        716,
+        617,
+        801,
+        732
+      ],
+      "pivot_source_pixels": [
+        748,
+        649
+      ],
+      "pivot_pixels": [
+        32,
+        32
+      ],
+      "pivot_normalized": [
+        0.376471,
+        0.278261
+      ],
+      "pivot_semantics": "visible wrist edge; no hidden wrist pixels",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Detached visible hand only; no connected wrist bridge. Recommended rotation <= 12 degrees."
+    },
+    {
+      "file": "arm_front.png",
+      "dimensions": [
+        147,
+        328
+      ],
+      "source_box": [
+        618,
+        295,
+        765,
+        623
+      ],
+      "pivot_source_pixels": [
+        665,
+        329
+      ],
+      "pivot_pixels": [
+        47,
+        34
+      ],
+      "pivot_normalized": [
+        0.319728,
+        0.103659
+      ],
+      "pivot_semantics": "shoulder center; small rotation only",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Visible sleeve/forearm only; no authored shoulder overlap margin. Recommended rotation <= 8 degrees."
+    },
+    {
+      "file": "arm_back.png",
+      "dimensions": [
+        126,
+        201
+      ],
+      "source_box": [
+        327,
+        300,
+        453,
+        501
+      ],
+      "pivot_source_pixels": [
+        384,
+        329
+      ],
+      "pivot_pixels": [
+        57,
+        29
+      ],
+      "pivot_normalized": [
+        0.452381,
+        0.144279
+      ],
+      "pivot_semantics": "shoulder center; small rotation only",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Visible sleeve only; torso-overlapped shoulder and inner elbow are absent. Recommended rotation <= 8 degrees."
+    },
+    {
+      "file": "cloth_front.png",
+      "dimensions": [
+        718,
+        718
+      ],
+      "source_box": [
+        158,
+        490,
+        876,
+        1208
+      ],
+      "pivot_source_pixels": [
+        512,
+        536
+      ],
+      "pivot_pixels": [
+        354,
+        46
+      ],
+      "pivot_normalized": [
+        0.493036,
+        0.064067
+      ],
+      "pivot_semantics": "waist/coat attachment",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Visible white coat tails only; waist overlap is flattened. Recommended sway <= 12 pixels."
+    },
+    {
+      "file": "cloth_back.png",
+      "dimensions": [
+        721,
+        569
+      ],
+      "source_box": [
+        187,
+        559,
+        908,
+        1128
+      ],
+      "pivot_source_pixels": [
+        512,
+        570
+      ],
+      "pivot_pixels": [
+        325,
+        11
+      ],
+      "pivot_normalized": [
+        0.450763,
+        0.019332
+      ],
+      "pivot_semantics": "rear waist attachment",
+      "source_fidelity": "Visible source pixels only; no generated pixels.",
+      "limitation": "Visible colored rear ribbons/panels only; hidden attachment geometry is absent. Recommended sway <= 16 pixels."
+    }
+  ],
+  "contact_sheet": "layer_contact_sheet_v2.png",
+  "limitations": [
+    "The source is a flattened illustration and contains no pixels behind overlapping face, torso, shoulders, wrists, hair roots or waist cloth.",
+    "The v02 layers are minimal-motion layers for a prototype, not production puppet parts with overlap margins.",
+    "No inpaint was used because generated hidden pixels could not be proven style- and anatomy-consistent with the approved source.",
+    "Large limb rotations, foreshortening or full walk cycles require purpose-drawn front/back limbs and joint overlap artwork."
+  ],
+  "contact_sheet_v2": "layer_contact_sheet_v2.png"
+}

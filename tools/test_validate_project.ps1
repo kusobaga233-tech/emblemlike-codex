@@ -65,6 +65,13 @@ try {
 
     Invoke-ValidatorCase 'missing-file' { param($root) Remove-Item -LiteralPath (Join-Path $root 'docs/imagegen/prompt-registry.md') -Force } 'Prompt registry|Required files'
 
+    Invoke-ValidatorCase 'release-preset-leaks-development-assets' {
+        param($root)
+        $path = Join-Path $root 'export_presets.cfg'
+        $text = [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8).Replace('assets/test/*,', '')
+        Write-Utf8NoBom $path $text
+    } 'Release resource boundary'
+
     Invoke-ValidatorCase 'missing-benchmark' {
         param($root)
         Remove-Item -LiteralPath (Join-Path $root 'tests/evidence/production-battle-benchmark.json') -Force
