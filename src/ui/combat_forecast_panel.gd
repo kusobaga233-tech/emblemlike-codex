@@ -3,6 +3,7 @@ extends PanelContainer
 
 signal attack_confirmed
 signal support_confirmed
+signal resonance_confirmed
 signal preview_cancelled
 
 var _confirm_kind: StringName = &""
@@ -24,6 +25,29 @@ func show_support(forecast: Dictionary) -> void:
 	$Layout/RemainingHp.text = "生命：%d → %d / %d" % [int(forecast.get("current_hp", 0)), int(forecast.get("remaining_hp", 0)), int(forecast.get("max_hp", 0))]
 	$Layout/Actions.show()
 	$Layout/Actions/Confirm.disabled = false
+
+
+func show_resonance(forecast: Dictionary) -> void:
+	_clear()
+	_confirm_kind = &"resonance"
+	for child in $Layout.get_children():
+		if child is Label:
+			child.visible = child.name in ["Title", "Damage", "HitRate", "StrikeCount", "Counter", "RemainingHp", "Notice"]
+	visible = true
+	$Layout/Title.text = "星誓共鸣 · " + String(forecast.get("target_name", ""))
+	$Layout/Damage.text = "共鸣伤害：%d" % int(forecast.get("damage", 0))
+	$Layout/HitRate.text = "命中：必中"
+	$Layout/StrikeCount.text = "消耗：共鸣 100%"
+	$Layout/Counter.text = "伙伴：%s" % String(forecast.get("partner_name", ""))
+	$Layout/RemainingHp.text = "敌方生命：%d → %d / %d" % [
+		int(forecast.get("target_hp", 0)),
+		int(forecast.get("remaining_hp", 0)),
+		int(forecast.get("max_hp", 0)),
+	]
+	$Layout/Notice.text = "奥蕾莉亚与伙伴本阶段行动将被消耗"
+	$Layout/Actions/Confirm.text = "确认共鸣"
+	$Layout/Actions/Confirm.disabled = false
+	$Layout/Actions.show()
 
 
 
@@ -63,6 +87,7 @@ func _on_confirm() -> void:
 	match _confirm_kind:
 		&"attack": attack_confirmed.emit()
 		&"support": support_confirmed.emit()
+		&"resonance": resonance_confirmed.emit()
 
 
 func _clear() -> void:

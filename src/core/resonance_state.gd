@@ -27,6 +27,14 @@ func try_spend_pair(first: Variant, second: Variant) -> bool:
 	return true
 
 
+static func pair_damage(first: Variant, second: Variant, target: Variant) -> int:
+	if first == null or second == null or target == null:
+		return 0
+	if first.definition == null or second.definition == null or target.definition == null:
+		return 0
+	return maxi(1, first.definition.attack + second.definition.attack - target.definition.defense)
+
+
 static func _is_legal_pair(first: Variant, second: Variant) -> bool:
 	if first == null or second == null or first == second:
 		return false

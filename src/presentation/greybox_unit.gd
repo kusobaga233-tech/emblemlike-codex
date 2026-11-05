@@ -58,6 +58,7 @@ func configure(unit_state: Variant) -> void:
 	_build_body()
 	_build_production_visual(unit_state.definition.id)
 	_build_selection_outline()
+	_build_tutorial_marker()
 	_build_hp_bar()
 	_build_pick_area()
 	_update_hp_bar()
@@ -67,6 +68,16 @@ func set_selected(selected: bool) -> void:
 	var outline := get_node_or_null("SelectionOutline") as MeshInstance3D
 	if outline != null:
 		outline.visible = selected
+
+
+func set_tutorial_highlight(enabled: bool) -> void:
+	var active: bool = enabled and visual_hp > 0
+	var ring := get_node_or_null("TutorialRing") as MeshInstance3D
+	if ring != null:
+		ring.visible = active
+	var marker := get_node_or_null("TutorialMarker") as MeshInstance3D
+	if marker != null:
+		marker.visible = active
 
 
 func pick() -> void:
@@ -301,6 +312,35 @@ func _build_selection_outline() -> void:
 	outline.material_override = _material(PLAYER_GOLD if team == &"player" else ENEMY_OUTLINE, true)
 	outline.visible = false
 	add_child(outline)
+	var tutorial := MeshInstance3D.new()
+	tutorial.name = "TutorialRing"
+	var tutorial_ring := TorusMesh.new()
+	tutorial_ring.inner_radius = 0.5
+	tutorial_ring.outer_radius = 0.58
+	tutorial.mesh = tutorial_ring
+	tutorial.position.y = BOARD_GROUND_Y
+	tutorial.scale.y = 0.1
+	tutorial.material_override = _material(Color("ffd35a"), true)
+	tutorial.visible = false
+	add_child(tutorial)
+
+
+func _build_tutorial_marker() -> void:
+	var marker := MeshInstance3D.new()
+	marker.name = "TutorialMarker"
+	var prism := PrismMesh.new()
+	prism.size = Vector3(0.28, 0.34, 0.28)
+	marker.mesh = prism
+	marker.rotation.x = PI
+	marker.position.y = maxf(1.9, production_visual_bounds.end.y + 0.7)
+	var material := _material(Color("ffd35a"))
+	material.emission_enabled = true
+	material.emission = Color("ffb52e")
+	material.emission_energy_multiplier = 1.2
+	material.no_depth_test = true
+	marker.material_override = material
+	marker.visible = false
+	add_child(marker)
 
 
 func _build_hp_bar() -> void:

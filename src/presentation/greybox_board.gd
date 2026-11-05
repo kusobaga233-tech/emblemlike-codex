@@ -13,6 +13,9 @@ const TERRAIN_COLORS := {
 }
 const MOVE_COLOR := Color(0.20, 0.70, 1.0, 0.48)
 const ATTACK_COLOR := Color(1.0, 0.22, 0.25, 0.48)
+const RESONANCE_COLOR := Color(1.0, 0.76, 0.22, 0.5)
+const THREAT_ATTACK_COLOR := Color(0.95, 0.16, 0.20, 0.34)
+const THREAT_MOVE_COLOR := Color(1.0, 0.58, 0.18, 0.36)
 const ENVIRONMENT_KIT_PATH := "res://assets/production/environment/chapter_one_observatory_kit.glb"
 
 var board_width: int = 0
@@ -27,10 +30,14 @@ func build(chapter: Variant) -> void:
 	var terrain_root := _ensure_root("Terrain")
 	var move_root := _ensure_root("MoveOverlay")
 	var attack_root := _ensure_root("AttackOverlay")
+	var resonance_root := _ensure_root("ResonanceOverlay")
+	var threat_root := _ensure_root("ThreatOverlay")
 	var decor_root := _ensure_root("EnvironmentDecor")
 	_clear_children(terrain_root)
 	_clear_children(move_root)
 	_clear_children(attack_root)
+	_clear_children(resonance_root)
+	_clear_children(threat_root)
 	_clear_children(decor_root)
 	_load_environment_meshes()
 	board_width = 0 if chapter == null else maxi(0, int(chapter.width))
@@ -51,6 +58,18 @@ func show_move_cells(cells: Array) -> void:
 
 func show_attack_cells(cells: Array) -> void:
 	_show_overlay(_ensure_root("AttackOverlay"), cells, ATTACK_COLOR, "Attack")
+
+
+func show_resonance_cells(cells: Array) -> void:
+	_show_overlay(_ensure_root("ResonanceOverlay"), cells, RESONANCE_COLOR, "Resonance")
+
+
+func show_threat_cells(move_cells: Array, attack_cells: Array) -> void:
+	var threat_root := _ensure_root("ThreatOverlay")
+	var attack_root := _ensure_child_root(threat_root, "Attack")
+	var move_root := _ensure_child_root(threat_root, "Move")
+	_show_overlay_at(attack_root, attack_cells, THREAT_ATTACK_COLOR, "ThreatAttack", 0.185)
+	_show_overlay_at(move_root, move_cells, THREAT_MOVE_COLOR, "ThreatMove", 0.205)
 
 
 func pick_cell(position: Vector2i) -> void:
@@ -265,6 +284,10 @@ func _on_cell_mouse_entered(grid_position: Vector2i) -> void:
 
 
 func _show_overlay(root: Node3D, cells: Array, color: Color, prefix: String) -> void:
+	_show_overlay_at(root, cells, color, prefix, 0.23)
+
+
+func _show_overlay_at(root: Node3D, cells: Array, color: Color, prefix: String, height: float) -> void:
 	_clear_children(root)
 	for index: int in cells.size():
 		var cell: Vector2i = cells[index]
@@ -273,7 +296,7 @@ func _show_overlay(root: Node3D, cells: Array, color: Color, prefix: String) -> 
 		var mesh := BoxMesh.new()
 		mesh.size = Vector3(0.82, 0.035, 0.82)
 		marker.mesh = mesh
-		marker.position = Vector3(cell.x, 0.23 + float(index % 2) * 0.002, cell.y)
+		marker.position = Vector3(cell.x, height + float(index % 2) * 0.002, cell.y)
 		marker.material_override = _material(color, true)
 		marker.set_meta("grid_position", cell)
 		root.add_child(marker)
@@ -287,6 +310,17 @@ func _ensure_root(node_name: String) -> Node3D:
 	var root := Node3D.new()
 	root.name = node_name
 	add_child(root)
+	_assign_scene_owner(root)
+	return root
+
+
+func _ensure_child_root(parent: Node3D, node_name: String) -> Node3D:
+	var existing := parent.get_node_or_null(node_name) as Node3D
+	if existing != null:
+		return existing
+	var root := Node3D.new()
+	root.name = node_name
+	parent.add_child(root)
 	_assign_scene_owner(root)
 	return root
 

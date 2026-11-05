@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/scenes/battle/battle_scene.gd" id="1_scene"]
 [ext_resource type="Script" path="res://src/presentation/greybox_board.gd" id="2_board"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://src/presentation/combat_vfx_director.gd" id="7_vfx"]
 
 [ext_resource type="PackedScene" path="res://src/ui/enemy_inspection_panel.tscn" id="8_inspection"]
+[ext_resource type="PackedScene" path="res://src/ui/tutorial_panel.tscn" id="9_tutorial"]
 
 [sub_resource type="Environment" id="Environment_battle"]
 background_mode = 1
@@ -67,3 +68,5 @@ offset_bottom = 220.0
 offset_left = 400.0
 offset_top = 16.0
 offset_right = 700.0
+
+[node name="TutorialPanel" parent="." instance=ExtResource("9_tutorial")]

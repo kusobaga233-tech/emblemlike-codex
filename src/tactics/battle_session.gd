@@ -90,6 +90,10 @@ func resonance_value() -> int:
 	return resonance_state.value
 
 
+func board_snapshot() -> Dictionary:
+	return _board.duplicate(true)
+
+
 func reachable_cells_for_selected() -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	if battle_status != &"ongoing" or turn_state.phase != &"player" or selected_unit_id == &"":
@@ -321,7 +325,7 @@ func _use_resonance_selected(partner_id: StringName, target_id: StringName) -> D
 	if not _is_living_team_unit(target, &"enemy"): return _reject(&"invalid_target")
 	if GridRulesScript.manhattan(actor.grid_position, target.grid_position) not in actor.definition.ranges: return _reject(&"out_of_range")
 	if resonance_state.value != 100: return _reject(&"insufficient_resonance")
-	var damage: int = maxi(1, actor.definition.attack + partner.definition.attack - target.definition.defense)
+	var damage: int = ResonanceStateScript.pair_damage(actor, partner, target)
 	var events: Array[Dictionary] = [BattleEventScript.state_changed(&"resonance_started", actor.instance_id, target.instance_id, {"partner_id": partner.instance_id})]
 	resonance_state.try_spend_pair(actor, partner)
 	events.append(BattleEventScript.state_changed(&"resonance_changed", actor.instance_id, target.instance_id, {"from": 100, "to": 0, "partner_id": partner.instance_id}))

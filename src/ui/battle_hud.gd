@@ -3,6 +3,7 @@ extends Control
 
 signal command_selected(command: StringName)
 signal result_requested(path: String, summary: Dictionary)
+signal threat_toggled(enabled: bool)
 
 const RESULT_PATH := "res://src/scenes/result/result.tscn"
 const DEFAULT_WIDTH := 388.0
@@ -18,8 +19,9 @@ var _result_was_requested: bool = false
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(_update_responsive_layout)
-	for button: Button in [$Layout/Commands/Move, $Layout/Commands/Attack, $Layout/Commands/Support, $Layout/Commands/Wait, $Layout/Commands/EndPhase]:
+	for button: Button in [$Layout/Commands/Move, $Layout/Commands/Attack, $Layout/Commands/Support, $Layout/Commands/Resonance, $Layout/Commands/Wait, $Layout/Commands/EndPhase]:
 		button.pressed.connect(_emit_command.bind(StringName(button.name.to_snake_case())))
+	$Layout/Threat.toggled.connect(_on_threat_toggled)
 	$Layout/Commands/Move.call_deferred("grab_focus")
 	_refresh()
 	_update_responsive_layout()
@@ -73,6 +75,22 @@ func _emit_command(command: StringName) -> void:
 	command_selected.emit(command)
 
 
+func _on_threat_toggled(enabled: bool) -> void:
+	_update_threat_text(enabled)
+	threat_toggled.emit(enabled)
+
+
+func set_threat_enabled(enabled: bool) -> void:
+	if is_node_ready():
+		$Layout/Threat.set_pressed_no_signal(enabled)
+		_update_threat_text(enabled)
+
+
+func _update_threat_text(enabled: bool) -> void:
+	if is_node_ready():
+		$Layout/Threat.text = "威胁范围：开" if enabled else "威胁范围：关"
+
+
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		command_selected.emit(&"cancel")
@@ -105,8 +123,8 @@ func _refresh() -> void:
 	if not is_node_ready() or _session == null:
 		return
 	var chapter: Variant = _session.chapter
-	$Layout/Objective.text = "胜利条件：%s" % _objective_text(chapter)
-	$Layout/Turn.text = "回合：%d" % _session.turn_state.round
+	$Layout/Objective.text = _objective_text(chapter)
+	$Layout/Turn.text = _turn_text(chapter)
 	$Layout/Phase.text = "阶段：%s" % _phase_text(_session.turn_state.phase)
 	$Layout/Resonance.text = "星誓共鸣：%d%%" % _resonance_value()
 	var selected: Variant = _find_unit(_session.selected_unit_id)
@@ -126,6 +144,8 @@ func _refresh() -> void:
 	$Layout/Commands/Wait.disabled = not ready
 	$Layout/Commands/Support.visible = selected != null and selected.definition.id == &"elio"
 	$Layout/Commands/Support.disabled = not ready
+	$Layout/Commands/Resonance.visible = selected != null and selected.definition.id == &"aurelia"
+	$Layout/Commands/Resonance.disabled = not ready or _resonance_value() != 100
 	$Layout/Commands/EndPhase.disabled = _input_locked or _session.battle_status != &"ongoing" or _session.turn_state.phase != &"player"
 
 
@@ -147,20 +167,59 @@ func show_command_result(result: Dictionary) -> void:
 		&"invalid_target": "请选择相邻、存活且受伤的友军", &"not_enemy": "攻击需要选择敌军", &"no_ready_selection": "请先选择尚未行动的我方角色",
 		&"no_selection": "请先选择角色", &"unit_acted": "该角色本回合已行动", &"already_moved": "已移动，右键可撤销未提交移动",
 		&"occupied": "目标地块已被占据", &"origin_occupied": "原格已被占据，无法撤销", &"wrong_phase": "请等待我方阶段",
-		&"presentation_busy": "正在播放行动，请稍候", &"battle_over": "战斗已经结束", &"no_support_target": "请先选择治疗目标", &"no_attack_target": "请先点击锁定攻击目标"
+		&"presentation_busy": "正在播放行动，请稍候", &"battle_over": "战斗已经结束", &"no_support_target": "请先选择治疗目标", &"no_attack_target": "请先点击锁定攻击目标",
+		&"not_resonance_leader": "只有奥蕾莉亚可以发动星誓共鸣", &"insufficient_resonance": "星誓共鸣尚未达到 100%",
+		&"no_partner": "需要相邻且未行动的友军作为共鸣伙伴", &"invalid_partner": "请选择相邻、存活且未行动的友军",
+		&"no_resonance_target": "请先选择共鸣目标"
 	}
 	show_feedback(String(messages.get(StringName(result.get("reason", &"")), "当前操作不可用")))
 
 
 func _objective_text(chapter: Variant) -> String:
+	var lines: Array[String] = []
+	lines.append("胜利条件：" + _victory_text(chapter))
+	var failure := _failure_text(chapter)
+	if not failure.is_empty():
+		lines.append("失败条件：" + failure)
+	return "\n".join(lines)
+
+
+func _victory_text(chapter: Variant) -> String:
 	if chapter == null or chapter.objectives.is_empty():
 		return "击败所有敌人"
-	var objective: Dictionary = chapter.objectives[0]
-	if StringName(objective.get("type", &"")) == &"unit_defeated":
-		var target: Variant = _find_unit(StringName(objective.get("target_id", &"")))
-		if target != null:
-			return "击败%s" % target.definition.display_name
-	return String(objective.get("description", "完成本章目标"))
+	var parts: Array[String] = []
+	for objective: Dictionary in chapter.objectives:
+		parts.append(_condition_text(objective, true))
+	return "；".join(parts)
+
+
+func _failure_text(chapter: Variant) -> String:
+	if chapter == null or chapter.failure_conditions.is_empty():
+		return ""
+	var parts: Array[String] = []
+	for condition: Dictionary in chapter.failure_conditions:
+		parts.append(_condition_text(condition, false))
+	return "；".join(parts)
+
+
+func _condition_text(condition: Dictionary, show_progress: bool) -> String:
+	var condition_type := StringName(condition.get("type", &""))
+	if condition_type != &"unit_defeated":
+		return String(condition.get("description", "完成本章目标"))
+	var target: Variant = _find_unit(StringName(condition.get("target_id", &"")))
+	if target == null:
+		return String(condition.get("description", "目标单位"))
+	var display_name := String(target.definition.display_name)
+	if show_progress:
+		return "击败%s（%d/1）" % [display_name, 1 if target.current_hp <= 0 else 0]
+	return "%s阵亡" % display_name
+
+
+func _turn_text(chapter: Variant) -> String:
+	var limit := 0 if chapter == null else int(chapter.turn_limit)
+	if limit > 0:
+		return "回合：%d / %d" % [_session.turn_state.round, limit]
+	return "回合：%d" % _session.turn_state.round
 
 
 func _phase_text(phase: StringName) -> String:

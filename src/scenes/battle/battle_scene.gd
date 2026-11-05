@@ -6,15 +6,21 @@ const CHAPTER_ONE_SCRIPT := preload("res://src/content/chapter_one.gd")
 const GREYBOX_UNIT_SCRIPT := preload("res://src/presentation/greybox_unit.gd")
 const SPRITE_PRESENTATION := preload("res://src/presentation/sprite_combat_presentation.gd")
 const COMBAT_VFX_DIRECTOR_SCRIPT := preload("res://src/presentation/combat_vfx_director.gd")
+const THREAT_RULES_SCRIPT := preload("res://src/core/threat_rules.gd")
+const TUTORIAL_FLOW_SCRIPT := preload("res://src/tutorial/tutorial_flow.gd")
+const RESONANCE_STATE_SCRIPT := preload("res://src/core/resonance_state.gd")
 
 var chapter: Variant
 var session: Variant
+var tutorial: Variant
 var _configured: bool = false
 var last_command_result: Dictionary = {}
 var interaction_mode: StringName = &"idle"
 var pending_target_id: StringName = &""
+var pending_partner_id: StringName = &""
 var _attack_target_locked := false
 var _inspected_unit_id: StringName = &""
+var _threat_enabled := false
 var _phase_advancing: bool = false
 var pointer_input_count: int = 0
 var _pending_result: Dictionary = {}
@@ -120,6 +126,12 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 	var command_callable := Callable(self, "_on_hud_command")
 	if not get_node("BattleHud").command_selected.is_connected(command_callable):
 		get_node("BattleHud").command_selected.connect(command_callable)
+	var threat_callable := Callable(self, "_on_threat_toggled")
+	if not get_node("BattleHud").threat_toggled.is_connected(threat_callable):
+		get_node("BattleHud").threat_toggled.connect(threat_callable)
+	_threat_enabled = false
+	get_node("BattleHud").set_threat_enabled(false)
+	get_node("GreyboxBoard").show_threat_cells([], [])
 	var result_callable := Callable(self, "_on_hud_result_requested")
 	if not get_node("BattleHud").result_requested.is_connected(result_callable):
 		get_node("BattleHud").result_requested.connect(result_callable)
@@ -130,8 +142,11 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		panel.preview_cancelled.connect(_cancel_action_preview)
 	if not panel.attack_confirmed.is_connected(_confirm_attack):
 		panel.attack_confirmed.connect(_confirm_attack)
+	if not panel.resonance_confirmed.is_connected(_confirm_resonance):
+		panel.resonance_confirmed.connect(_confirm_resonance)
 	interaction_mode = &"idle"
 	pending_target_id = &""
+	pending_partner_id = &""
 	_attack_target_locked = false
 	var board_pick_callable := Callable(self, "_on_cell_picked")
 	if not get_node("GreyboxBoard").cell_picked.is_connected(board_pick_callable):
@@ -139,10 +154,18 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 	var board_hover_callable := Callable(self, "_on_cell_hovered")
 	if not get_node("GreyboxBoard").cell_hovered.is_connected(board_hover_callable):
 		get_node("GreyboxBoard").cell_hovered.connect(board_hover_callable)
+	var tutorial_panel := get_node("TutorialPanel")
+	if not tutorial_panel.skip_requested.is_connected(_on_tutorial_skip):
+		tutorial_panel.skip_requested.connect(_on_tutorial_skip)
+	tutorial = TUTORIAL_FLOW_SCRIPT.new()
+	tutorial.step_changed.connect(_on_tutorial_step_changed)
+	tutorial.finished.connect(_on_tutorial_finished)
 	_assign_owner_recursive(get_node("BattleHud"))
 	_assign_owner_recursive(get_node("CombatForecastPanel"))
 	_assign_owner_recursive(get_node("EnemyInspectionPanel"))
+	_assign_owner_recursive(get_node("TutorialPanel"))
 	_configured = true
+	_refresh_tutorial()
 
 
 func get_unit_node(instance_id: StringName) -> Node3D:
@@ -202,6 +225,10 @@ func handle_board_pick(kind: StringName, value: Variant) -> bool:
 		pending_target_id = unit_id
 		get_node("CombatForecastPanel").show_support(last_command_result.forecast)
 		return true
+	if interaction_mode == &"resonance_partner":
+		return _pick_resonance_partner(unit_id)
+	if interaction_mode == &"resonance_target":
+		return _pick_resonance_target(unit_id)
 	if interaction_mode == &"attack":
 		last_command_result = session.forecast_attack(unit_id)
 		get_node("BattleHud").show_command_result(last_command_result)
@@ -220,6 +247,8 @@ func handle_board_pick(kind: StringName, value: Variant) -> bool:
 
 
 func handle_board_hover(unit_id: StringName) -> bool:
+	if interaction_mode == &"resonance_target":
+		return _hover_resonance_target(unit_id)
 	if interaction_mode != &"attack" or session == null or combat_presentation_busy():
 		return false
 	if _attack_target_locked: return true
@@ -342,7 +371,131 @@ func _on_inspection_window_exited() -> void:
 	_clear_enemy_inspection()
 
 
+func _on_threat_toggled(enabled: bool) -> void:
+	_threat_enabled = enabled
+	_refresh_threat()
+
+
+func _refresh_threat() -> void:
+	var board := get_node_or_null("GreyboxBoard")
+	if board == null:
+		return
+	if (
+		not _threat_enabled
+		or session == null
+		or session.battle_status != &"ongoing"
+		or session.turn_state.phase != &"player"
+		or _phase_advancing
+		or combat_presentation_busy()
+	):
+		board.show_threat_cells([], [])
+		return
+	var threat: Dictionary = THREAT_RULES_SCRIPT.compute(session.units, session.board_snapshot())
+	board.show_threat_cells(threat.move, threat.attack)
+
+
+func _on_tutorial_step_changed(_step: Dictionary) -> void:
+	_refresh_tutorial()
+
+
+func _on_tutorial_finished() -> void:
+	_refresh_tutorial()
+
+
+func _on_tutorial_skip() -> void:
+	if tutorial != null:
+		tutorial.skip()
+	_refresh_tutorial()
+
+
+func _refresh_tutorial() -> void:
+	var panel := get_node_or_null("TutorialPanel")
+	if panel == null:
+		return
+	if tutorial == null or not tutorial.is_active() or session == null or session.battle_status != &"ongoing":
+		panel.clear()
+		_clear_tutorial_highlights()
+		return
+	var step: Dictionary = tutorial.current_step()
+	panel.show_step(step, tutorial.step_number(), tutorial.step_count(), _tutorial_extra(step))
+	_apply_tutorial_highlight(StringName(step.get("id", &"")))
+
+
+func _tutorial_extra(step: Dictionary) -> String:
+	var step_id := StringName(step.get("id", &""))
+	if step_id not in [&"heal", &"resonance"]:
+		return ""
+	var value: int = session.resonance_value()
+	var text := "当前星誓共鸣：%d%% / 100%%" % value
+	if value < 100:
+		text += "（每次治疗 +25%）"
+	return text
+
+
+func _apply_tutorial_highlight(step_id: StringName) -> void:
+	_clear_tutorial_highlights()
+	var target_id := _tutorial_target_id(step_id)
+	if target_id == &"":
+		return
+	var unit := get_unit_node(target_id)
+	if unit != null and unit.has_method("set_tutorial_highlight"):
+		unit.set_tutorial_highlight(true)
+
+
+func _clear_tutorial_highlights() -> void:
+	var units := get_node_or_null("Units")
+	if units == null:
+		return
+	for child: Node in units.get_children():
+		if child.has_method("set_tutorial_highlight"):
+			child.set_tutorial_highlight(false)
+
+
+func _tutorial_target_id(step_id: StringName) -> StringName:
+	match step_id:
+		&"move":
+			return _living_unit_id(&"aurelia-1") if _living_unit_id(&"aurelia-1") != &"" else _first_ready_player_id()
+		&"attack":
+			return _living_unit_id(&"blade-1") if _living_unit_id(&"blade-1") != &"" else _first_living_enemy_id()
+		&"heal":
+			return _living_unit_id(&"elio-1")
+		&"resonance":
+			return _living_unit_id(&"aurelia-1")
+	return &""
+
+
+func _living_unit_id(instance_id: StringName) -> StringName:
+	var unit: Variant = session._find_unit(instance_id) if session != null else null
+	if unit != null and unit.current_hp > 0:
+		return instance_id
+	return &""
+
+
+func _first_ready_player_id() -> StringName:
+	if session == null:
+		return &""
+	for unit: Variant in session.units:
+		if unit.definition.team == &"player" and unit.current_hp > 0 and not unit.acted:
+			return unit.instance_id
+	return &""
+
+
+func _first_living_enemy_id() -> StringName:
+	if session == null:
+		return &""
+	for unit: Variant in session.units:
+		if unit.definition.team == &"enemy" and unit.current_hp > 0:
+			return unit.instance_id
+	return &""
+
+
 func _clear_forecast_target() -> void:
+	if interaction_mode == &"resonance_target":
+		if _attack_target_locked:
+			return
+		pending_target_id = &""
+		get_node("CombatForecastPanel").show_forecast(null)
+		return
 	if interaction_mode != &"attack" or _attack_target_locked:
 		return
 	pending_target_id = &""
@@ -353,9 +506,12 @@ func cancel_interaction() -> void:
 	_clear_enemy_inspection()
 	interaction_mode = &"idle"
 	pending_target_id = &""
+	pending_partner_id = &""
 	_attack_target_locked = false
+	get_node("BattleHud").show_feedback("")
 	get_node("GreyboxBoard").show_move_cells([])
 	get_node("GreyboxBoard").show_attack_cells([])
+	get_node("GreyboxBoard").show_resonance_cells([])
 	get_node("CombatForecastPanel").show_forecast(null)
 
 
@@ -375,6 +531,11 @@ func _on_events_flushed(events: Array[Dictionary]) -> void:
 		presenter.enqueue(events)
 	else:
 		for event in events: _present_event(event)
+	_refresh_threat()
+	if tutorial != null:
+		for event: Dictionary in events:
+			tutorial.observe_event(event, session)
+		_refresh_tutorial()
 
 
 func _present_event(event: Dictionary) -> void:
@@ -405,6 +566,7 @@ func _on_sprite_playback_finished() -> void:
 	var camera := get_node_or_null("TacticalCamera")
 	if camera != null:
 		camera.controls_enabled = _camera_controls_before_presentation
+	_refresh_threat()
 	if not _pending_result.is_empty():
 		var pending := _pending_result.duplicate(true)
 		_pending_result.clear()
@@ -427,6 +589,8 @@ func _disconnect_session() -> void:
 func _on_hud_command(command: Variant) -> void:
 	_route_hud_command(command)
 	get_node("BattleHud").show_command_result(last_command_result)
+	if last_command_result.get("ok", false) and last_command_result.has("hint"):
+		get_node("BattleHud").show_feedback(String(last_command_result["hint"]))
 
 
 func _route_hud_command(command: Variant) -> void:
@@ -450,6 +614,8 @@ func _route_hud_command(command: Variant) -> void:
 				_enter_attack_mode()
 		&"support":
 			_enter_support_mode()
+		&"resonance":
+			_enter_resonance_mode()
 		&"move":
 			if command is Dictionary and command.get("destination") is Vector2i:
 				last_command_result = session.move_selected(command.get("destination"))
@@ -515,6 +681,153 @@ func _enter_support_mode() -> void:
 	interaction_mode = &"support"
 	last_command_result = {"ok": true, "mode": &"support"}
 	get_node("GreyboxBoard").show_move_cells(_attack_cells(selected))
+
+
+func _enter_resonance_mode() -> void:
+	var selected: Variant = _selected_unit()
+	if selected == null or selected.acted or session.turn_state.phase != &"player":
+		last_command_result = {"ok": false, "reason": &"no_ready_selection"}
+		return
+	if selected.definition.id != &"aurelia":
+		last_command_result = {"ok": false, "reason": &"not_resonance_leader"}
+		return
+	if session.resonance_value() != 100:
+		last_command_result = {"ok": false, "reason": &"insufficient_resonance"}
+		return
+	var partners := _resonance_partner_ids(selected)
+	if partners.is_empty():
+		last_command_result = {"ok": false, "reason": &"no_partner"}
+		return
+	cancel_interaction()
+	interaction_mode = &"resonance_partner"
+	var cells: Array = []
+	for partner_id: StringName in partners:
+		var partner: Variant = session._find_unit(partner_id)
+		cells.append(Vector2i(partner.grid_position.x, partner.grid_position.y))
+	get_node("GreyboxBoard").show_resonance_cells(cells)
+	last_command_result = {
+		"ok": true,
+		"mode": &"resonance_partner",
+		"partners": partners,
+		"hint": "选择相邻且未行动的友军作为共鸣伙伴",
+	}
+
+
+func _resonance_partner_ids(leader: Variant) -> Array[StringName]:
+	var partners: Array[StringName] = []
+	if leader == null or session == null:
+		return partners
+	for unit: Variant in session.units:
+		if unit == null or unit.definition == null or unit.grid_position == null:
+			continue
+		if unit == leader or unit.instance_id == leader.instance_id:
+			continue
+		if unit.definition.team != &"player" or unit.current_hp <= 0 or unit.acted:
+			continue
+		if absi(unit.grid_position.x - leader.grid_position.x) + absi(unit.grid_position.y - leader.grid_position.y) == 1:
+			partners.append(unit.instance_id)
+	return partners
+
+
+func _pick_resonance_partner(partner_id: StringName) -> bool:
+	var leader: Variant = _selected_unit()
+	if leader == null or session.resonance_value() != 100:
+		cancel_interaction()
+		return _reject_resonance(&"insufficient_resonance")
+	if partner_id not in _resonance_partner_ids(leader):
+		return _reject_resonance(&"invalid_partner")
+	pending_partner_id = partner_id
+	interaction_mode = &"resonance_target"
+	get_node("GreyboxBoard").show_resonance_cells(_attack_cells(leader))
+	var partner: Variant = session._find_unit(partner_id)
+	last_command_result = {"ok": true, "mode": &"resonance_target", "hint": "选择射程内敌军"}
+	get_node("BattleHud").show_feedback("伙伴：%s。请选择射程内敌军" % partner.definition.display_name)
+	return true
+
+
+func _hover_resonance_target(target_id: StringName) -> bool:
+	if _attack_target_locked:
+		return true
+	var leader: Variant = _selected_unit()
+	var partner: Variant = session._find_unit(pending_partner_id) if session != null else null
+	var target: Variant = session._find_unit(target_id) if session != null else null
+	if not _is_resonance_target(leader, partner, target):
+		pending_target_id = &""
+		get_node("CombatForecastPanel").show_forecast(null)
+		return false
+	pending_target_id = target_id
+	get_node("CombatForecastPanel").show_resonance(_resonance_preview(leader, partner, target))
+	return true
+
+
+func _pick_resonance_target(target_id: StringName) -> bool:
+	var leader: Variant = _selected_unit()
+	var partner: Variant = session._find_unit(pending_partner_id) if session != null else null
+	var target: Variant = session._find_unit(target_id) if session != null else null
+	if partner == null or not _is_resonance_partner(leader, partner):
+		cancel_interaction()
+		return _reject_resonance(&"invalid_partner")
+	if not _is_resonance_target(leader, partner, target):
+		pending_target_id = &""
+		get_node("CombatForecastPanel").show_forecast(null)
+		return _reject_resonance(&"out_of_range")
+	pending_target_id = target_id
+	_attack_target_locked = true
+	get_node("CombatForecastPanel").show_resonance(_resonance_preview(leader, partner, target))
+	get_node("BattleHud").show_feedback("")
+	return true
+
+
+func _is_resonance_partner(leader: Variant, partner: Variant) -> bool:
+	if leader == null or partner == null or session == null:
+		return false
+	if partner.definition == null or partner.grid_position == null:
+		return false
+	if partner.definition.team != &"player" or partner.current_hp <= 0 or partner.acted:
+		return false
+	if partner.instance_id == leader.instance_id:
+		return false
+	return absi(partner.grid_position.x - leader.grid_position.x) + absi(partner.grid_position.y - leader.grid_position.y) == 1
+
+
+func _is_resonance_target(leader: Variant, partner: Variant, target: Variant) -> bool:
+	if not _is_resonance_partner(leader, partner) or target == null:
+		return false
+	if target.definition == null or target.grid_position == null:
+		return false
+	if target.definition.team != &"enemy" or target.current_hp <= 0:
+		return false
+	var distance := absi(leader.grid_position.x - target.grid_position.x) + absi(leader.grid_position.y - target.grid_position.y)
+	return distance in leader.definition.ranges
+
+
+func _resonance_preview(leader: Variant, partner: Variant, target: Variant) -> Dictionary:
+	var damage: int = RESONANCE_STATE_SCRIPT.pair_damage(leader, partner, target)
+	return {
+		"target_name": target.definition.display_name,
+		"partner_name": partner.definition.display_name,
+		"damage": damage,
+		"target_hp": target.current_hp,
+		"remaining_hp": maxi(0, target.current_hp - damage),
+		"max_hp": target.definition.max_hp,
+	}
+
+
+func _reject_resonance(reason: StringName) -> bool:
+	last_command_result = {"ok": false, "reason": reason}
+	get_node("BattleHud").show_command_result(last_command_result)
+	return false
+
+
+func _confirm_resonance() -> void:
+	if combat_presentation_busy():
+		return
+	if interaction_mode != &"resonance_target" or not _attack_target_locked or pending_partner_id == &"" or pending_target_id == &"":
+		last_command_result = {"ok": false, "reason": &"no_resonance_target"}
+	else:
+		last_command_result = session.use_resonance_selected(pending_partner_id, pending_target_id)
+	cancel_interaction()
+	get_node("BattleHud").show_command_result(last_command_result)
 
 
 func _confirm_support() -> void:
@@ -585,6 +898,7 @@ func _complete_enemy_phase() -> void:
 	if session != null and session.battle_status == &"ongoing" and session.turn_state.phase == &"enemy":
 		last_command_result = session.advance_enemy_phase()
 	_phase_advancing = false
+	_refresh_threat()
 
 
 func _clear_units() -> void:
