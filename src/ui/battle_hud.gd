@@ -62,6 +62,9 @@ func _update_responsive_layout() -> void:
 	var forecast := get_parent().get_node_or_null("CombatForecastPanel")
 	if forecast is Control:
 		forecast.position.x = panel_width + 12.0
+	var inspection := get_parent().get_node_or_null("EnemyInspectionPanel")
+	if inspection is Control:
+		inspection.position.x = panel_width + 12.0
 	$Layout/Feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	$Layout/MoveStatus.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 

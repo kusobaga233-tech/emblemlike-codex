@@ -14,6 +14,7 @@ var last_command_result: Dictionary = {}
 var interaction_mode: StringName = &"idle"
 var pending_target_id: StringName = &""
 var _attack_target_locked := false
+var _inspected_unit_id: StringName = &""
 var _phase_advancing: bool = false
 var pointer_input_count: int = 0
 var _pending_result: Dictionary = {}
@@ -22,6 +23,9 @@ var _camera_controls_before_presentation := true
 signal result_requested(path: String, summary: Dictionary)
 
 func _exit_tree() -> void:
+	var window := get_window()
+	if window != null and window.mouse_exited.is_connected(_on_inspection_window_exited):
+		window.mouse_exited.disconnect(_on_inspection_window_exited)
 	var sprite_presenter := get_node_or_null("SpriteCombatPresentation")
 	if sprite_presenter != null:
 		if sprite_presenter.event_due.is_connected(Callable(self, "_present_event")):
@@ -47,11 +51,15 @@ func _exit_tree() -> void:
 
 
 func _ready() -> void:
+	var window := get_window()
+	if window != null and not window.mouse_exited.is_connected(_on_inspection_window_exited):
+		window.mouse_exited.connect(_on_inspection_window_exited)
 	if not _configured:
 		setup_battle(CHAPTER_ONE_SCRIPT.build())
 
 
 func setup_battle(initial_chapter: Variant, injected_session: Variant = null) -> void:
+	_clear_enemy_inspection()
 	_disconnect_session()
 	_pending_result.clear()
 	var presenter := get_node_or_null("SpriteCombatPresentation")
@@ -133,6 +141,7 @@ func setup_battle(initial_chapter: Variant, injected_session: Variant = null) ->
 		get_node("GreyboxBoard").cell_hovered.connect(board_hover_callable)
 	_assign_owner_recursive(get_node("BattleHud"))
 	_assign_owner_recursive(get_node("CombatForecastPanel"))
+	_assign_owner_recursive(get_node("EnemyInspectionPanel"))
 	_configured = true
 
 
@@ -280,10 +289,15 @@ func _on_unit_picked(unit_id: StringName) -> void:
 
 func _on_unit_hovered(unit_id: StringName) -> void:
 	pointer_input_count += 1
+	if interaction_mode in [&"idle", &"move"]:
+		_show_enemy_inspection(unit_id)
+	else:
+		_clear_enemy_inspection()
 	handle_board_hover(unit_id)
 
 
-func _on_unit_hover_exited(_unit_id: StringName) -> void:
+func _on_unit_hover_exited(unit_id: StringName) -> void:
+	if _inspected_unit_id == unit_id: _clear_enemy_inspection()
 	_clear_forecast_target()
 
 
@@ -293,7 +307,39 @@ func _on_cell_picked(position: Vector2i) -> void:
 
 
 func _on_cell_hovered(_position: Vector2i) -> void:
+	_clear_enemy_inspection()
 	_clear_forecast_target()
+
+
+func _show_enemy_inspection(unit_id: StringName) -> void:
+	if session == null or session.battle_status != &"ongoing" or _phase_advancing or combat_presentation_busy() or interaction_mode not in [&"idle", &"move"]:
+		_clear_enemy_inspection()
+		return
+	var unit: Variant = session._find_unit(unit_id)
+	var visual: Node3D = get_unit_node(unit_id)
+	if unit == null or unit.definition == null or unit.definition.team != &"enemy" or unit.current_hp <= 0 or visual == null or not visual.visible or visual.visual_hp <= 0:
+		_clear_enemy_inspection()
+		return
+	_inspected_unit_id = unit_id
+	var definition: Variant = unit.definition
+	get_node("EnemyInspectionPanel").show_enemy({
+		"name": definition.display_name, "role": definition.role,
+		"hp": visual.visual_hp, "max_hp": definition.max_hp,
+		"attack": definition.attack, "damage_type": definition.damage_type,
+		"defense": definition.defense, "resistance": definition.resistance,
+		"move": definition.move, "ranges": definition.ranges.duplicate(),
+		"hit": definition.hit, "critical": definition.critical, "acted": unit.acted,
+	})
+
+
+func _clear_enemy_inspection() -> void:
+	_inspected_unit_id = &""
+	var panel := get_node_or_null("EnemyInspectionPanel")
+	if panel != null: panel.clear()
+
+
+func _on_inspection_window_exited() -> void:
+	_clear_enemy_inspection()
 
 
 func _clear_forecast_target() -> void:
@@ -304,6 +350,7 @@ func _clear_forecast_target() -> void:
 
 
 func cancel_interaction() -> void:
+	_clear_enemy_inspection()
 	interaction_mode = &"idle"
 	pending_target_id = &""
 	_attack_target_locked = false
@@ -320,6 +367,7 @@ func combat_presentation_busy() -> bool:
 func _on_events_flushed(events: Array[Dictionary]) -> void:
 	var presenter := get_node("SpriteCombatPresentation")
 	if presenter.accepts(events):
+		_clear_enemy_inspection()
 		if not presenter.is_busy():
 			_camera_controls_before_presentation = get_node("TacticalCamera").controls_enabled
 		get_node("TacticalCamera").controls_enabled = false
@@ -349,6 +397,7 @@ func _present_event(event: Dictionary) -> void:
 		if moved != null and get_node("TacticalCamera").focus_target == moved:
 			get_node("TacticalCamera").begin_movement_follow(moved)
 	get_node("BattleHud").present_events(batch)
+	if _inspected_unit_id != &"": _show_enemy_inspection(_inspected_unit_id)
 
 
 func _on_sprite_playback_finished() -> void:
